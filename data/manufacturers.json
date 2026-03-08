@@ -1,0 +1,375 @@
+[
+  {
+    "slug": "james-hardie",
+    "name": "James Hardie",
+    "description": "Australia's leading manufacturer of fibre cement cladding, flooring and lining products. Built for Australian conditions with a 25-year warranty.",
+    "website": "https://www.jameshardie.com.au",
+    "phone": "13 11 03",
+    "country": "Australian Made",
+    "category": "Cladding & Lining",
+    "systems": [
+      {
+        "slug": "easylap",
+        "name": "EasyLap Panel",
+        "description": "A versatile fibre cement sheet panel system for exterior cladding. Available in multiple sheet sizes for various wall heights and applications.",
+        "thickness": "8.5mm",
+        "application": "External Cladding",
+        "warranty": "15 years",
+        "panels": [
+          {
+            "code": "404186",
+            "name": "EasyLap Panel 3000\u00d7900",
+            "length": 3000,
+            "width": 900,
+            "thickness": 8.5,
+            "uom": "EA"
+          },
+          {
+            "code": "404184",
+            "name": "EasyLap Panel 2440\u00d71200",
+            "length": 2440,
+            "width": 1200,
+            "thickness": 8.5,
+            "uom": "EA"
+          },
+          {
+            "code": "404185",
+            "name": "EasyLap Panel 3000\u00d71200",
+            "length": 3000,
+            "width": 1200,
+            "thickness": 8.5,
+            "uom": "EA"
+          },
+          {
+            "code": "404980",
+            "name": "EasyLap Panel 3600\u00d71200",
+            "length": 3600,
+            "width": 1200,
+            "thickness": 8.5,
+            "uom": "EA"
+          }
+        ],
+        "accessories": [
+          {
+            "code": "306100",
+            "name": "Hardie 9mm Alum Ext Square Corner 3000mm",
+            "length": 3000,
+            "uom": "EA"
+          },
+          {
+            "code": "305520",
+            "name": "Hardie 9mm Alum Int Corner 3000mm",
+            "length": 3000,
+            "uom": "EA"
+          },
+          {
+            "code": "305564",
+            "name": "Hardie 75\u00d775 COLORBOND Corner Flashing 3000mm",
+            "length": 3000,
+            "uom": "EA"
+          },
+          {
+            "code": "306104",
+            "name": "Hardie Horiz Express Jointer 3000mm",
+            "length": 3000,
+            "uom": "EA"
+          },
+          {
+            "code": "306110",
+            "name": "Hardie Horiz Express Connector",
+            "length": null,
+            "uom": "EA"
+          },
+          {
+            "code": "306105",
+            "name": "Hardie Base Trim 3000mm",
+            "length": 3000,
+            "uom": "EA"
+          },
+          {
+            "code": "306111",
+            "name": "Hardie Base Trim Connector",
+            "length": null,
+            "uom": "EA"
+          },
+          {
+            "code": "304560",
+            "name": "Hardie 50mm Foam Back Sealing Tape 25m",
+            "length": null,
+            "uom": "EA"
+          }
+        ]
+      },
+      {
+        "slug": "stria-cladding",
+        "name": "Stria Cladding",
+        "description": "Stackable fibre cement boards creating clean horizontal or vertical lines. Available in Smooth and Fine Texture finishes, 325mm and 405mm widths.",
+        "thickness": "14mm",
+        "application": "External Cladding",
+        "warranty": "25 years",
+        "panels": [
+          {
+            "code": "405504",
+            "name": "Stria Smooth 325mm 3000mm",
+            "length": 3000,
+            "width": 325,
+            "thickness": 14,
+            "texture": "Smooth",
+            "uom": "EA"
+          },
+          {
+            "code": "404063",
+            "name": "Stria Smooth 325mm 4200mm",
+            "length": 4200,
+            "width": 325,
+            "thickness": 14,
+            "texture": "Smooth",
+            "uom": "EA"
+          },
+          {
+            "code": "405505",
+            "name": "Stria Smooth 405mm 3000mm",
+            "length": 3000,
+            "width": 405,
+            "thickness": 14,
+            "texture": "Smooth",
+            "uom": "EA"
+          },
+          {
+            "code": "404413",
+            "name": "Stria Smooth 405mm 4200mm",
+            "length": 4200,
+            "width": 405,
+            "thickness": 14,
+            "texture": "Smooth",
+            "uom": "EA"
+          },
+          {
+            "code": "405571",
+            "name": "Stria Fine Texture 325mm 3000mm",
+            "length": 3000,
+            "width": 325,
+            "thickness": 14,
+            "texture": "Fine Texture",
+            "uom": "EA"
+          },
+          {
+            "code": "405570",
+            "name": "Stria Fine Texture 325mm 4200mm",
+            "length": 4200,
+            "width": 325,
+            "thickness": 14,
+            "texture": "Fine Texture",
+            "uom": "EA"
+          }
+        ],
+        "accessories": [
+          {
+            "code": "305519",
+            "name": "Hardie 14mm Alum External Corner 3000mm",
+            "length": 3000,
+            "uom": "EA"
+          },
+          {
+            "code": "305518",
+            "name": "Hardie 14mm Alum Internal Corner 3000mm",
+            "length": 3000,
+            "uom": "EA"
+          },
+          {
+            "code": "306128",
+            "name": "Hardie 14mm Alum Trimline Joint Flashing 3000mm",
+            "length": 3000,
+            "uom": "EA"
+          },
+          {
+            "code": "304560",
+            "name": "Hardie 50mm Foam Back Sealing Tape 25m",
+            "length": null,
+            "uom": "EA"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "bgc",
+    "name": "BGC",
+    "description": "Western Australian manufacturer of fibre cement and building products including cladding, flooring and wet area lining.",
+    "website": "https://www.bgc.com.au",
+    "phone": "08 9411 0000",
+    "country": "Australian Made \u00b7 WA",
+    "category": "Cladding & Lining",
+    "systems": []
+  },
+  {
+    "slug": "csr",
+    "name": "CSR",
+    "description": "Leading Australian building products manufacturer. Home of Bradford insulation, Gyprock plasterboard, and Cemintel fibre cement.",
+    "website": "https://www.csr.com.au",
+    "phone": "1300 368 474",
+    "country": "Australian Made",
+    "category": "Insulation & Plasterboard",
+    "systems": []
+  },
+  {
+    "slug": "hebel",
+    "name": "Hebel",
+    "description": "Autoclaved Aerated Concrete (AAC) panels and blocks for walls, floors and roofs. Lightweight, strong and fire resistant.",
+    "website": "https://www.hebel.com.au",
+    "phone": "1300 443 235",
+    "country": "Australian Made",
+    "category": "Structural Walling",
+    "systems": []
+  },
+  {
+    "slug": "knauf",
+    "name": "Knauf",
+    "description": "Global manufacturer of plasterboard, insulation and building systems. Earthwool insulation and plasterboard systems.",
+    "website": "https://www.knauf.com.au",
+    "phone": "1800 645 374",
+    "country": "Global \u00b7 AU Operations",
+    "category": "Insulation & Plasterboard",
+    "systems": []
+  },
+  {
+    "slug": "boral",
+    "name": "Boral",
+    "description": "One of Australia's largest building materials suppliers. Concrete, masonry, timber, roofing tiles and plasterboard.",
+    "website": "https://www.boral.com.au",
+    "phone": "1800 267 265",
+    "country": "Australian Made",
+    "category": "Masonry & Roofing",
+    "systems": []
+  },
+  {
+    "slug": "lysaght",
+    "name": "Lysaght",
+    "description": "Australian steel roofing, walling and structural products. COLORBOND steel profiles including Trimdek, Klip-Lok and Custom Orb.",
+    "website": "https://www.lysaght.com",
+    "phone": "1800 064 717",
+    "country": "Australian Made",
+    "category": "Steel Roofing & Walling",
+    "systems": []
+  },
+  {
+    "slug": "bondor",
+    "name": "Bondor",
+    "description": "Insulated panel systems for commercial, industrial and cool room applications. Wall, roof and cool room panels.",
+    "website": "https://www.bondor.com.au",
+    "phone": "1300 130 242",
+    "country": "Australian Made",
+    "category": "Insulated Panels",
+    "systems": []
+  },
+  {
+    "slug": "kingspan",
+    "name": "Kingspan",
+    "description": "High-performance insulation, insulated panels and building envelopes for commercial and residential construction.",
+    "website": "https://www.kingspan.com/au",
+    "phone": "1300 616 253",
+    "country": "Global \u00b7 AU Operations",
+    "category": "Insulated Panels",
+    "systems": []
+  },
+  {
+    "slug": "fletcher-insulation",
+    "name": "Fletcher Insulation",
+    "description": "Australian manufacturer of Pink Batts and Aircell insulation products for residential and commercial applications.",
+    "website": "https://www.fletcherinsulation.com.au",
+    "phone": "1800 010 069",
+    "country": "Australian Made",
+    "category": "Insulation",
+    "systems": []
+  },
+  {
+    "slug": "dincel",
+    "name": "Dincel",
+    "description": "Polymer permanent formwork walling system. Fast, waterproof and structural. Ideal for basements, retaining walls and above-ground walling.",
+    "website": "https://www.dincel.com.au",
+    "phone": "02 8858 4000",
+    "country": "Australian Made",
+    "category": "Structural Walling",
+    "systems": []
+  },
+  {
+    "slug": "proclima",
+    "name": "Pro Clima",
+    "description": "High-performance weathertightness and airtightness membranes, tapes and sealing systems. Made in Germany, engineered for Australian conditions.",
+    "website": "https://proclima.com.au",
+    "phone": "02 9160 8300",
+    "country": "Global \u00b7 AU Operations",
+    "category": "Membranes & Sealing",
+    "systems": []
+  },
+  {
+    "slug": "newtechwood",
+    "name": "NewTechWood",
+    "description": "Composite timber decking, cladding, screening and fencing. 95% recycled materials, 25-year warranty, BAL29 rated.",
+    "website": "https://newtechwood.com.au",
+    "phone": "08 9494 1051",
+    "country": "Global \u00b7 AU Operations",
+    "category": "Composite Timber",
+    "systems": []
+  },
+  {
+    "slug": "iti-australia",
+    "name": "ITI Australia",
+    "description": "Australia's largest independent distributor of timber and building products. ModWood, Design Pine, Weathertex and engineered timber systems.",
+    "website": "https://itiaustralia.com.au",
+    "phone": "1300 484 274",
+    "country": "Australian",
+    "category": "Timber & Engineered Wood",
+    "systems": []
+  },
+  {
+    "slug": "paslode",
+    "name": "Paslode",
+    "description": "Market-leading cordless and pneumatic nailers and fastening systems. FrameMaster, CoilMaster and TrimMaster ranges.",
+    "website": "https://www.paslode.com.au",
+    "phone": "1800 727 563",
+    "country": "Global \u00b7 AU Operations",
+    "category": "Fasteners & Fixings",
+    "systems": []
+  },
+  {
+    "slug": "palram",
+    "name": "Palram",
+    "description": "Polycarbonate and PVC sheet and panel systems for roofing, skylights, facades and glazing. SUNTUF, SUNLITE and SUNSKY ranges.",
+    "website": "https://www.palram.com/au",
+    "phone": "",
+    "country": "Global \u00b7 AU Operations",
+    "category": "Polycarbonate & PVC",
+    "systems": []
+  },
+  {
+    "slug": "cmi",
+    "name": "CMI",
+    "description": "WA-owned manufacturer of COLORBOND steel roofing, walling, fencing and steel framing. Custom fabrication with rapid turnaround.",
+    "website": "https://cmiwa.com.au",
+    "phone": "08 9353 1888",
+    "country": "Australian Made \u00b7 WA",
+    "category": "Steel Roofing & Walling",
+    "systems": []
+  },
+  {
+    "slug": "forest-one",
+    "name": "ForestOne",
+    "description": "Sustainable building materials distributor. Cladding, decking and exterior products with a focus on environmental responsibility.",
+    "website": "https://forest.one",
+    "phone": "1300 088 066",
+    "country": "Australian",
+    "category": "Sustainable Building Materials",
+    "systems": []
+  },
+  {
+    "slug": "tilling-smartframe",
+    "name": "Tilling \u2014 SmartFrame",
+    "description": "Engineered timber framing systems including SmartJoist and SmartLVL. Sustainably sourced with full chain of custody.",
+    "website": "https://www.tilling.com.au",
+    "phone": "",
+    "country": "Australian",
+    "category": "Engineered Timber",
+    "systems": []
+  }
+]
