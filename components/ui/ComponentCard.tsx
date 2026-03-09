@@ -31,20 +31,32 @@ export default function ComponentCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border p-5 transition-colors ${
+      className={`rounded-2xl border p-4 transition-colors ${
         item.checked ? 'border-brand bg-brand-subtle' : 'border-border bg-surface'
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-brand">
-            {kind === 'panel' ? 'Panel Size' : 'Accessory Item'}
-          </p>
-          <h3 className="mt-1 text-base font-semibold leading-tight text-text-primary">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-brand">
+              {kind === 'panel' ? 'Panel' : 'Accessory'}
+            </p>
+            <span className="text-text-faint">•</span>
+            <p className="text-[11px] uppercase tracking-[0.18em] text-text-faint">
+              {item.uom || '—'}
+            </p>
+          </div>
+
+          <h3 className="mt-2 text-base font-semibold leading-tight text-text-primary">
             {item.name}
           </h3>
+
           <p className="mt-1 text-sm text-text-secondary break-all">
             {item.code}
+          </p>
+
+          <p className="mt-2 text-sm text-text-secondary">
+            {formatDimensions(item)}
           </p>
         </div>
 
@@ -61,27 +73,16 @@ export default function ComponentCard({
         </button>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-        <div className="rounded-xl border border-border-subtle bg-ui/70 p-3">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-text-faint">Dimensions</p>
-          <p className="mt-1 text-text-primary">{formatDimensions(item)}</p>
-        </div>
-        <div className="rounded-xl border border-border-subtle bg-ui/70 p-3">
-          <p className="text-[11px] uppercase tracking-[0.18em] text-text-faint">Unit</p>
-          <p className="mt-1 text-text-primary">{item.uom || '—'}</p>
-        </div>
-      </div>
-
       <div className="mt-4 flex items-center gap-2">
         <button
           type="button"
-          className="h-11 w-11 rounded-xl border border-border bg-ui text-lg text-text-primary transition-colors hover:border-brand"
+          className="h-10 w-10 rounded-xl border border-border bg-ui text-lg text-text-primary transition-colors hover:border-brand"
           onClick={() => onQtyChange(item.qty - 1)}
         >
           −
         </button>
         <input
-          className="h-11 min-w-0 flex-1 rounded-xl border border-border bg-ui px-3 text-center text-base text-text-primary outline-none transition-colors placeholder:text-text-faint focus:border-brand"
+          className="h-10 min-w-0 flex-1 rounded-xl border border-border bg-ui px-3 text-center text-base text-text-primary outline-none transition-colors placeholder:text-text-faint focus:border-brand"
           type="number"
           min="0"
           value={item.qty || ''}
@@ -90,7 +91,7 @@ export default function ComponentCard({
         />
         <button
           type="button"
-          className="h-11 w-11 rounded-xl border border-border bg-ui text-lg text-text-primary transition-colors hover:border-brand"
+          className="h-10 w-10 rounded-xl border border-border bg-ui text-lg text-text-primary transition-colors hover:border-brand"
           onClick={() => onQtyChange(item.qty + 1)}
         >
           +

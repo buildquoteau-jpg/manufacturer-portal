@@ -160,11 +160,11 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
           </div>
         </section>
 
-        <section className="grid gap-6 xl:grid-cols-[1fr_1fr_280px]">
-          <div className="space-y-4">
+        <section className="grid gap-5 xl:grid-cols-[1fr_1fr_280px]">
+          <div className="space-y-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand">Panels</p>
-              <p className="mt-1 text-sm text-text-secondary">Select panel sizes and enter quantities.</p>
+              <p className="mt-1 text-sm text-text-secondary">Select panel sizes and quantities.</p>
             </div>
             {panels.map(item => (
               <ComponentCard
@@ -177,10 +177,10 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
             ))}
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand">Accessories</p>
-              <p className="mt-1 text-sm text-text-secondary">Add trims, fixings and supporting items.</p>
+              <p className="mt-1 text-sm text-text-secondary">Add trims, fixings and extras.</p>
             </div>
             {accessories.map(item => (
 <ComponentCard
