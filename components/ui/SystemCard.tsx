@@ -30,8 +30,10 @@ function ItemRow({
   item: Item
   onQtyChange: (qty: number) => void
 }) {
+  const isSelected = item.qty > 0
+
   return (
-    <div className="grid gap-3 rounded-xl border border-border bg-ui/60 p-3 md:grid-cols-[1fr_150px] md:items-center">
+    <div className={`grid gap-3 rounded-xl border p-3 md:grid-cols-[1fr_150px] md:items-center ${isSelected ? 'border-brand bg-brand-subtle' : 'border-border bg-ui/60'}`}>
       <div className="min-w-0">
         <h4 className="text-sm font-semibold leading-tight text-text-primary">
           {item.name}
@@ -45,7 +47,7 @@ function ItemRow({
         <button
           type="button"
           className="h-10 w-10 rounded-lg border border-border bg-surface text-lg text-text-primary transition-colors hover:border-brand"
-          onClick={() => onQtyChange(item.qty - 1)}
+          onClick={() => onQtyChange(Math.max(0, item.qty - 1))}
         >
           −
         </button>

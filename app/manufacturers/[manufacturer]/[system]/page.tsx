@@ -1,7 +1,7 @@
 'use client'
 import { useMemo, useState, use } from 'react'
 import manufacturersData from '@/data/manufacturers.json'
-import ComponentCard from '@/components/ui/ComponentCard'
+import SystemCard from '@/components/ui/SystemCard'
 
 type Item = {
   code: string
@@ -44,11 +44,9 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
     () => items.filter(i => system?.accessories?.some((a: any) => a.code === i.code)),
     [items, system]
   )
-  const selectedCount = items.filter(i => i.checked && i.qty > 0).length
-
+  const selectedCount = items.filter(i => i.qty > 0).length
   const panelCount = panels.length
   const accessoryCount = accessories.length
-
 
   if (!system || !mfr) {
     return (
@@ -61,23 +59,20 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
     )
   }
 
-  function toggleItem(code: string) {
-    setItems(prev => prev.map(i => (i.code === code ? { ...i, checked: !i.checked } : i)))
-  }
-
   function setQty(code: string, qty: number) {
     setItems(prev =>
       prev.map(i =>
         i.code === code
-          ? { ...i, qty: Math.max(0, qty), checked: qty > 0 ? true : i.checked }
+          ? { ...i, qty: Math.max(0, qty), checked: Math.max(0, qty) > 0 }
           : i
       )
     )
   }
 
-  function addToRFQ() {
-    const selected = items.filter(i => i.checked && i.qty > 0)
+  function exportBuildQuoteItems() {
+    const selected = items.filter(i => i.qty > 0)
     if (selected.length === 0) return
+
     const lineItems = selected.map(i => ({
       id: crypto.randomUUID(),
       name: i.name,
@@ -87,6 +82,7 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
       uom: i.uom,
       qty: String(i.qty),
     }))
+
     const blob = new Blob([JSON.stringify(lineItems, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -114,7 +110,7 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
         </div>
       </nav>
 
-      <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 md:px-8 md:py-8">
+      <main className="mx-auto max-w-6xl px-4 py-6 md:px-8 md:py-8">
         <section className="max-w-3xl">
           <p className="text-[11px] uppercase tracking-[0.28em] text-brand">
             {mfr.name} · {system.application}
@@ -127,6 +123,12 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
           </p>
 
           <div className="mt-4 flex flex-wrap gap-2">
+            <span className="rounded-full border border-border bg-surface px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-text-secondary">
+              Panels: {panelCount}
+            </span>
+            <span className="rounded-full border border-border bg-surface px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-text-secondary">
+              Accessories: {accessoryCount}
+            </span>
             {system.thickness && (
               <span className="rounded-full border border-border bg-surface px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-text-secondary">
                 Thickness: {system.thickness}
@@ -149,7 +151,7 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
           </a>
         </section>
 
-        <section className="max-w-3xl rounded-2xl border border-sand/35 bg-sand/5 p-4">
+        <section className="mt-6 max-w-3xl rounded-2xl border border-sand/35 bg-sand/5 p-4">
           <div className="flex gap-3">
             <span className="pt-0.5 text-sand">⚠</span>
             <p className="text-sm leading-relaxed text-text-secondary">
@@ -160,38 +162,14 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
           </div>
         </section>
 
-        <section className="grid gap-5 xl:grid-cols-[1fr_1fr_280px]">
-          <div className="space-y-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand">Panels</p>
-              <p className="mt-1 text-sm text-text-secondary">Select panel sizes and quantities.</p>
-            </div>
-            {panels.map(item => (
-              <ComponentCard
-                key={item.code}
-                item={item}
-                kind="panel"
-                onToggle={() => toggleItem(item.code)}
-                onQtyChange={(q) => setQty(item.code, q)}
-              />
-            ))}
-          </div>
-
-          <div className="space-y-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand">Accessories</p>
-              <p className="mt-1 text-sm text-text-secondary">Add trims, fixings and extras.</p>
-            </div>
-            {accessories.map(item => (
-<ComponentCard
-                key={item.code}
-                item={item}
-                kind="accessory"
-                onToggle={() => toggleItem(item.code)}
-                onQtyChange={(q) => setQty(item.code, q)}
-              />
-            ))}
-          </div>
+        <section className="mt-6 grid gap-6 xl:grid-cols-[1fr_280px]">
+          <SystemCard
+            title={system.name}
+            subtitle="Choose panel sizes and accessories for this system. SKU, UOM and item dimensions are shown in each row."
+            panels={panels}
+            accessories={accessories}
+            onQtyChange={setQty}
+          />
 
           <aside className="xl:sticky xl:top-24">
             <div className="rounded-2xl border border-border bg-surface p-4">
@@ -207,10 +185,10 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
                     ? 'cursor-not-allowed border border-border bg-ui text-text-faint'
                     : 'bg-brand text-page hover:bg-brand-hover'
                 }`}
-                onClick={addToRFQ}
+                onClick={exportBuildQuoteItems}
                 disabled={selectedCount === 0}
               >
-                selectedCount === 0 ? 'Select items first' : '⬇ Export BuildQuote Items'
+                {selectedCount === 0 ? 'Select items first' : '⬇ Export BuildQuote Items'}
               </button>
 
               <p className="mt-3 text-xs leading-relaxed text-text-faint">
