@@ -41,7 +41,7 @@ function ItemCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border p-4 transition-colors ${
+      className={`rounded-2xl border p-5 transition-colors ${
         item.checked
           ? 'border-brand bg-brand-subtle'
           : 'border-border bg-surface'
@@ -50,7 +50,7 @@ function ItemCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] uppercase tracking-[0.22em] text-brand">
-            {kind === 'panel' ? 'Panel' : 'Accessory'}
+            {kind === 'panel' ? 'Panel Size' : 'Accessory Item'}
           </p>
           <h3 className="mt-1 text-base font-semibold leading-tight text-text-primary">
             {item.name}
