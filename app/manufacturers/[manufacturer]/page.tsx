@@ -336,7 +336,13 @@ export default function ManufacturerPage({ params }: { params: Promise<{ manufac
               <div className="mt-4">
                 <div className="rounded-2xl border border-success/40 bg-success/10 p-4">
                   <p className="text-sm leading-relaxed text-text-primary">
-                    Thanks — request captured. Next step is wiring this form to a real endpoint so submissions are stored instead of just staying in the browser.
+                    Thanks — your request has been received.
+
+BuildQuote Manufacturer Portal is built to support local builders.
+When systems are requested regularly we prioritise adding them
+to the portal with full component cards.
+
+Join the BuildQuote community to hear when new systems are added.
                   </p>
                 </div>
 
