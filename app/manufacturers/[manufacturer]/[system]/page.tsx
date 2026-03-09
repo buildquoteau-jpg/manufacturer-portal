@@ -81,6 +81,15 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
       desc: formatDimensions(i) === '—' ? '' : formatDimensions(i),
       uom: i.uom,
       qty: String(i.qty),
+      length: i.length ?? null,
+      width: i.width ?? null,
+      thickness: i.thickness ?? null,
+      texture: i.texture ?? '',
+      manufacturer: mfr.name,
+      manufacturerSlug: mfr.slug,
+      system: system.name,
+      systemSlug: system.slug,
+      itemType: system.panels?.some((p: any) => p.code === i.code) ? 'panel' : 'accessory',
     }))
 
     const blob = new Blob([JSON.stringify(lineItems, null, 2)], { type: 'application/json' })
