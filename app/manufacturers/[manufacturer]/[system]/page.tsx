@@ -124,6 +124,10 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
   )
   const selectedCount = items.filter(i => i.checked && i.qty > 0).length
 
+  const panelCount = panels.length
+  const accessoryCount = accessories.length
+
+
   if (!system || !mfr) {
     return (
       <div className="min-h-screen bg-page px-4 py-12 text-text-primary">
