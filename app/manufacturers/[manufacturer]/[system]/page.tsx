@@ -184,19 +184,11 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
             </div>
             {accessories.map(item => (
 <ComponentCard
-key={item.code}
-item={item}
-kind="accessory"
-onToggle={() => toggleItem(item.code)}
-onQtyChange={(q) => setQty(item.code, q)}
-/>
-
-              <ItemCard
                 key={item.code}
                 item={item}
                 kind="accessory"
                 onToggle={() => toggleItem(item.code)}
-                onQtyChange={qty => setQty(item.code, qty)}
+                onQtyChange={(q) => setQty(item.code, q)}
               />
             ))}
           </div>
