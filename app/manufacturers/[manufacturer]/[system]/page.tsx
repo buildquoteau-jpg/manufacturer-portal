@@ -167,12 +167,12 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
               <p className="mt-1 text-sm text-text-secondary">Select panel sizes and enter quantities.</p>
             </div>
             {panels.map(item => (
-              <ItemCard
+              <ComponentCard
                 key={item.code}
                 item={item}
                 kind="panel"
                 onToggle={() => toggleItem(item.code)}
-                onQtyChange={qty => setQty(item.code, qty)}
+                onQtyChange={(q) => setQty(item.code, q)}
               />
             ))}
           </div>
