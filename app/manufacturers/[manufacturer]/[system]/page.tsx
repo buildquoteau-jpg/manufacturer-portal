@@ -1,3 +1,4 @@
+import ComponentCard from '@/components/ui/ComponentCard'
 'use client'
 import { useMemo, useState, use } from 'react'
 import manufacturersData from '@/data/manufacturers.json'
@@ -28,12 +29,6 @@ function formatDimensions(item: any) {
   return '—'
 }
 
-function ItemCard({
-  item,
-  onToggle,
-  onQtyChange,
-  kind,
-}: {
   item: Item
   onToggle: () => void
   onQtyChange: (qty: number) => void
@@ -262,6 +257,14 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
               <p className="mt-1 text-sm text-text-secondary">Add trims, fixings and supporting items.</p>
             </div>
             {accessories.map(item => (
+<ComponentCard
+key={item.code}
+item={item}
+kind="accessory"
+onToggle={() => toggleItem(item.code)}
+onQtyChange={(q) => setQty(item.code, q)}
+/>
+
               <ItemCard
                 key={item.code}
                 item={item}
