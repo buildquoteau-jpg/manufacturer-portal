@@ -67,8 +67,21 @@ export default function ManufacturerPage({ params }: { params: Promise<{ manufac
 
   const hasSystems = allSystems.length > 0
 
-  function handleRequestSubmit(e: React.FormEvent) {
+  async function handleRequestSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    try {
+      await fetch('/api/request-system', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          manufacturer: mfr?.name || '',
+          request: requestText,
+          email: requestEmail
+        })
+      })
+    } catch {}
+
     setRequestSent(true)
   }
 
