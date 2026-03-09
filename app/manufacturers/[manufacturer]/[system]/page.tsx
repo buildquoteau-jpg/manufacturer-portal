@@ -214,7 +214,7 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
               </button>
 
               <p className="mt-3 text-xs leading-relaxed text-text-faint">
-                Choose only the items you want, then export a clean BuildQuote items file for later integration.
+                Select the items you want here. You can export them into BuildQuote now and still adjust quantities later in BuildQuote before sending your RFQ.
               </p>
             </div>
           </aside>
