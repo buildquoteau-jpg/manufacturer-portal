@@ -96,6 +96,13 @@ export default function SystemCard({
         ) : null}
       </div>
 
+
+      <div className="mt-4 rounded-xl border border-border-subtle bg-ui/60 p-3 text-xs leading-relaxed text-text-secondary">
+        <span className="font-semibold text-text-primary">BuildQuote tip:</span>
+        Select the items you want for this system. Quantities can be entered here
+        or later inside BuildQuote before sending your RFQ to suppliers.
+      </div>
+
       <div className="mt-4 space-y-5">
         <section>
           <div className="mb-3 flex items-center justify-between gap-3">
