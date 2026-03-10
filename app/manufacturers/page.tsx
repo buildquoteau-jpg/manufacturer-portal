@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import manufacturersData from '@/data/manufacturers.json'
 
 const manufacturers = manufacturersData as any[]
@@ -7,21 +7,35 @@ const manufacturers = manufacturersData as any[]
 export default function ManufacturersPage() {
   const [query, setQuery] = useState('')
 
-  const filtered = query.trim()
-    ? manufacturers.filter(m =>
-        m.name.toLowerCase().includes(query.toLowerCase()) ||
-        m.systems.some((s: any) =>
-          s.name.toLowerCase().includes(query.toLowerCase()) ||
-          s.application?.toLowerCase().includes(query.toLowerCase())
-        )
-      )
-    : manufacturers
+  const draft =
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('draft')
+      : null
+
+  const filtered = useMemo(
+    () =>
+      query.trim()
+        ? manufacturers.filter(
+            (m) =>
+              m.name.toLowerCase().includes(query.toLowerCase()) ||
+              m.systems.some(
+                (s: any) =>
+                  s.name.toLowerCase().includes(query.toLowerCase()) ||
+                  s.application?.toLowerCase().includes(query.toLowerCase())
+              )
+          )
+        : manufacturers,
+    [query]
+  )
+
+  function withDraft(path: string) {
+    return draft ? `${path}?draft=${encodeURIComponent(draft)}` : path
+  }
 
   return (
     <div className="min-h-screen bg-page text-text-primary">
-
       <nav className="flex justify-between items-center px-4 md:px-8 py-4 border-b border-border">
-        <a href="/" className="font-bold tracking-widest text-sm md:text-base">
+        <a href={withDraft('/')} className="font-bold tracking-widest text-sm md:text-base">
           BUILD<span className="text-brand">QUOTE</span>
         </a>
         <span className="text-xs tracking-widest text-text-faint uppercase hidden sm:block">
@@ -35,19 +49,21 @@ export default function ManufacturersPage() {
         </p>
 
         <h1 className="text-4xl md:text-6xl font-bold leading-[0.9] uppercase mb-4">
-          Manufacturer<br />Portal
+          Manufacturer
+          <br />
+          Portal
         </h1>
 
         <p className="text-text-secondary text-sm md:text-base max-w-xl leading-relaxed">
-          Browse systems and component cards from leading Australian building
-          product manufacturers. Select components and send directly to BuildQuote.
+          Browse systems and component cards from leading Australian building product manufacturers.
+          Select components and send directly to BuildQuote.
         </p>
 
         <div className="flex gap-3 mt-6 border border-sand/40 bg-sand/5 px-4 py-3 text-xs text-text-secondary max-w-xl">
           <span className="text-sand">⚠</span>
           <p>
             Component cards are compiled using AI and publicly available manufacturer data.
-            Always verify specifications and compatibility on the manufacturer's website.
+            Always verify specifications and compatibility on the manufacturer&apos;s website.
           </p>
         </div>
       </section>
@@ -57,22 +73,24 @@ export default function ManufacturersPage() {
           type="text"
           placeholder="Search manufacturers or systems..."
           value={query}
-          onChange={e => setQuery(e.target.value)}
+          onChange={(e) => setQuery(e.target.value)}
           className="w-full max-w-md bg-ui border border-border rounded-md px-4 py-2 text-sm focus:outline-none focus:border-brand"
         />
       </div>
 
       <section className="px-4 md:px-8 pb-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
-        {filtered.map(m => (
+        {filtered.map((m) => (
           <a
             key={m.slug}
-            href={`/manufacturers/${m.slug}`}
+            href={withDraft(`/manufacturers/${m.slug}`)}
             className="bg-surface border border-border hover:border-brand hover:bg-surface-hover rounded-lg p-5 flex flex-col gap-3 transition-colors"
           >
             <div className="flex justify-between items-start">
               <div className="w-12 h-12 flex items-center justify-center border border-border text-brand text-sm font-bold">
-                {m.name.split(' ').map((w: string) => w[0]).join('')}
+                {m.name
+                  .split(' ')
+                  .map((w: string) => w[0])
+                  .join('')}
               </div>
 
               <div className="text-right text-xs text-text-faint uppercase tracking-widest">
@@ -81,17 +99,11 @@ export default function ManufacturersPage() {
               </div>
             </div>
 
-            <h2 className="text-lg font-bold uppercase tracking-wide">
-              {m.name}
-            </h2>
+            <h2 className="text-lg font-bold uppercase tracking-wide">{m.name}</h2>
 
-            <p className="text-sm text-text-secondary leading-relaxed flex-1">
-              {m.description}
-            </p>
+            <p className="text-sm text-text-secondary leading-relaxed flex-1">{m.description}</p>
 
-            <div className="text-right text-text-faint text-lg">
-              ↗
-            </div>
+            <div className="text-right text-text-faint text-lg">↗</div>
           </a>
         ))}
 
@@ -100,11 +112,8 @@ export default function ManufacturersPage() {
             +
           </div>
           <h2 className="font-bold uppercase">More Coming Soon</h2>
-          <p className="text-sm text-text-secondary">
-            Additional manufacturers being added.
-          </p>
+          <p className="text-sm text-text-secondary">Additional manufacturers being added.</p>
         </div>
-
       </section>
 
       <footer className="border-t border-border px-4 md:px-8 py-4 flex flex-col md:flex-row justify-between text-xs text-text-faint gap-2">
@@ -112,7 +121,6 @@ export default function ManufacturersPage() {
         <span>Southwest WA · Australia</span>
         <span>Manufacturer data updated Feb 2026</span>
       </footer>
-
     </div>
   )
 }

@@ -7,12 +7,21 @@ const manufacturers = manufacturersData as any[]
 const APPLICATION_COLOURS: Record<string, string> = {
   'External Cladding': 'var(--brand)',
   'Internal Lining': 'var(--sand)',
-  'Flooring': 'var(--success)',
+  Flooring: 'var(--success)',
 }
 
 export default function ManufacturerPage({ params }: { params: Promise<{ manufacturer: string }> }) {
   const { manufacturer: slug } = use(params)
-  const mfr = manufacturers.find(m => m.slug === slug)
+  const mfr = manufacturers.find((m) => m.slug === slug)
+
+  const draft =
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('draft')
+      : null
+
+  function withDraft(path: string) {
+    return draft ? `${path}?draft=${encodeURIComponent(draft)}` : path
+  }
 
   const [query, setQuery] = useState('')
   const [showRequest, setShowRequest] = useState(false)
@@ -24,10 +33,11 @@ export default function ManufacturerPage({ params }: { params: Promise<{ manufac
 
   const filtered = useMemo(() => {
     if (!query.trim()) return allSystems
-    return allSystems.filter((s: any) =>
-      s.name.toLowerCase().includes(query.toLowerCase()) ||
-      s.application?.toLowerCase().includes(query.toLowerCase()) ||
-      s.description?.toLowerCase().includes(query.toLowerCase())
+    return allSystems.filter(
+      (s: any) =>
+        s.name.toLowerCase().includes(query.toLowerCase()) ||
+        s.application?.toLowerCase().includes(query.toLowerCase()) ||
+        s.description?.toLowerCase().includes(query.toLowerCase())
     )
   }, [allSystems, query])
 
@@ -42,7 +52,7 @@ export default function ManufacturerPage({ params }: { params: Promise<{ manufac
             >
               ← Manufacturers
             </button>
-            <a href="/" className="text-sm font-bold tracking-[0.2em]">
+            <a href={withDraft('/')} className="text-sm font-bold tracking-[0.2em]">
               BUILD<span className="text-brand">QUOTE</span>
             </a>
           </div>
@@ -50,12 +60,14 @@ export default function ManufacturerPage({ params }: { params: Promise<{ manufac
 
         <main className="mx-auto max-w-4xl px-4 py-10 md:px-8">
           <p className="text-brand text-[11px] uppercase tracking-[0.28em]">404</p>
-          <h1 className="mt-3 text-4xl font-bold uppercase leading-none md:text-6xl">Manufacturer Not Found</h1>
+          <h1 className="mt-3 text-4xl font-bold uppercase leading-none md:text-6xl">
+            Manufacturer Not Found
+          </h1>
           <p className="mt-4 max-w-xl text-sm leading-relaxed text-text-secondary md:text-base">
             We couldn&apos;t find a manufacturer with that name.
           </p>
           <a
-            href="/manufacturers"
+            href={withDraft('/manufacturers')}
             className="mt-6 inline-flex rounded-xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-text-primary transition-colors hover:border-brand hover:text-brand"
           >
             ← Back to Manufacturers
@@ -77,8 +89,8 @@ export default function ManufacturerPage({ params }: { params: Promise<{ manufac
         body: JSON.stringify({
           manufacturer: mfr?.name || '',
           request: requestText,
-          email: requestEmail
-        })
+          email: requestEmail,
+        }),
       })
     } catch {}
 
@@ -95,7 +107,7 @@ export default function ManufacturerPage({ params }: { params: Promise<{ manufac
           >
             ← Manufacturers
           </button>
-          <a href="/" className="text-sm font-bold tracking-[0.2em]">
+          <a href={withDraft('/')} className="text-sm font-bold tracking-[0.2em]">
             BUILD<span className="text-brand">QUOTE</span>
           </a>
         </div>
@@ -135,7 +147,8 @@ export default function ManufacturerPage({ params }: { params: Promise<{ manufac
               <span className="pt-0.5 text-sand">⚠</span>
               <p className="text-sm leading-relaxed text-text-secondary">
                 Component cards are compiled using AI and publicly available manufacturer data.
-                Always verify product codes, specifications and compatibility on the manufacturer&apos;s website before placing your order.
+                Always verify product codes, specifications and compatibility on the manufacturer&apos;s
+                website before placing your order.
               </p>
             </div>
           </div>
@@ -157,7 +170,7 @@ export default function ManufacturerPage({ params }: { params: Promise<{ manufac
                     type="text"
                     placeholder="Search systems..."
                     value={query}
-                    onChange={e => setQuery(e.target.value)}
+                    onChange={(e) => setQuery(e.target.value)}
                   />
                 </div>
               </div>
@@ -166,7 +179,7 @@ export default function ManufacturerPage({ params }: { params: Promise<{ manufac
                 {filtered.map((sys: any) => (
                   <a
                     key={sys.slug}
-                    href={`/manufacturers/${mfr.slug}/${sys.slug}`}
+                    href={withDraft(`/manufacturers/${mfr.slug}/${sys.slug}`)}
                     className="rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-brand hover:bg-surface-hover"
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -193,9 +206,7 @@ export default function ManufacturerPage({ params }: { params: Promise<{ manufac
                       {sys.name}
                     </h2>
 
-                    <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-                      {sys.description}
-                    </p>
+                    <p className="mt-3 text-sm leading-relaxed text-text-secondary">{sys.description}</p>
 
                     <div className="mt-4 flex flex-wrap gap-2">
                       {sys.thickness && (
@@ -232,128 +243,83 @@ export default function ManufacturerPage({ params }: { params: Promise<{ manufac
                       Request a System
                     </h3>
                     <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-                      Use a {mfr.name} system regularly? Tell us what you need and we&apos;ll work to add it to the portal.
+                      Use a {mfr.name} system regularly? Tell us what you need and we&apos;ll work to add
+                      it to the portal.
                     </p>
                   </div>
                 </button>
               </div>
             </>
           ) : (
-            <div className="max-w-xl rounded-2xl border border-border bg-surface p-6">
-              <p className="text-[11px] uppercase tracking-[0.28em] text-text-faint">Systems — None yet</p>
-              <h3 className="mt-4 text-2xl font-bold uppercase text-text-primary">No systems added yet</h3>
-              <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-                If there is a manufacturer system you use regularly, let us know and we&apos;ll work to add it to the portal.
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowRequest(true)}
-                className="mt-5 inline-flex rounded-xl border border-brand bg-brand-subtle px-4 py-3 text-sm font-semibold text-brand transition-colors hover:border-brand-hover hover:text-brand-hover"
-              >
-                Request a System
-              </button>
+            <div className="rounded-2xl border border-border bg-surface p-6 text-sm text-text-secondary">
+              No systems found yet for this manufacturer.
             </div>
           )}
         </section>
       </main>
 
-      <footer className="border-t border-border px-4 py-4 text-xs text-text-faint md:px-8">
-        © 2025 BuildQuote · Manufacturer Portal
-      </footer>
-
       {showRequest && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-page/80 p-4 md:items-center">
-          <div className="w-full max-w-lg rounded-2xl border border-border bg-surface p-5 shadow-2xl">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.22em] text-brand">Request a system</p>
-                <h2 className="mt-2 text-2xl font-bold uppercase text-text-primary">
-                  Help shape the portal
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowRequest(false)
-                  setRequestSent(false)
-                }}
-                className="text-2xl leading-none text-text-secondary hover:text-text-primary"
-              >
-                ✕
-              </button>
-            </div>
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-2xl border border-border bg-surface p-6">
             {!requestSent ? (
-              <form onSubmit={handleRequestSubmit} className="mt-4 space-y-4">
-                <p className="text-sm leading-relaxed text-text-secondary">
-                  BuildQuote Manufacturer Portal is built to support local business. If there is a manufacturer
-                  or system you use regularly, let us know and we will work to add it to the portal.
+              <>
+                <h2 className="text-2xl font-bold uppercase text-text-primary">Request a System</h2>
+                <p className="mt-2 text-sm text-text-secondary">
+                  Tell us which {mfr.name} system you want added.
                 </p>
 
-                <div>
-                  <label className="mb-2 block text-[11px] uppercase tracking-[0.18em] text-text-faint">
-                    Manufacturer / system / link
-                  </label>
+                <form onSubmit={handleRequestSubmit} className="mt-5 space-y-4">
                   <textarea
                     value={requestText}
-                    onChange={e => setRequestText(e.target.value)}
-                    rows={5}
-                    placeholder="Paste a web link, write the system name, or add any notes that help us find it."
-                    className="w-full rounded-xl border border-border bg-ui px-4 py-3 text-sm text-text-primary outline-none transition-colors placeholder:text-text-faint focus:border-brand"
+                    onChange={(e) => setRequestText(e.target.value)}
+                    placeholder="System name, link, or notes"
+                    className="min-h-[120px] w-full rounded-xl border border-border bg-ui px-4 py-3 text-sm text-text-primary outline-none transition-colors placeholder:text-text-faint focus:border-brand"
+                    required
                   />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-[11px] uppercase tracking-[0.18em] text-text-faint">
-                    Join the BuildQuote community
-                  </label>
                   <input
                     type="email"
                     value={requestEmail}
-                    onChange={e => setRequestEmail(e.target.value)}
+                    onChange={(e) => setRequestEmail(e.target.value)}
                     placeholder="Your email"
                     className="w-full rounded-xl border border-border bg-ui px-4 py-3 text-sm text-text-primary outline-none transition-colors placeholder:text-text-faint focus:border-brand"
                   />
-                </div>
 
-                <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-                  <button
-                    type="button"
-                    onClick={() => setShowRequest(false)}
-                    className="flex-1 rounded-xl border border-border bg-ui px-4 py-3 text-sm font-semibold text-text-primary transition-colors hover:border-brand"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-page transition-colors hover:bg-brand-hover"
-                  >
-                    Send request
-                  </button>
-                </div>
-              </form>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowRequest(false)}
+                      className="flex-1 rounded-xl border border-border px-4 py-3 text-sm font-semibold text-text-primary transition-colors hover:border-brand hover:text-brand"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 rounded-xl border border-brand bg-brand px-4 py-3 text-sm font-semibold text-white transition-colors hover:opacity-90"
+                    >
+                      Send Request
+                    </button>
+                  </div>
+                </form>
+              </>
             ) : (
-              <div className="mt-4">
-                <div className="rounded-2xl border border-success/40 bg-success/10 p-4">
-                  <p className="text-sm leading-relaxed text-text-primary">
-                    Thanks — your request has been received.
-
-BuildQuote Manufacturer Portal is built to support local builders.
-When systems are requested regularly we prioritise adding them
-to the portal with full component cards.
-
-Join the BuildQuote community to hear when new systems are added.
-                  </p>
-                </div>
-
+              <>
+                <h2 className="text-2xl font-bold uppercase text-text-primary">Request Sent</h2>
+                <p className="mt-2 text-sm text-text-secondary">
+                  Thanks. We&apos;ll review your request and look at adding the system.
+                </p>
                 <button
                   type="button"
-                  onClick={() => setShowRequest(false)}
-                  className="mt-4 w-full rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-page transition-colors hover:bg-brand-hover"
+                  onClick={() => {
+                    setShowRequest(false)
+                    setRequestSent(false)
+                    setRequestText('')
+                    setRequestEmail('')
+                  }}
+                  className="mt-5 w-full rounded-xl border border-brand bg-brand px-4 py-3 text-sm font-semibold text-white transition-colors hover:opacity-90"
                 >
                   Close
                 </button>
-              </div>
+              </>
             )}
           </div>
         </div>
