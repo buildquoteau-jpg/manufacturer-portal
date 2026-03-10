@@ -4,7 +4,7 @@ type Item = {
   length?: number | null
   width?: number | null
   thickness?: number | null
-  texture?: string
+  texture?: string | null
   uom: string
   qty: number
   checked: boolean
