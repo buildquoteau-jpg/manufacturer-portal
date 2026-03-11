@@ -1,31 +1,87 @@
 'use client'
-import { useMemo, useState } from 'react'
+
+import { useEffect, useMemo, useState } from 'react'
+import { supabase } from '@/lib/supabase/client'
 import manufacturersData from '@/data/manufacturers.json'
 
-const manufacturers = manufacturersData as any[]
+type JsonManufacturer = {
+  slug: string
+  name: string
+  description?: string | null
+  country?: string | null
+  systems?: Array<{ name?: string; application?: string }>
+}
+
+type ManufacturerCard = JsonManufacturer & {
+  systemCount: number
+}
+
+const manufacturers = manufacturersData as JsonManufacturer[]
 
 export default function ManufacturersPage() {
   const [query, setQuery] = useState('')
+  const [countsBySlug, setCountsBySlug] = useState<Record<string, number>>({})
 
   const draft =
     typeof window !== 'undefined'
       ? new URLSearchParams(window.location.search).get('draft')
       : null
 
+  useEffect(() => {
+    async function loadCounts() {
+      const { data: manufacturerRows } = await supabase
+        .from('manufacturers')
+        .select('id, slug')
+
+      if (!manufacturerRows?.length) return
+
+      const ids = manufacturerRows.map((m) => m.id)
+
+      const { data: systemRows } = await supabase
+        .from('systems')
+        .select('manufacturer_id')
+
+      if (!systemRows) return
+
+      const idToSlug = new Map<string, string>()
+      for (const m of manufacturerRows) idToSlug.set(m.id, m.slug)
+
+      const next: Record<string, number> = {}
+      for (const row of systemRows) {
+        const slug = idToSlug.get(row.manufacturer_id)
+        if (!slug) continue
+        next[slug] = (next[slug] || 0) + 1
+      }
+
+      setCountsBySlug(next)
+    }
+
+    loadCounts()
+  }, [])
+
+  const enriched: ManufacturerCard[] = useMemo(
+    () =>
+      manufacturers.map((m) => ({
+        ...m,
+        systemCount: countsBySlug[m.slug] ?? m.systems?.length ?? 0,
+      })),
+    [countsBySlug]
+  )
+
   const filtered = useMemo(
     () =>
       query.trim()
-        ? manufacturers.filter(
+        ? enriched.filter(
             (m) =>
               m.name.toLowerCase().includes(query.toLowerCase()) ||
-              m.systems.some(
-                (s: any) =>
-                  s.name.toLowerCase().includes(query.toLowerCase()) ||
+              (m.systems || []).some(
+                (s) =>
+                  s.name?.toLowerCase().includes(query.toLowerCase()) ||
                   s.application?.toLowerCase().includes(query.toLowerCase())
               )
           )
-        : manufacturers,
-    [query]
+        : enriched,
+    [query, enriched]
   )
 
   function withDraft(path: string) {
@@ -94,8 +150,8 @@ export default function ManufacturersPage() {
               </div>
 
               <div className="text-right text-xs text-text-faint uppercase tracking-widest">
-                <div className="text-brand">{m.country}</div>
-                <div>{m.systems.length} systems</div>
+                <div className="text-brand">{m.country || 'Manufacturer'}</div>
+                <div>{m.systemCount} systems</div>
               </div>
             </div>
 

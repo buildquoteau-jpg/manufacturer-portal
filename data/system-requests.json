@@ -16,5 +16,11 @@
     "manufacturer": "James Hardie",
     "request": "https://www.jameshardie.com.au/ContentfulCMS/Technical-Documents/Hardie_Product_Catalogue.pdf",
     "timestamp": "2026-03-09T04:33:28.827Z"
+  },
+  {
+    "email": "buildquoteau@gmail.com",
+    "manufacturer": "BGC",
+    "request": "bgc",
+    "timestamp": "2026-03-11T06:55:46.505Z"
   }
 ]

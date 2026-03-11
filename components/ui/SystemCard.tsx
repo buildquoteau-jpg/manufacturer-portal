@@ -19,16 +19,23 @@ type VerificationStatus =
   | undefined
 
 function itemSpecs(item: Item) {
+  const size =
+    item.length && item.width
+      ? `${item.length}×${item.width}`
+      : item.length
+        ? `${item.length}mm`
+        : item.width
+          ? `${item.width}mm`
+          : ''
+
   const specs = [
-    item.code ? `SKU ${item.code}` : '',
-    item.uom ? `UOM ${item.uom}` : '',
-    item.length ? `L ${item.length}mm` : '',
-    item.width ? `W ${item.width}mm` : '',
-    item.thickness ? `D ${item.thickness}mm` : '',
+    item.code ? `${item.code}` : '',
+    size,
+    item.thickness ? `${item.thickness}mm` : '',
     item.texture ? item.texture : '',
   ].filter(Boolean)
 
-  return specs.join(' · ')
+  return specs.join(' • ')
 }
 
 function getVerificationLevel(status: VerificationStatus) {
@@ -48,7 +55,7 @@ function ItemRow({
 
   return (
     <div
-      className={`grid gap-3 rounded-xl border p-3 md:grid-cols-[1fr_150px] md:items-center ${
+      className={`grid gap-3 rounded-xl border p-3 ${
         isSelected ? 'border-brand bg-brand-subtle' : 'border-border bg-ui/60'
       }`}
     >
@@ -61,31 +68,33 @@ function ItemRow({
         </p>
       </div>
 
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          className="h-10 w-10 rounded-lg border border-border bg-surface text-lg text-text-primary transition-colors hover:border-brand"
-          onClick={() => onQtyChange(Math.max(0, item.qty - 1))}
-        >
-          −
-        </button>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <label className="inline-flex items-center gap-2 text-sm text-text-primary">
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded border-border bg-surface"
+            checked={isSelected}
+            onChange={(e) => onQtyChange(e.target.checked ? 1 : 0)}
+          />
+          <span>Add to BuildQuote RFQ</span>
+        </label>
 
         <input
-          className="h-10 min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 text-center text-sm text-text-primary outline-none transition-colors placeholder:text-text-faint focus:border-brand"
+          className="h-10 w-24 rounded-lg border border-border bg-surface px-3 text-sm text-text-primary outline-none transition-colors placeholder:text-text-faint focus:border-brand"
           type="number"
           min="0"
           value={item.qty || ''}
           placeholder="Qty"
-          onChange={(e) => onQtyChange(parseInt(e.target.value) || 0)}
+          onChange={(e) => {
+            const raw = e.target.value
+            if (raw === '') {
+              onQtyChange(1)
+              return
+            }
+            const next = parseInt(raw, 10)
+            onQtyChange(Number.isNaN(next) ? 1 : Math.max(0, next))
+          }}
         />
-
-        <button
-          type="button"
-          className="h-10 w-10 rounded-lg border border-border bg-surface text-lg text-text-primary transition-colors hover:border-brand"
-          onClick={() => onQtyChange(item.qty + 1)}
-        >
-          +
-        </button>
       </div>
     </div>
   )
@@ -123,66 +132,14 @@ export default function SystemCard({
         {subtitle ? (
           <p className="mt-2 text-sm leading-relaxed text-text-secondary">{subtitle}</p>
         ) : null}
-
-        <div className="mt-4 space-y-3">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.18em] text-text-faint">Source</p>
-            {sourceUrl ? (
-              <a
-                href={sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-1 inline-block text-sm text-brand hover:underline break-words"
-              >
-                {sourceLabel || sourceUrl}
-              </a>
-            ) : (
-              <p className="mt-1 text-sm text-text-faint">Source not linked yet</p>
-            )}
-          </div>
-
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.18em] text-text-faint">Verification status</p>
-            <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-              {[
-                'AI detected',
-                'BuildQuote checked',
-                'Manufacturer verified',
-              ].map((label, index) => {
-                const active = index < verificationLevel
-                const last = index === 2
-
-                return (
-                  <div key={label} className="flex items-center">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`h-2.5 w-2.5 rounded-full ${
-                          active ? 'bg-brand' : 'border border-border bg-transparent'
-                        }`}
-                      />
-                      <span
-                        className={`text-xs font-medium ${
-                          active ? 'text-text-primary' : 'text-text-faint'
-                        }`}
-                      >
-                        {label}{active && index === 0 ? ' ✓' : ''}
-                      </span>
-                    </div>
-
-                    {!last ? (
-                      <span className="mx-3 hidden text-text-faint sm:inline">—</span>
-                    ) : null}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
       </div>
 
-      <div className="mt-4 rounded-xl border border-border-subtle bg-ui/60 p-3 text-xs leading-relaxed text-text-secondary">
-        <span className="font-semibold text-text-primary">Tip:</span>{' '}
-        Select items for this system. Add quantities now or later.
+      <div className="mt-4 rounded-xl border border-border-subtle bg-ui/60 p-3 text-sm leading-relaxed text-text-secondary">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-faint">
+          💡 BQ Tip
+        </p>
+        <p className="mt-1">Tick items to include in your RFQ.</p>
+        <p>Add quantities here or edit later in BuildQuote.</p>
       </div>
 
       <div className="mt-4 space-y-5">
@@ -217,6 +174,61 @@ export default function SystemCard({
             ))}
           </div>
         </section>
+      </div>
+
+      <div className="mt-6 border-t border-border-subtle pt-4 space-y-3">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-text-faint">Source</p>
+          {sourceUrl ? (
+            <a
+              href={sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-1 inline-block break-words text-sm text-brand hover:underline"
+            >
+              {sourceLabel || sourceUrl}
+            </a>
+          ) : (
+            <p className="mt-1 text-sm text-text-faint">Source not linked yet</p>
+          )}
+        </div>
+
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-text-faint">Verification status</p>
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+            {[
+              'AI detected',
+              'BuildQuote checked',
+              'Manufacturer verified',
+            ].map((label, index) => {
+              const active = index < verificationLevel
+              const last = index === 2
+
+              return (
+                <div key={label} className="flex items-center">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`h-2.5 w-2.5 rounded-full ${
+                        active ? 'bg-brand' : 'border border-border bg-transparent'
+                      }`}
+                    />
+                    <span
+                      className={`text-xs font-medium ${
+                        active ? 'text-text-primary' : 'text-text-faint'
+                      }`}
+                    >
+                      {label}{active && index === 0 ? ' ✓' : ''}
+                    </span>
+                  </div>
+
+                  {!last ? (
+                    <span className="mx-3 hidden text-text-faint sm:inline">—</span>
+                  ) : null}
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
     </div>
   )

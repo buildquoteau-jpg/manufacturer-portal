@@ -200,9 +200,6 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
           onQtyChange={onQtyChange}
         />
 
-        <div className="rounded-xl border border-border bg-surface p-4 text-sm text-text-secondary">
-          Add to quote flow not wired yet on this screen.
-        </div>
       </div>
     </div>
   )
