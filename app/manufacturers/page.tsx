@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import manufacturersData from '@/data/manufacturers.json'
 
@@ -22,10 +23,8 @@ export default function ManufacturersPage() {
   const [query, setQuery] = useState('')
   const [countsBySlug, setCountsBySlug] = useState<Record<string, number>>({})
 
-  const draft =
-    typeof window !== 'undefined'
-      ? new URLSearchParams(window.location.search).get('draft')
-      : null
+  const searchParams = useSearchParams()
+  const draft = searchParams.get('draft')
 
   useEffect(() => {
     async function loadCounts() {

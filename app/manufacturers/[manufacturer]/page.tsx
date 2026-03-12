@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, use } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 
 type Manufacturer = {
@@ -50,10 +51,8 @@ export default function ManufacturerPage({ params }: { params: Promise<{ manufac
   const [requestEmail, setRequestEmail] = useState('')
   const [requestSent, setRequestSent] = useState(false)
 
-  const draft =
-    typeof window !== 'undefined'
-      ? new URLSearchParams(window.location.search).get('draft')
-      : null
+  const searchParams = useSearchParams()
+  const draft = searchParams.get('draft')
 
   function withDraft(path: string) {
     return draft ? `${path}?draft=${encodeURIComponent(draft)}` : path

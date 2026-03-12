@@ -8,6 +8,7 @@
 
   --brand: #4A8FA0;
   --brand-hover: #6BA7B5;
+  --brand-bright: #6FCFE8;
   --brand-subtle: rgba(74, 143, 160, 0.14);
 
   --text-primary: #F5F2ED;
@@ -38,6 +39,7 @@
 
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
+  --color-brand-bright: var(--brand-bright);
   --color-brand-subtle: var(--brand-subtle);
 
   --color-text-primary: var(--text-primary);
