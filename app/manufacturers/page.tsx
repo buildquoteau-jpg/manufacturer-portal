@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import manufacturersData from '@/data/manufacturers.json'
@@ -19,7 +19,7 @@ type ManufacturerCard = JsonManufacturer & {
 
 const manufacturers = manufacturersData as JsonManufacturer[]
 
-export default function ManufacturersPage() {
+function ManufacturersPageInner() {
   const [query, setQuery] = useState('')
   const [countsBySlug, setCountsBySlug] = useState<Record<string, number>>({})
 
@@ -177,5 +177,14 @@ export default function ManufacturersPage() {
         <span>Manufacturer data updated Feb 2026</span>
       </footer>
     </div>
+  )
+}
+
+
+export default function ManufacturersPage() {
+  return (
+    <Suspense fallback={<div className=\"min-h-screen bg-page text-text-primary p-6\">Loading manufacturer portal…</div>}>
+      <ManufacturersPageInner />
+    </Suspense>
   )
 }
