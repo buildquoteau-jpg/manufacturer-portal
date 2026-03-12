@@ -56,7 +56,7 @@ function ItemRow({
   return (
     <div
       className={`grid gap-3 rounded-xl border p-3 ${
-        isSelected ? 'border-brand bg-brand-subtle' : 'border-border bg-ui/60'
+        isSelected ? 'border-brand bg-brand/10' : 'border-brand/40 bg-ui'
       }`}
     >
       <div className="min-w-0">
@@ -72,7 +72,7 @@ function ItemRow({
         <label className="inline-flex items-center gap-2 text-sm text-text-primary">
           <input
             type="checkbox"
-            className="h-4 w-4 rounded border-border bg-surface"
+            className="h-4 w-4 rounded border-brand bg-surface"
             checked={isSelected}
             onChange={(e) => onQtyChange(e.target.checked ? 1 : 0)}
           />
@@ -80,7 +80,7 @@ function ItemRow({
         </label>
 
         <input
-          className="h-10 w-24 rounded-lg border border-border bg-surface px-3 text-sm text-text-primary outline-none transition-colors placeholder:text-text-faint focus:border-brand"
+          className="h-10 w-24 rounded-lg border border-brand bg-surface px-3 text-sm text-text-primary outline-none transition-colors placeholder:text-text-faint focus:border-brand"
           type="number"
           min="0"
           value={item.qty || ''}
@@ -122,7 +122,7 @@ export default function SystemCard({
   const verificationLevel = getVerificationLevel(verificationStatus)
 
   return (
-    <div className="rounded-2xl border border-border bg-surface p-4 md:p-5">
+    <div className="rounded-2xl border border-brand bg-surface p-4 md:p-5">
       <div className="border-b border-border-subtle pb-4">
         <p className="text-[11px] uppercase tracking-[0.22em] text-brand">System</p>
         <h2 className="mt-2 text-2xl font-bold uppercase leading-tight text-text-primary">
