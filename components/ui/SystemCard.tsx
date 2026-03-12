@@ -56,7 +56,7 @@ function ItemRow({
   return (
     <div
       className={`grid gap-3 rounded-xl border p-3 ${
-        isSelected ? 'border-brand bg-brand/20' : 'border-brand/60 bg-surface'
+        isSelected ? 'border-2 border-brand bg-brand/25' : 'border border-border bg-surface'
       }`}
     >
       <div className="min-w-0">
@@ -70,19 +70,22 @@ function ItemRow({
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <label className="inline-flex items-center gap-2 text-sm text-text-primary">
-          <input
+          <{isSelected <input<input <input
             type="checkbox"
-            className="h-5 w-5 rounded border-2 border-brand accent-brand bg-surface"
+            className="h-5 w-5 accent-brand cursor-pointer"
             checked={isSelected}
             onChange={(e) => onQtyChange(e.target.checked ? 1 : 0)}
-          />
-          <span>Add to BuildQuote RFQ</span>
+          /> }
+ }
+
+          <span>Add to RFQ</span>
         </label>
 
-        <input
-          className="h-10 w-24 rounded-lg border border-brand bg-surface px-3 text-sm text-text-primary outline-none transition-colors placeholder:text-text-faint focus:border-brand"
+        <{isSelected <input<input <input
+          className="h-10 w-24 rounded-lg border border-brand bg-surface px-3 text-sm text-text-primary outline-none transition-colors placeholder:text-text-faint disabled:opacity-50 disabled:cursor-not-allowed focus:border-brand enabled:border-2"
           type="number"
           min="0"
+          disabled={!isSelected}
           value={item.qty || ''}
           placeholder="Qty"
           onChange={(e) => {
@@ -94,7 +97,9 @@ function ItemRow({
             const next = parseInt(raw, 10)
             onQtyChange(Number.isNaN(next) ? 1 : Math.max(0, next))
           }}
-        />
+        /> }
+ }
+
       </div>
     </div>
   )
@@ -154,7 +159,9 @@ export default function SystemCard({
                 key={item.code}
                 item={item}
                 onQtyChange={(qty) => onQtyChange(item.code, qty)}
-              />
+              /> }
+ }
+
             ))}
           </div>
         </section>
@@ -170,7 +177,9 @@ export default function SystemCard({
                 key={item.code}
                 item={item}
                 onQtyChange={(qty) => onQtyChange(item.code, qty)}
-              />
+              /> }
+ }
+
             ))}
           </div>
         </section>
@@ -211,7 +220,9 @@ export default function SystemCard({
                       className={`h-2.5 w-2.5 rounded-full ${
                         active ? 'bg-brand' : 'border border-border bg-transparent'
                       }`}
-                    />
+                    /> }
+ }
+
                     <span
                       className={`text-xs font-medium ${
                         active ? 'text-text-primary' : 'text-text-faint'
