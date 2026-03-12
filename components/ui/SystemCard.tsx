@@ -55,8 +55,8 @@ function ItemRow({
 
   return (
     <div
-      className={`grid gap-3 rounded-xl border p-3 ${
-        isSelected ? 'border-2 border-brand bg-brand/25' : 'border border-border bg-surface'
+      className={`grid gap-3 rounded-xl p-3 ${
+        isSelected ? 'border-2 border-brand bg-brand/30 shadow-sm' : 'border border-white/20 bg-surface'
       }`}
     >
       <div className="min-w-0">
@@ -70,36 +70,34 @@ function ItemRow({
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <label className="inline-flex items-center gap-2 text-sm text-text-primary">
-          <{isSelected <input<input <input
+          <input
             type="checkbox"
             className="h-5 w-5 accent-brand cursor-pointer"
             checked={isSelected}
             onChange={(e) => onQtyChange(e.target.checked ? 1 : 0)}
-          /> }
- }
-
+          />
           <span>Add to RFQ</span>
         </label>
 
-        <{isSelected <input<input <input
-          className="h-10 w-24 rounded-lg border border-brand bg-surface px-3 text-sm text-text-primary outline-none transition-colors placeholder:text-text-faint disabled:opacity-50 disabled:cursor-not-allowed focus:border-brand enabled:border-2"
-          type="number"
-          min="0"
-          disabled={!isSelected}
-          value={item.qty || ''}
-          placeholder="Qty"
-          onChange={(e) => {
-            const raw = e.target.value
-            if (raw === '') {
-              onQtyChange(1)
-              return
-            }
-            const next = parseInt(raw, 10)
-            onQtyChange(Number.isNaN(next) ? 1 : Math.max(0, next))
-          }}
-        /> }
- }
-
+        {isSelected ? (
+          <input
+            autoFocus
+            className="h-10 w-24 rounded-lg border-2 border-brand bg-surface px-3 text-sm text-text-primary outline-none transition-colors placeholder:text-text-faint focus:border-brand"
+            type="number"
+            min="0"
+            value={item.qty || ''}
+            placeholder="Qty"
+            onChange={(e) => {
+              const raw = e.target.value
+              if (raw === '') {
+                onQtyChange(1)
+                return
+              }
+              const next = parseInt(raw, 10)
+              onQtyChange(Number.isNaN(next) ? 1 : Math.max(0, next))
+            }}
+          />
+        ) : null}
       </div>
     </div>
   )
@@ -129,7 +127,7 @@ export default function SystemCard({
   return (
     <div className="rounded-2xl border border-border bg-surface p-4 md:p-5">
       <div className="border-b border-border-subtle pb-4">
-        <p className="text-[11px] uppercase tracking-[0.22em] text-brand">System</p>
+        <p className="text-[11px] uppercase tracking-[0.22em]" style={{ color: 'var(--brand-bright)' }}>System</p>
         <h2 className="mt-2 text-2xl font-bold uppercase leading-tight text-text-primary">
           {title}
         </h2>
@@ -150,7 +148,7 @@ export default function SystemCard({
       <div className="mt-4 space-y-5">
         <section>
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">Panels</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: 'var(--brand-bright)' }}>Panels</h3>
             <span className="text-xs text-text-faint">{panels.length} items</span>
           </div>
           <div className="space-y-2">
@@ -159,16 +157,14 @@ export default function SystemCard({
                 key={item.code}
                 item={item}
                 onQtyChange={(qty) => onQtyChange(item.code, qty)}
-              /> }
- }
-
+              />
             ))}
           </div>
         </section>
 
         <section>
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">Accessories</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: 'var(--brand-bright)' }}>Accessories</h3>
             <span className="text-xs text-text-faint">{accessories.length} items</span>
           </div>
           <div className="space-y-2">
@@ -177,9 +173,7 @@ export default function SystemCard({
                 key={item.code}
                 item={item}
                 onQtyChange={(qty) => onQtyChange(item.code, qty)}
-              /> }
- }
-
+              />
             ))}
           </div>
         </section>
@@ -193,7 +187,7 @@ export default function SystemCard({
               href={sourceUrl}
               target="_blank"
               rel="noreferrer"
-              className="mt-1 inline-block break-words text-sm text-brand hover:underline"
+              className="mt-1 inline-block break-words text-sm text-[#5FB6D6]-400 hover:underline"
             >
               {sourceLabel || sourceUrl}
             </a>
@@ -220,9 +214,7 @@ export default function SystemCard({
                       className={`h-2.5 w-2.5 rounded-full ${
                         active ? 'bg-brand' : 'border border-border bg-transparent'
                       }`}
-                    /> }
- }
-
+                    />
                     <span
                       className={`text-xs font-medium ${
                         active ? 'text-text-primary' : 'text-text-faint'

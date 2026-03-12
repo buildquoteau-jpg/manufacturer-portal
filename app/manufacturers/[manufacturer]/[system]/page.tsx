@@ -60,6 +60,13 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
   const [mfr, setMfr] = useState<Manufacturer | null>(null)
   const [system, setSystem] = useState<SystemRecord | null>(null)
   const [items, setItems] = useState<Item[]>([])
+  const [draft, setDraft] = useState<string>('')
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const value = new URLSearchParams(window.location.search).get('draft') || ''
+    setDraft(value)
+  }, [])
 
   useEffect(() => {
     async function load() {
@@ -172,7 +179,12 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
     )
   }
 
+  function withDraft(path: string) {
+    return draft ? `${path}?draft=${encodeURIComponent(draft)}` : path
+  }
+
   const selectedCount = items.filter((i) => i.qty > 0).length
+  const selectedLabel = `${selectedCount} item${selectedCount === 1 ? '' : 's'} selected`
 
   if (!system || !mfr) return <div className="p-10 text-center">Loading system…</div>
 
@@ -180,13 +192,34 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
     <div className="min-h-screen bg-ui flex justify-center p-4">
       <div className="w-full max-w-xl space-y-4">
         <div className="flex items-center gap-3 text-sm">
-          <Link href={`/manufacturers/${mfr.slug}`} className="text-brand hover:underline">
+          <Link href={withDraft(`/manufacturers/${mfr.slug}`)} className="text-brand hover:underline">
             ← Back to {mfr.name}
           </Link>
           <span className="text-text-faint">/</span>
-          <Link href="/manufacturers" className="text-text-secondary hover:underline">
+          <Link href={withDraft('/manufacturers')} className="text-text-secondary hover:underline">
             All manufacturers
           </Link>
+        </div>
+
+        <div className="rounded-2xl border border-brand/30 bg-surface p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--brand-bright)]">
+            Add these selections to your BuildQuote RFQ
+          </p>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span className="inline-flex w-fit items-center rounded-full border border-border bg-ui/70 px-3 py-1 text-sm text-text-primary">
+              {selectedLabel}
+            </span>
+            <button
+              type="button"
+              disabled={selectedCount === 0}
+              className="h-11 rounded-xl bg-brand px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Add selected items
+            </button>
+          </div>
+          {!draft ? (
+            <p className="mt-2 text-xs text-text-faint">RFQ draft not linked yet.</p>
+          ) : null}
         </div>
 
         <SystemCard
@@ -200,6 +233,25 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
           onQtyChange={onQtyChange}
         />
 
+        <div className="sticky bottom-3">
+          <div className="rounded-2xl border border-brand/30 bg-surface/95 p-4 shadow-sm backdrop-blur">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--brand-bright)]">
+                  BuildQuote RFQ
+                </p>
+                <p className="mt-1 text-sm text-text-primary">{selectedLabel}</p>
+              </div>
+              <button
+                type="button"
+                disabled={selectedCount === 0}
+                className="h-11 rounded-xl bg-brand px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Add selected items
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
