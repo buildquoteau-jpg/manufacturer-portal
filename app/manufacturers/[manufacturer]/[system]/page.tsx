@@ -2,12 +2,15 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState, use } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import SystemCard from '@/components/ui/SystemCard'
 
 type Item = {
+  id: string
   code: string
   name: string
+  description?: string | null
   length?: number | null
   width?: number | null
   thickness?: number | null
@@ -38,6 +41,7 @@ type DisplayComponent = {
   id: string
   sku: string
   name: string
+  description: string | null
   uom: string
   category: string
   length_mm: number | null
@@ -60,13 +64,8 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
   const [mfr, setMfr] = useState<Manufacturer | null>(null)
   const [system, setSystem] = useState<SystemRecord | null>(null)
   const [items, setItems] = useState<Item[]>([])
-  const [draft, setDraft] = useState<string>('')
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const value = new URLSearchParams(window.location.search).get('draft') || ''
-    setDraft(value)
-  }, [])
+  const searchParams = useSearchParams()
+  const draft = searchParams.get('draft') || ''
 
   useEffect(() => {
     async function load() {
@@ -105,7 +104,7 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
 
       const { data: components } = await supabase
         .from('components')
-        .select('id, sku, name, uom, category, length_mm, width_mm, thickness_mm, texture')
+        .select('id, sku, name, description, uom, category, length_mm, width_mm, thickness_mm, texture')
         .in('id', componentIds)
 
       if (!components) return
@@ -130,8 +129,10 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
       const mappedSystem: SystemRecord = {
         ...sys,
         panels: panels.map((p) => ({
+          id: p.id,
           code: p.sku,
           name: p.name,
+          description: p.description,
           length: p.length_mm,
           width: p.width_mm,
           thickness: p.thickness_mm,
@@ -141,8 +142,10 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
           checked: false,
         })),
         accessories: accessories.map((a) => ({
+          id: a.id,
           code: a.sku,
           name: a.name,
+          description: a.description,
           length: a.length_mm,
           width: a.width_mm,
           thickness: a.thickness_mm,
@@ -186,6 +189,46 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
   const selectedCount = items.filter((i) => i.qty > 0).length
   const selectedLabel = `${selectedCount} item${selectedCount === 1 ? '' : 's'} selected`
 
+  async function handleAddSelected() {
+    if (!draft) return
+
+    const selected = items.filter((i) => i.qty > 0)
+    if (selected.length === 0) return
+
+    const payload = {
+      draft_id: draft,
+      items: selected.map((i) => ({
+        component_id: i.id,
+        sku: i.code,
+        name: i.name,
+        description: i.description,
+        uom: i.uom,
+        qty: i.qty,
+      })),
+    }
+
+    try {
+      const res = await fetch('/api/add-components', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      const text = await res.text()
+      console.log('add-components status', res.status)
+      console.log('add-components body', text)
+
+      if (!res.ok) {
+        throw new Error(`add-components failed: ${res.status} ${text}`)
+      }
+
+      window.location.href = `https://expert-spork-697xj5vx9ggp3jj9-3000.app.github.dev/rfq?draft=${draft}`
+    } catch (e) {
+      console.error('RFQ insert failed', e)
+      alert(String(e))
+    }
+  }
+
   if (!system || !mfr) return <div className="p-10 text-center">Loading system…</div>
 
   return (
@@ -211,7 +254,8 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
             </span>
             <button
               type="button"
-              disabled={selectedCount === 0}
+              onClick={handleAddSelected}
+              disabled={!draft || selectedCount === 0}
               className="h-11 rounded-xl bg-brand px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               Add selected items
@@ -244,7 +288,8 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
               </div>
               <button
                 type="button"
-                disabled={selectedCount === 0}
+                onClick={handleAddSelected}
+                disabled={!draft || selectedCount === 0}
                 className="h-11 rounded-xl bg-brand px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Add selected items
