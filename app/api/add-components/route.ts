@@ -27,16 +27,6 @@ export async function POST(req: Request) {
       qty: item.qty ?? null,
     }))
 
-    const { error: deleteError } = await supabase
-      .from('rfq_draft_items')
-      .delete()
-      .eq('draft_id', draft_id)
-
-    if (deleteError) {
-      console.error(deleteError)
-      return NextResponse.json({ error: 'Failed to clear draft items' }, { status: 500 })
-    }
-
     const { error } = await supabase
       .from('rfq_draft_items')
       .insert(rows)
