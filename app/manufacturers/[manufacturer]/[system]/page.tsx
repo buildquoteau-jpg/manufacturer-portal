@@ -20,6 +20,13 @@ type Item = {
   checked: boolean
 }
 
+function cleanProductName(name: string) {
+  return name
+    .replace(/\s+\d{3,5}mm\s*$/i, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+}
+
 function buildItemSpecs(item: Item) {
   const size =
     item.length && item.width
@@ -31,7 +38,6 @@ function buildItemSpecs(item: Item) {
           : ''
 
   const specs = [
-    item.code ? `${item.code}` : '',
     size,
     item.thickness ? `${item.thickness}mm` : '',
     item.texture ? item.texture : '',
@@ -220,7 +226,7 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
       items: selected.map((i) => ({
         component_id: i.id,
         sku: i.code,
-        name: i.name,
+        name: cleanProductName(i.name),
         description: buildItemSpecs(i),
         uom: i.uom,
         qty: i.qty,
