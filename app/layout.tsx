@@ -37,6 +37,7 @@ export default function RootLayout({
       <body
         className={`${barlow.variable} ${barlowCondensed.variable} antialiased`}
       >
+        <div className="bg-amber-500 text-white text-center py-2 px-4 text-sm font-semibold">⚠️ This platform is in test mode and is not yet fully functioning. Data may be reset at any time.</div>
         {children}
       </body>
     </html>
