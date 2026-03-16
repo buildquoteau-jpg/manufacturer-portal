@@ -222,7 +222,7 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
         throw new Error(`add-components failed: ${res.status} ${text}`)
       }
 
-      window.location.href = `https://buildquote.com.au/rfq?draft=${draft}`
+      window.location.href = `${document.referrer ? new URL(document.referrer).origin : 'https://buildquote.com.au'}/rfq?draft=${draft}`
     } catch (e) {
       console.error('RFQ insert failed', e)
       alert(String(e))
