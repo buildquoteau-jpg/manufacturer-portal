@@ -20,6 +20,26 @@ type Item = {
   checked: boolean
 }
 
+function buildItemSpecs(item: Item) {
+  const size =
+    item.length && item.width
+      ? `${item.length}×${item.width}`
+      : item.length
+        ? `${item.length}mm`
+        : item.width
+          ? `${item.width}mm`
+          : ''
+
+  const specs = [
+    item.code ? `${item.code}` : '',
+    size,
+    item.thickness ? `${item.thickness}mm` : '',
+    item.texture ? item.texture : '',
+  ].filter(Boolean)
+
+  return specs.join(' • ')
+}
+
 type Manufacturer = {
   id: string
   name: string
@@ -201,7 +221,7 @@ export default function SystemPage({ params }: { params: Promise<{ manufacturer:
         component_id: i.id,
         sku: i.code,
         name: i.name,
-        description: i.description,
+        description: buildItemSpecs(i),
         uom: i.uom,
         qty: i.qty,
       })),
