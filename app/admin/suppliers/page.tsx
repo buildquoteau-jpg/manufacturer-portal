@@ -115,7 +115,7 @@ export default function SuppliersAdminPage() {
         .eq('manufacturer_id', NTW_MANUFACTURER_ID)
         .order('sort_order'),
     ])
-    if (suppliersRes.data) setSuppliers(suppliersRes.data as Supplier[])
+    if (suppliersRes.data) setSuppliers(suppliersRes.data as unknown as Supplier[])
     if (systemsRes.data) setSystems(systemsRes.data)
     setLoading(false)
   }
