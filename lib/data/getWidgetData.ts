@@ -63,14 +63,6 @@ export async function getWidgetData(token: string): Promise<WidgetData | null> {
     .select(`
       id,
       name,
-      manufacturers (
-        name,
-        slug,
-        logo_url,
-        hero_image_url,
-        website_url,
-        description
-      ),
       suppliers (
         name,
         website_url
@@ -91,6 +83,14 @@ export async function getWidgetData(token: string): Promise<WidgetData | null> {
           hero_image_url,
           website_url,
           notes,
+          manufacturers (
+            name,
+            slug,
+            logo_url,
+            hero_image_url,
+            website_url,
+            description
+          ),
           system_colours (
             colour_name,
             sort_order,
@@ -121,22 +121,27 @@ export async function getWidgetData(token: string): Promise<WidgetData | null> {
   const sortedSystems = widgetSystems
     .sort((a, b) => a.sort_order - b.sort_order)
     .map((ws) => {
-      const sys = ws.systems as WidgetSystem
+      const sys = ws.systems as any
+      const { manufacturers: _mf, ...sysWithoutMf } = sys
       return {
-        ...sys,
+        ...sysWithoutMf,
         system_colours: (sys.system_colours || []).sort(
           (a: WidgetColour, b: WidgetColour) => a.sort_order - b.sort_order
         ),
         system_components: (sys.system_components || []).sort(
           (a: WidgetComponent, b: WidgetComponent) => a.sort_order - b.sort_order
         ),
-      }
+      } as WidgetSystem
     })
+
+  // Derive manufacturer from the first system
+  const firstSys = widgetSystems[0]?.systems as any
+  const manufacturer: WidgetManufacturer | null = firstSys?.manufacturers ?? null
 
   return {
     id: (data as any).id,
     name: (data as any).name,
-    manufacturer: (data as any).manufacturers,
+    manufacturer,
     supplier: (data as any).suppliers,
     systems: sortedSystems,
   }
