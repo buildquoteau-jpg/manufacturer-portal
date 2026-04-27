@@ -1,4 +1,4 @@
-import { getWidgetData, WidgetComponent, WidgetSystem } from '@/lib/data/getWidgetData'
+import { getWidgetData, WidgetComponent, WidgetData, WidgetSystem } from '@/lib/data/getWidgetData'
 import { notFound } from 'next/navigation'
 
 // Approximate colour swatches for NTW palette
@@ -15,6 +15,110 @@ const COLOUR_MAP: Record<string, string> = {
   'Ebony':          '#2C2C2C',
   'Ebony (Charred)':'#1A1A1A',
   'Sea Salt':       '#D8DCD8',
+}
+
+function ManufacturerHero({ manufacturer, supplierName }: {
+  manufacturer: WidgetData['manufacturer']
+  supplierName?: string
+}) {
+  if (!manufacturer) return null
+
+  const bgStyle = manufacturer.hero_image_url
+    ? {
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.55)), url(${manufacturer.hero_image_url})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }
+    : { background: 'linear-gradient(135deg, #1b3a2d 0%, #2d5a42 60%, #1b3a2d 100%)' }
+
+  return (
+    <div style={{
+      ...bgStyle,
+      borderRadius: '14px',
+      padding: '56px 32px 52px',
+      textAlign: 'center',
+      marginBottom: '28px',
+      overflow: 'hidden',
+    }}>
+      {/* Logo or brand name */}
+      {manufacturer.logo_url ? (
+        <img
+          src={manufacturer.logo_url}
+          alt={manufacturer.name}
+          style={{ height: '56px', marginBottom: '18px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+        />
+      ) : (
+        <div style={{
+          fontSize: '34px',
+          fontWeight: 800,
+          color: '#ffffff',
+          letterSpacing: '-0.02em',
+          marginBottom: '10px',
+          textShadow: '0 2px 12px rgba(0,0,0,0.4)',
+          lineHeight: 1.1,
+        }}>
+          {manufacturer.name}
+        </div>
+      )}
+
+      {/* Stocked at pill */}
+      {supplierName && (
+        <div style={{
+          display: 'inline-block',
+          fontSize: '12px',
+          color: 'rgba(255,255,255,0.75)',
+          background: 'rgba(255,255,255,0.12)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          borderRadius: '20px',
+          padding: '4px 12px',
+          marginBottom: '20px',
+        }}>
+          Stocked at {supplierName}
+        </div>
+      )}
+
+      {/* Description */}
+      {manufacturer.description && (
+        <p style={{
+          color: 'rgba(255,255,255,0.85)',
+          fontSize: '14px',
+          lineHeight: 1.65,
+          maxWidth: '580px',
+          margin: '0 auto 24px',
+          textShadow: '0 1px 6px rgba(0,0,0,0.35)',
+        }}>
+          {manufacturer.description}
+        </p>
+      )}
+
+      {/* Visit website */}
+      {manufacturer.website_url && (
+        <a
+          href={manufacturer.website_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '10px 22px',
+            background: 'rgba(255,255,255,0.15)',
+            border: '1px solid rgba(255,255,255,0.45)',
+            borderRadius: '8px',
+            color: '#ffffff',
+            fontSize: '13px',
+            fontWeight: 600,
+            textDecoration: 'none',
+          }}
+        >
+          Visit {manufacturer.name}
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+            <path d="M2 10L10 2M10 2H4M10 2V8" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </a>
+      )}
+    </div>
+  )
 }
 
 function ColourChip({ colour }: { colour: WidgetSystem['system_colours'][number] }) {
@@ -158,7 +262,6 @@ function SystemCard({ system }: { system: WidgetSystem }) {
             {system.product_code}
           </span>
         )}
-        {/* Category badge overlaid on image */}
         <span style={{
           position: 'absolute',
           top: '10px',
@@ -193,17 +296,9 @@ function SystemCard({ system }: { system: WidgetSystem }) {
       </div>
 
       {/* Card body */}
-      <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', gap: '0' }}>
-
-        {/* Name + code */}
+      <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
         <div style={{ marginBottom: '4px' }}>
-          <h3 style={{
-            margin: 0,
-            fontSize: '17px',
-            fontWeight: 700,
-            color: '#111827',
-            lineHeight: 1.2,
-          }}>
+          <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#111827', lineHeight: 1.2 }}>
             {system.name}
           </h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
@@ -227,7 +322,6 @@ function SystemCard({ system }: { system: WidgetSystem }) {
           </div>
         </div>
 
-        {/* Description */}
         {system.description && (
           <p style={{
             margin: '8px 0 0',
@@ -243,7 +337,6 @@ function SystemCard({ system }: { system: WidgetSystem }) {
           </p>
         )}
 
-        {/* Colours */}
         {system.system_colours.length > 0 && (
           <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #f3f4f6' }}>
             <div style={{
@@ -260,7 +353,6 @@ function SystemCard({ system }: { system: WidgetSystem }) {
           </div>
         )}
 
-        {/* Components */}
         {system.system_components.length > 0 && (
           <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #f3f4f6', flex: 1 }}>
             <div style={{
@@ -278,7 +370,6 @@ function SystemCard({ system }: { system: WidgetSystem }) {
           </div>
         )}
 
-        {/* View on manufacturer site */}
         {system.website_url && (
           <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #f3f4f6' }}>
             <a
@@ -303,7 +394,7 @@ function SystemCard({ system }: { system: WidgetSystem }) {
               }}
             >
               View on NewTech Wood
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                 <path d="M2 10L10 2M10 2H4M10 2V8" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </a>
@@ -326,45 +417,29 @@ export default async function WidgetPage({
 
   return (
     <div style={{
-      padding: '24px 20px 32px',
-      maxWidth: '1100px',
+      padding: '24px 20px 40px',
+      maxWidth: '1200px',
       margin: '0 auto',
       background: '#f9fafb',
       minHeight: '100vh',
     }}>
+      {/* Brand hero */}
+      <ManufacturerHero
+        manufacturer={widget.manufacturer}
+        supplierName={widget.supplier?.name}
+      />
 
-      {/* Header */}
-      <div style={{ marginBottom: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', flexWrap: 'wrap' }}>
-          <h2 style={{
-            margin: 0,
-            fontSize: '20px',
-            fontWeight: 700,
-            color: '#111827',
-          }}>
-            NewTech Wood
-          </h2>
-          {widget.supplier && (
-            <span style={{ fontSize: '14px', color: '#6b7280' }}>
-              Stocked at {widget.supplier.name}
-            </span>
-          )}
-        </div>
-        <p style={{
-          margin: '4px 0 0',
-          fontSize: '13px',
-          color: '#9ca3af',
-        }}>
-          {widget.systems.length === 1
-            ? '1 profile available'
-            : `${widget.systems.length} profiles available`}
-        </p>
-      </div>
+      {/* Profile count */}
+      <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#9ca3af' }}>
+        {widget.systems.length === 1
+          ? '1 profile available'
+          : `${widget.systems.length} profiles available`}
+      </p>
 
-      {/* Cards grid */}
+      {/* Cards grid — auto-fill so any number of products wraps cleanly */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: `repeat(${Math.min(widget.systems.length, 3)}, 1fr)`,
+        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
         gap: '16px',
       }}>
         {widget.systems.map((system) => (
@@ -374,7 +449,7 @@ export default async function WidgetPage({
 
       {/* Footer */}
       <div style={{
-        marginTop: '24px',
+        marginTop: '32px',
         textAlign: 'center',
         fontSize: '11px',
         color: '#d1d5db',

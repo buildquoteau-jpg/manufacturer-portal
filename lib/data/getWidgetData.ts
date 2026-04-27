@@ -1,5 +1,14 @@
 import { supabase } from '@/lib/supabase/client'
 
+export type WidgetManufacturer = {
+  name: string
+  slug: string
+  logo_url: string | null
+  hero_image_url: string | null
+  website_url: string | null
+  description: string | null
+}
+
 export type WidgetColour = {
   colour_name: string
   sort_order: number
@@ -40,6 +49,7 @@ export type WidgetSystem = {
 export type WidgetData = {
   id: string
   name: string
+  manufacturer: WidgetManufacturer | null
   supplier: {
     name: string
     website_url: string | null
@@ -53,6 +63,14 @@ export async function getWidgetData(token: string): Promise<WidgetData | null> {
     .select(`
       id,
       name,
+      manufacturers (
+        name,
+        slug,
+        logo_url,
+        hero_image_url,
+        website_url,
+        description
+      ),
       suppliers (
         name,
         website_url
@@ -99,7 +117,6 @@ export async function getWidgetData(token: string): Promise<WidgetData | null> {
 
   if (error || !data) return null
 
-  // Sort widget systems by sort_order and flatten
   const widgetSystems = data.embed_widget_systems as any[]
   const sortedSystems = widgetSystems
     .sort((a, b) => a.sort_order - b.sort_order)
@@ -119,6 +136,7 @@ export async function getWidgetData(token: string): Promise<WidgetData | null> {
   return {
     id: (data as any).id,
     name: (data as any).name,
+    manufacturer: (data as any).manufacturers,
     supplier: (data as any).suppliers,
     systems: sortedSystems,
   }
