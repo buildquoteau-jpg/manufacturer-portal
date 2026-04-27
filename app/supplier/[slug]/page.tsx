@@ -15,6 +15,17 @@ type WidgetRecord = {
   }[]
 }
 
+type RfqEnquiry = {
+  id: string
+  system_name: string | null
+  product_code: string | null
+  name: string
+  email: string
+  phone: string | null
+  message: string | null
+  created_at: string
+}
+
 type SupplierData = {
   id: string
   name: string
@@ -71,6 +82,7 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
   const [passwordInput, setPasswordInput] = useState('')
   const [passwordError, setPasswordError] = useState(false)
   const [origin, setOrigin] = useState('')
+  const [enquiries, setEnquiries] = useState<RfqEnquiry[]>([])
 
   useEffect(() => {
     setOrigin(window.location.origin)
@@ -104,9 +116,21 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
     const stored = sessionStorage.getItem(`supplier_portal_${slug}`)
     if (stored && s.portal_password && stored === s.portal_password) {
       setAuthed(true)
+      loadEnquiries(s)
     }
 
     setLoading(false)
+  }
+
+  async function loadEnquiries(s: SupplierData) {
+    const widgetIds = s.embed_widgets.map(w => w.id)
+    if (widgetIds.length === 0) return
+    const { data } = await supabase
+      .from('rfq_enquiries')
+      .select('id, system_name, product_code, name, email, phone, message, created_at')
+      .in('widget_id', widgetIds)
+      .order('created_at', { ascending: false })
+    if (data) setEnquiries(data as RfqEnquiry[])
   }
 
   function handleLogin(e: React.FormEvent) {
@@ -115,6 +139,7 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
     if (passwordInput === supplier.portal_password) {
       sessionStorage.setItem(`supplier_portal_${slug}`, passwordInput)
       setAuthed(true)
+      loadEnquiries(supplier)
     } else {
       setPasswordError(true)
       setTimeout(() => setPasswordError(false), 2000)
@@ -274,6 +299,44 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
                     </div>
                   )
                 })}
+            </div>
+          )}
+        </section>
+
+        {/* Enquiries */}
+        <section>
+          <h2 className="text-lg font-bold text-text-primary mb-5">
+            Product enquiries
+            <span className="ml-2 text-sm font-normal text-text-faint">({enquiries.length})</span>
+          </h2>
+
+          {enquiries.length === 0 ? (
+            <div className="bg-surface border border-border rounded-xl p-6 text-center">
+              <p className="text-text-faint text-sm">No enquiries yet. They will appear here when visitors submit a request via your widget.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {enquiries.map(enq => (
+                <div key={enq.id} className="bg-surface border border-border rounded-xl p-5">
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div>
+                      <p className="font-semibold text-text-primary text-sm">{enq.name}</p>
+                      <p className="text-text-faint text-xs mt-0.5">{enq.email}{enq.phone ? ` · ${enq.phone}` : ''}</p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      {enq.product_code && (
+                        <span className="text-xs bg-brand-subtle text-brand-bright px-2.5 py-1 rounded-full font-medium">
+                          {enq.product_code}
+                        </span>
+                      )}
+                      <p className="text-text-faint text-xs mt-1">{formatDate(enq.created_at)}</p>
+                    </div>
+                  </div>
+                  {enq.message && (
+                    <p className="text-text-secondary text-sm leading-relaxed border-t border-border-subtle pt-3">{enq.message}</p>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </section>
