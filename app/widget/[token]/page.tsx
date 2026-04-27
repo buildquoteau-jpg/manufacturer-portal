@@ -302,7 +302,7 @@ function SystemCard({ system }: { system: WidgetSystem }) {
                 cursor: 'pointer',
               }}
             >
-              View on New Tech Wood
+              View on NewTech Wood
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M2 10L10 2M10 2H4M10 2V8" stroke="#6b7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -342,7 +342,7 @@ export default async function WidgetPage({
             fontWeight: 700,
             color: '#111827',
           }}>
-            New Tech Wood
+            NewTech Wood
           </h2>
           {widget.supplier && (
             <span style={{ fontSize: '14px', color: '#6b7280' }}>
