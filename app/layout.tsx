@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
 import "./globals.css";
+import { GlobalNav } from "./components/GlobalNav";
 
 const barlow = Barlow({
   variable: "--font-barlow",
@@ -37,6 +38,7 @@ export default function RootLayout({
       <body
         className={`${barlow.variable} ${barlowCondensed.variable} antialiased`}
       >
+        <GlobalNav />
         <div className="bg-amber-500 text-white text-center py-2 px-4 text-sm font-semibold">⚠️ This platform is in test mode and is not yet fully functioning. Data may be reset at any time.</div>
         {children}
       </body>
