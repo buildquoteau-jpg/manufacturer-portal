@@ -3,12 +3,58 @@
 import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 
-const NAV_LINKS = [
-  { label: 'Home',              href: 'https://buildquote.com.au/' },
-  { label: 'Send a Quote',      href: 'https://buildquote.com.au/rfq' },
-  { label: 'Privacy Policy',    href: 'https://buildquote.com.au/privacy' },
-  { label: 'Terms of Use',      href: 'https://buildquote.com.au/terms' },
+// Internal portal links (same domain, open in same tab)
+const PORTAL_LINKS = [
+  { label: 'Manufacturers Portal', href: '/' },
+  { label: 'Supplier Admin',       href: '/admin/suppliers' },
 ]
+
+// External buildquote.com.au links
+const MAIN_SITE_LINKS = [
+  { label: 'Home',           href: 'https://buildquote.com.au/' },
+  { label: 'Send a Quote',   href: 'https://buildquote.com.au/rfq' },
+  { label: 'Privacy Policy', href: 'https://buildquote.com.au/privacy' },
+  { label: 'Terms of Use',   href: 'https://buildquote.com.au/terms' },
+]
+
+function MenuLink({ href, label, external, onClose }: { href: string; label: string; external: boolean; onClose: () => void }) {
+  return (
+    <a
+      href={href}
+      target={external ? '_blank' : '_self'}
+      rel={external ? 'noopener noreferrer' : undefined}
+      onClick={onClose}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '11px 20px',
+        fontSize: '14px',
+        fontWeight: 500,
+        color: '#d1d5db',
+        textDecoration: 'none',
+        transition: 'background 0.15s, color 0.15s',
+      }}
+      onMouseEnter={e => {
+        const el = e.currentTarget as HTMLAnchorElement
+        el.style.background = 'rgba(255,255,255,0.06)'
+        el.style.color = '#ffffff'
+      }}
+      onMouseLeave={e => {
+        const el = e.currentTarget as HTMLAnchorElement
+        el.style.background = 'transparent'
+        el.style.color = '#d1d5db'
+      }}
+    >
+      {label}
+      {external && (
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ opacity: 0.4, flexShrink: 0 }}>
+          <path d="M2 10L10 2M10 2H4M10 2V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )}
+    </a>
+  )
+}
 
 export function GlobalNav() {
   const pathname = usePathname()
@@ -114,7 +160,7 @@ export function GlobalNav() {
           position: 'absolute',
           top: '100%',
           right: 0,
-          width: '220px',
+          width: '230px',
           background: '#0f2318',
           border: '1px solid rgba(255,255,255,0.10)',
           borderTop: 'none',
@@ -122,40 +168,27 @@ export function GlobalNav() {
           overflow: 'hidden',
           boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
         }}>
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setOpen(false)}
-              style={{
-                display: 'block',
-                padding: '13px 20px',
-                fontSize: '14px',
-                fontWeight: 500,
-                color: '#d1d5db',
-                textDecoration: 'none',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-                transition: 'background 0.15s, color 0.15s',
-              }}
-              onMouseEnter={e => {
-                (e.target as HTMLAnchorElement).style.background = 'rgba(255,255,255,0.06)'
-                ;(e.target as HTMLAnchorElement).style.color = '#ffffff'
-              }}
-              onMouseLeave={e => {
-                (e.target as HTMLAnchorElement).style.background = 'transparent'
-                ;(e.target as HTMLAnchorElement).style.color = '#d1d5db'
-              }}
-            >
-              {link.label}
-            </a>
-          ))}
-          <div style={{ padding: '10px 20px' }}>
-            <span style={{ fontSize: '11px', color: '#4b5563' }}>
-              mfp.buildquote.com.au
-            </span>
+
+          {/* Section: this portal */}
+          <div style={{ padding: '8px 20px 4px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#4b5563' }}>
+            mfp.buildquote.com.au
           </div>
+          {PORTAL_LINKS.map((link) => (
+            <MenuLink key={link.label} href={link.href} label={link.label} external={false} onClose={() => setOpen(false)} />
+          ))}
+
+          {/* Divider */}
+          <div style={{ margin: '6px 0', borderTop: '1px solid rgba(255,255,255,0.08)' }} />
+
+          {/* Section: main site */}
+          <div style={{ padding: '4px 20px 4px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#4b5563' }}>
+            buildquote.com.au
+          </div>
+          {MAIN_SITE_LINKS.map((link) => (
+            <MenuLink key={link.href} href={link.href} label={link.label} external={true} onClose={() => setOpen(false)} />
+          ))}
+
+          <div style={{ height: '6px' }} />
         </div>
       )}
     </nav>
