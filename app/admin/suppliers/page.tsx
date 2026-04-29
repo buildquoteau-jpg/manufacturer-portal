@@ -364,12 +364,13 @@ export default function SuppliersAdminPage() {
     if (editSelectedIds.length === 0) { setEditError('Select at least one product'); return }
     setEditSaving(true)
     setEditError(null)
-    const { error: delErr } = await supabase.from('embed_widget_systems')
-      .delete().eq('embed_widget_id', editState.widgetId)
-    if (delErr) { setEditError(delErr.message); setEditSaving(false); return }
-    const { error: insErr } = await supabase.from('embed_widget_systems')
-      .insert(editSelectedIds.map((sid, i) => ({ embed_widget_id: editState.widgetId, system_id: sid, sort_order: i })))
-    if (insErr) { setEditError(insErr.message); setEditSaving(false); return }
+    const res = await fetch('/api/admin/update-widget-systems', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
+      body: JSON.stringify({ widgetId: editState.widgetId, systemIds: editSelectedIds }),
+    })
+    const json = await res.json()
+    if (!res.ok) { setEditError(json.error || 'Save failed'); setEditSaving(false); return }
     setEditState(null)
     setEditSaving(false)
     loadData()
