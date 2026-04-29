@@ -11,6 +11,7 @@ type WidgetRecord = {
   status: string
   created_at: string
   embed_widget_systems: {
+    system_id: string
     systems: { name: string; product_code: string; manufacturer_id: string }
   }[]
 }
@@ -228,6 +229,15 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
   const [enquiries, setEnquiries] = useState<RfqEnquiry[]>([])
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([])
 
+  // Edit widget products
+  type EditState = { widgetId: string; manufacturerId: string }
+  type EditSystem = { id: string; name: string; product_code: string; category: string; subcategory: string | null; sort_order: number }
+  const [editState, setEditState] = useState<EditState | null>(null)
+  const [editSystems, setEditSystems] = useState<EditSystem[]>([])
+  const [editSelectedIds, setEditSelectedIds] = useState<string[]>([])
+  const [editSaving, setEditSaving] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
+
   useEffect(() => {
     setOrigin(window.location.origin)
     loadSupplier()
@@ -241,7 +251,7 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
         manager_name, it_name, it_email, portal_password, created_at,
         embed_widgets (
           id, name, public_token, status, created_at,
-          embed_widget_systems ( systems ( name, product_code, manufacturer_id ) )
+          embed_widget_systems ( system_id, systems ( name, product_code, manufacturer_id ) )
         )
       `)
       .eq('slug', slug)
@@ -275,6 +285,45 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
       .in('widget_id', widgetIds)
       .order('created_at', { ascending: false })
     if (data) setEnquiries(data as RfqEnquiry[])
+  }
+
+  async function openEdit(widget: WidgetRecord) {
+    const firstEws = widget.embed_widget_systems[0]
+    const manufacturerId = firstEws?.systems?.manufacturer_id
+    if (!manufacturerId) return
+    const currentIds = widget.embed_widget_systems.map(ews => ews.system_id)
+    const { data } = await supabase
+      .from('systems')
+      .select('id, name, product_code, category, subcategory, sort_order')
+      .eq('manufacturer_id', manufacturerId)
+      .order('sort_order')
+    if (data) setEditSystems(data)
+    setEditSelectedIds(currentIds)
+    setEditState({ widgetId: widget.id, manufacturerId })
+    setEditError(null)
+  }
+
+  async function saveEdit() {
+    if (!editState || !supplier) return
+    if (editSelectedIds.length === 0) { setEditError('Select at least one product'); return }
+    const stored = sessionStorage.getItem(`supplier_portal_${slug}`) || ''
+    setEditSaving(true)
+    setEditError(null)
+    const res = await fetch('/api/supplier/update-widget-systems', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        widgetId: editState.widgetId,
+        systemIds: editSelectedIds,
+        supplierSlug: slug,
+        password: stored,
+      }),
+    })
+    const json = await res.json()
+    if (!res.ok) { setEditError(json.error || 'Save failed'); setEditSaving(false); return }
+    setEditState(null)
+    setEditSaving(false)
+    loadSupplier()
   }
 
   async function loadManufacturers() {
@@ -461,6 +510,10 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
                             className="text-xs px-3 py-1.5 bg-ui hover:bg-surface-hover border border-border text-text-secondary rounded-lg font-medium transition-colors">
                             Preview widget ↗
                           </a>
+                          <button onClick={() => openEdit(widget)}
+                            className="text-xs px-3 py-1.5 bg-ui hover:bg-surface-hover border border-border text-text-secondary rounded-lg font-medium transition-colors">
+                            Edit products
+                          </button>
                         </div>
                       </div>
 
@@ -574,6 +627,63 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
 
         <p className="text-center text-text-faint text-xs pb-4">Powered by BuildQuote</p>
       </div>
+
+      {/* Edit products modal */}
+      {editState && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.55)' }}
+          onClick={e => { if (e.target === e.currentTarget) setEditState(null) }}>
+          <div className="bg-surface border border-border rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+              <div>
+                <h3 className="font-bold text-text-primary">Edit products</h3>
+                <p className="text-xs text-text-faint mt-0.5">Toggle the products your business stocks</p>
+              </div>
+              <button onClick={() => setEditState(null)}
+                className="text-text-faint hover:text-text-primary text-xl leading-none px-1">×</button>
+            </div>
+
+            <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
+              {editSelectedIds.length > 0 && (
+                <p className="text-brand text-sm font-medium">{editSelectedIds.length} selected</p>
+              )}
+              {['Decking', 'Cladding', 'Screening & Fencing'].map(cat => {
+                const catSystems = editSystems.filter(s => s.category === cat)
+                if (catSystems.length === 0) return null
+                return (
+                  <div key={cat}>
+                    <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-2">{cat}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {catSystems.map(sys => {
+                        const isSelected = editSelectedIds.includes(sys.id)
+                        return (
+                          <button key={sys.id} type="button"
+                            onClick={() => setEditSelectedIds(prev => prev.includes(sys.id) ? prev.filter(id => id !== sys.id) : [...prev, sys.id])}
+                            className={`text-left px-3 py-2.5 rounded-lg border text-sm transition-all ${isSelected ? 'bg-brand-subtle border-brand' : 'bg-ui border-border hover:border-brand/60'}`}>
+                            <span className="font-mono text-xs text-text-faint block mb-0.5">{sys.product_code}</span>
+                            <span className={`font-medium text-sm ${isSelected ? 'text-text-primary' : 'text-text-secondary'}`}>{sys.name}</span>
+                            {sys.subcategory && <span className="text-text-faint text-xs block">{sys.subcategory}</span>}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+              {editError && <p className="text-error text-sm">{editError}</p>}
+            </div>
+
+            <div className="px-6 py-4 border-t border-border flex items-center justify-between gap-3">
+              <button onClick={() => setEditState(null)}
+                className="text-sm text-text-faint hover:text-text-primary transition-colors">Cancel</button>
+              <button onClick={saveEdit} disabled={editSaving || editSelectedIds.length === 0}
+                className="px-6 py-2.5 bg-brand hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-semibold text-sm transition-colors">
+                {editSaving ? 'Saving...' : `Save ${editSelectedIds.length} product${editSelectedIds.length !== 1 ? 's' : ''}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
