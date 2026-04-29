@@ -44,6 +44,49 @@ type SupplierData = {
   embed_widgets: WidgetRecord[]
 }
 
+function ForgotPassword({ supplierEmail }: { supplierEmail: string | null }) {
+  const [open, setOpen]       = useState(false)
+  const [sent, setSent]       = useState(false)
+  const [sending, setSending] = useState(false)
+
+  async function sendReset() {
+    if (!supplierEmail) return
+    setSending(true)
+    await fetch('/api/supplier/request-reset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: supplierEmail }),
+    })
+    setSent(true)
+    setSending(false)
+  }
+
+  if (!supplierEmail) return null
+
+  return (
+    <div className="text-center pt-1">
+      {!open && (
+        <button type="button" onClick={() => setOpen(true)}
+          className="text-xs text-text-faint hover:text-brand underline-offset-2 hover:underline transition-colors">
+          Forgot password?
+        </button>
+      )}
+      {open && !sent && (
+        <div className="text-xs text-text-faint space-y-2">
+          <p>A reset link will be sent to <span className="font-medium text-text-secondary">{supplierEmail}</span></p>
+          <button type="button" onClick={sendReset} disabled={sending}
+            className="text-brand hover:underline font-medium">
+            {sending ? 'Sending…' : 'Send reset link'}
+          </button>
+        </div>
+      )}
+      {sent && (
+        <p className="text-xs text-text-faint">Reset link sent — check your email.</p>
+      )}
+    </div>
+  )
+}
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })
 }
@@ -184,12 +227,13 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
               <input type="password" value={passwordInput} onChange={e => setPasswordInput(e.target.value)} autoFocus
                 className={`w-full bg-ui border rounded-lg px-3 py-2.5 text-text-primary text-sm focus:outline-none focus:border-brand transition-colors ${passwordError ? 'border-error' : 'border-border'}`}
                 placeholder="Enter your portal password" />
-              {passwordError && <p className="text-error text-xs mt-1">Incorrect password. Contact BuildQuote if you need help.</p>}
+              {passwordError && <p className="text-error text-xs mt-1">Incorrect password.</p>}
             </div>
             <button type="submit"
               className="w-full py-2.5 bg-brand hover:bg-brand-hover text-white rounded-lg font-semibold text-sm transition-colors">
               Sign in
             </button>
+            <ForgotPassword supplierEmail={supplier.email} />
           </form>
           <p className="text-center text-text-faint text-xs mt-4">
             Need access? Contact <a href="mailto:hello@buildquote.com.au" className="text-brand hover:underline">BuildQuote</a>
