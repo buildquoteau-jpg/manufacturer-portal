@@ -11,7 +11,7 @@ type WidgetRecord = {
   status: string
   created_at: string
   embed_widget_systems: {
-    systems: { name: string; product_code: string }
+    systems: { name: string; product_code: string; manufacturer_id: string }
   }[]
 }
 
@@ -24,6 +24,16 @@ type RfqEnquiry = {
   phone: string | null
   message: string | null
   created_at: string
+}
+
+type Manufacturer = {
+  id: string
+  name: string
+  slug: string
+  logo_url: string | null
+  description: string | null
+  website_url: string | null
+  systems: { id: string }[]
 }
 
 type SupplierData = {
@@ -43,6 +53,102 @@ type SupplierData = {
   created_at: string
   embed_widgets: WidgetRecord[]
 }
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+function buildEmbedCode(token: string, origin: string) {
+  return `<iframe src="${origin}/widget/${token}" width="100%" height="800" frameborder="0" style="border:none;border-radius:12px;"></iframe>`
+}
+
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+}
+
+function downloadInstructions(supplierName: string, embedCode: string, previewUrl: string) {
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NewTech Wood Widget — Setup Instructions for ${supplierName}</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 24px; color: #1f2937; line-height: 1.6; }
+  h1 { font-size: 24px; color: #111827; margin-bottom: 4px; }
+  h2 { font-size: 18px; color: #111827; margin-top: 36px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; }
+  h3 { font-size: 15px; color: #374151; margin-top: 20px; margin-bottom: 6px; }
+  .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 32px; }
+  .code-box { background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; font-family: monospace; font-size: 13px; word-break: break-all; line-height: 1.6; margin: 12px 0; }
+  .step { background: #f9fafb; border-left: 4px solid #2d5a42; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 12px 0; }
+  .tip { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px 16px; font-size: 13px; margin: 12px 0; }
+  footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e7eb; color: #9ca3af; font-size: 12px; }
+  @media print { body { margin: 20px; } }
+</style>
+</head>
+<body>
+<h1>NewTech Wood Product Widget</h1>
+<p class="subtitle">Setup instructions prepared for <strong>${supplierName}</strong> by BuildQuote</p>
+<h2>What is this widget?</h2>
+<p>This is a live product display that shows the NewTech Wood profiles your business stocks — product details, colour options, and fixing components, all kept up to date automatically.</p>
+<h2>Your embed code</h2>
+<p>Copy the code below and paste it into your website where you want the widget to appear.</p>
+<div class="code-box">${embedCode.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+<p><strong>Preview:</strong> <a href="${previewUrl}" target="_blank">${previewUrl}</a></p>
+<div class="tip">💡 You can adjust <code>height="800"</code> to make the widget taller or shorter to suit your layout.</div>
+<h2>How to add to your website</h2>
+<h3>WordPress</h3>
+<div class="step"><ol><li>Edit the page or post.</li><li>Add a <strong>Custom HTML</strong> block.</li><li>Paste your embed code. Click <strong>Update</strong>.</li></ol></div>
+<h3>Squarespace</h3>
+<div class="step"><ol><li>Edit the page. Add a <strong>Code</strong> block.</li><li>Paste your embed code. Save.</li></ol></div>
+<h3>Wix</h3>
+<div class="step"><ol><li>Add → Embed → <strong>Embed a Widget</strong>.</li><li>Click <strong>Enter Code</strong> and paste your embed code.</li></ol></div>
+<h3>Shopify</h3>
+<div class="step"><ol><li>Pages → open your page → click <strong>&lt;&gt;</strong> (source code).</li><li>Paste your embed code. Save.</li></ol></div>
+<h3>Webflow</h3>
+<div class="step"><ol><li>Open your project in the Webflow Designer.</li><li>Add an <strong>Embed</strong> element (Components → Embed) to your page where you want the widget.</li><li>Paste your embed code into the HTML embed box. Click <strong>Save &amp; Close</strong>.</li><li>Publish your site.</li></ol></div>
+<h3>Framer</h3>
+<div class="step"><ol><li>On your Framer canvas, insert a new component: click <strong>+</strong> → search for <strong>Embed</strong>.</li><li>In the embed settings panel, paste your embed code.</li><li>Resize the embed block to your preferred height. Publish.</li></ol>
+<p style="margin:8px 0 0;font-size:13px;">Alternatively: Insert → <strong>Custom Code</strong> and paste the embed code there.</p></div>
+<h3>GoDaddy Website Builder</h3>
+<div class="step"><ol><li>Edit your page. Click <strong>Add Section</strong> → <strong>HTML</strong>.</li><li>Paste your embed code. Click <strong>Done</strong>. Save and publish.</li></ol></div>
+<h3>Weebly</h3>
+<div class="step"><ol><li>Drag an <strong>Embed Code</strong> element onto your page.</li><li>Click <strong>Edit Custom HTML</strong> and paste your embed code. Save.</li></ol></div>
+<h3>Next.js / React</h3>
+<div class="step"><ol><li>Create a new page file, e.g. <code>app/newtechwood/page.tsx</code>.</li><li>Paste the following code:</li></ol>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:16px;border-radius:8px;font-size:12px;overflow-x:auto;margin-top:10px;">export default function NewTechWoodPage() {
+  return (
+    &lt;main&gt;
+      &lt;iframe
+        src="${previewUrl}"
+        width="100%"
+        height="800"
+        style={{ border: 'none', borderRadius: '12px' }}
+        title="NewTech Wood Products"
+      /&gt;
+    &lt;/main&gt;
+  )
+}</pre>
+<p style="margin:10px 0 0;font-size:13px;">The page will be live at <code>yoursite.com/newtechwood</code>. Adjust height as needed.</p>
+</div>
+<h3>Plain HTML</h3>
+<div class="step"><ol><li>Open your HTML file. Paste inside the <code>&lt;body&gt;</code> tag where you want the widget. Upload.</li></ol></div>
+<h2>Need help?</h2>
+<p>Contact BuildQuote: <a href="mailto:hello@buildquote.com.au">hello@buildquote.com.au</a> · <a href="https://buildquote.com.au">buildquote.com.au</a></p>
+<footer>Generated by BuildQuote · ${new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}</footer>
+</body></html>`
+
+  const blob = new Blob([html], { type: 'text/html' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `Widget-Instructions-${slugify(supplierName)}.html`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// ── Sub-components ────────────────────────────────────────────────────────────
 
 function ForgotPassword({ supplierEmail }: { supplierEmail: string | null }) {
   const [open, setOpen]       = useState(false)
@@ -87,14 +193,6 @@ function ForgotPassword({ supplierEmail }: { supplierEmail: string | null }) {
   )
 }
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })
-}
-
-function buildEmbedCode(token: string, origin: string) {
-  return `<iframe src="${origin}/widget/${token}" width="100%" height="800" frameborder="0" style="border:none;border-radius:12px;"></iframe>`
-}
-
 function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) {
   const [copied, setCopied] = useState(false)
   return (
@@ -115,6 +213,8 @@ function InfoRow({ label, value }: { label: string; value: string | null }) {
   )
 }
 
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default function SupplierPortalPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
 
@@ -126,6 +226,7 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
   const [passwordError, setPasswordError] = useState(false)
   const [origin, setOrigin] = useState('')
   const [enquiries, setEnquiries] = useState<RfqEnquiry[]>([])
+  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([])
 
   useEffect(() => {
     setOrigin(window.location.origin)
@@ -140,7 +241,7 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
         manager_name, it_name, it_email, portal_password, created_at,
         embed_widgets (
           id, name, public_token, status, created_at,
-          embed_widget_systems ( systems ( name, product_code ) )
+          embed_widget_systems ( systems ( name, product_code, manufacturer_id ) )
         )
       `)
       .eq('slug', slug)
@@ -155,11 +256,11 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
     const s = data as unknown as SupplierData
     setSupplier(s)
 
-    // Restore session if already authenticated
     const stored = sessionStorage.getItem(`supplier_portal_${slug}`)
     if (stored && s.portal_password && stored === s.portal_password) {
       setAuthed(true)
       loadEnquiries(s)
+      loadManufacturers()
     }
 
     setLoading(false)
@@ -176,6 +277,14 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
     if (data) setEnquiries(data as RfqEnquiry[])
   }
 
+  async function loadManufacturers() {
+    const { data } = await supabase
+      .from('manufacturers')
+      .select('id, name, slug, logo_url, description, website_url, systems ( id )')
+      .order('name')
+    if (data) setManufacturers(data as unknown as Manufacturer[])
+  }
+
   function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     if (!supplier?.portal_password) return
@@ -183,6 +292,7 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
       sessionStorage.setItem(`supplier_portal_${slug}`, passwordInput)
       setAuthed(true)
       loadEnquiries(supplier)
+      loadManufacturers()
     } else {
       setPasswordError(true)
       setTimeout(() => setPasswordError(false), 2000)
@@ -243,8 +353,15 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
     )
   }
 
-  // ── Supplier dashboard ────────────────────────────────────────────────────
+  // ── Dashboard ─────────────────────────────────────────────────────────────
   const location = [supplier.address, supplier.suburb, supplier.state].filter(Boolean).join(', ')
+
+  // Manufacturer IDs the supplier already has a widget for
+  const coveredManufacturerIds = new Set(
+    supplier.embed_widgets.flatMap(w =>
+      w.embed_widget_systems.map(ews => ews.systems.manufacturer_id)
+    )
+  )
 
   return (
     <div className="min-h-screen bg-page">
@@ -272,7 +389,6 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
         <section className="bg-surface border border-border rounded-xl p-6">
           <h2 className="text-lg font-bold text-text-primary mb-1">{supplier.name}</h2>
           {location && <p className="text-text-faint text-sm mb-5">{location}</p>}
-
           <div className="divide-y divide-border-subtle">
             <InfoRow label="Website" value={supplier.website_url} />
             <InfoRow label="Email" value={supplier.email} />
@@ -285,27 +401,31 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
 
         {/* Widgets */}
         <section>
-          <h2 className="text-lg font-bold text-text-primary mb-5">
-            Your widgets
-            <span className="ml-2 text-sm font-normal text-text-faint">({supplier.embed_widgets.length})</span>
-          </h2>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg font-bold text-text-primary">
+              Your widgets
+              <span className="ml-2 text-sm font-normal text-text-faint">({supplier.embed_widgets.length})</span>
+            </h2>
+          </div>
 
           {supplier.embed_widgets.length === 0 ? (
             <div className="bg-surface border border-border rounded-xl p-6 text-center">
-              <p className="text-text-faint text-sm">No widgets set up yet. Contact BuildQuote to get started.</p>
+              <p className="text-text-faint text-sm">No widgets set up yet.</p>
+              <p className="text-text-faint text-xs mt-1">Browse available manufacturers below to get started.</p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {supplier.embed_widgets
                 .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                 .map(widget => {
                   const profiles = widget.embed_widget_systems.map(ews => ews.systems)
                   const code = buildEmbedCode(widget.public_token, origin)
+                  const previewUrl = `${origin}/widget/${widget.public_token}`
                   return (
-                    <div key={widget.id} className="bg-surface border border-border rounded-xl p-5">
+                    <div key={widget.id} className="bg-surface border border-border rounded-xl overflow-hidden">
 
-                      {/* Header row */}
-                      <div className="flex items-start justify-between gap-4 mb-4">
+                      {/* Widget header */}
+                      <div className="flex items-center justify-between px-5 py-4 border-b border-border-subtle">
                         <div>
                           <p className="font-semibold text-text-primary text-sm">
                             {profiles.length} product{profiles.length !== 1 ? 's' : ''} in this widget
@@ -318,31 +438,98 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
                       </div>
 
                       {/* Products */}
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {profiles.map((sys, i) => (
-                          <span key={i} className="text-xs bg-brand-subtle text-brand-bright px-2.5 py-1 rounded-full font-medium">
-                            {sys.product_code} — {sys.name}
-                          </span>
-                        ))}
+                      <div className="px-5 py-4 border-b border-border-subtle">
+                        <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-2">Products</p>
+                        <div className="flex flex-wrap gap-2">
+                          {profiles.map((sys, i) => (
+                            <span key={i} className="text-xs bg-brand-subtle text-brand-bright px-2.5 py-1 rounded-full font-medium">
+                              {sys.product_code} — {sys.name}
+                            </span>
+                          ))}
+                        </div>
                       </div>
 
                       {/* Embed code */}
-                      <div>
-                        <p className="text-xs text-text-faint font-medium mb-1.5">Embed code</p>
-                        <div className="bg-page rounded-lg px-3 py-2.5 font-mono text-xs text-text-faint break-all leading-relaxed mb-3">
+                      <div className="px-5 py-4 border-b border-border-subtle">
+                        <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-2">Embed code</p>
+                        <div className="bg-page rounded-lg px-3 py-2.5 font-mono text-xs text-text-faint break-all leading-relaxed mb-3 border border-border">
                           {code}
                         </div>
-                        <div className="flex flex-wrap gap-3">
+                        <div className="flex flex-wrap gap-2">
                           <CopyButton text={code} label="Copy embed code" />
-                          <a href={`/widget/${widget.public_token}`} target="_blank" rel="noopener noreferrer"
+                          <a href={previewUrl} target="_blank" rel="noopener noreferrer"
                             className="text-xs px-3 py-1.5 bg-ui hover:bg-surface-hover border border-border text-text-secondary rounded-lg font-medium transition-colors">
                             Preview widget ↗
                           </a>
                         </div>
                       </div>
+
+                      {/* Installation instructions */}
+                      <div className="px-5 py-4">
+                        <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-1">Installation guide</p>
+                        <p className="text-xs text-text-faint mb-3">
+                          Step-by-step instructions for WordPress, Squarespace, Wix, Shopify, Webflow, Framer, GoDaddy, Weebly, and more.
+                        </p>
+                        <button
+                          onClick={() => downloadInstructions(supplier.name, code, previewUrl)}
+                          className="text-xs px-3 py-1.5 bg-ui hover:bg-surface-hover border border-border text-text-secondary rounded-lg font-medium transition-colors">
+                          Download instructions (HTML)
+                        </button>
+                      </div>
+
                     </div>
                   )
                 })}
+            </div>
+          )}
+        </section>
+
+        {/* Browse manufacturers */}
+        <section>
+          <h2 className="text-lg font-bold text-text-primary mb-1">Browse manufacturers</h2>
+          <p className="text-text-faint text-sm mb-5">
+            Add product widgets from other manufacturers to your portal. Contact BuildQuote to get set up.
+          </p>
+
+          {manufacturers.length === 0 ? (
+            <p className="text-text-faint text-sm">Loading manufacturers...</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {manufacturers.map(mf => {
+                const hasWidget = coveredManufacturerIds.has(mf.id)
+                return (
+                  <div key={mf.id} className={`bg-surface border rounded-xl p-5 flex flex-col gap-3 ${hasWidget ? 'border-brand/40' : 'border-border'}`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-text-primary text-sm leading-snug">{mf.name}</p>
+                        {mf.description && (
+                          <p className="text-text-faint text-xs mt-1 line-clamp-2">{mf.description}</p>
+                        )}
+                      </div>
+                      {hasWidget && (
+                        <span className="flex-shrink-0 text-xs bg-brand-subtle text-brand-bright px-2.5 py-1 rounded-full font-medium">
+                          Active
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between mt-auto">
+                      <span className="text-text-faint text-xs">
+                        {mf.systems.length} product{mf.systems.length !== 1 ? 's' : ''} available
+                      </span>
+                      {hasWidget ? (
+                        <span className="text-xs text-text-faint">Widget installed</span>
+                      ) : (
+                        <a
+                          href={`mailto:hello@buildquote.com.au?subject=Widget request: ${encodeURIComponent(mf.name)} — ${encodeURIComponent(supplier.name)}&body=Hi BuildQuote,%0A%0AI'd like to add a ${encodeURIComponent(mf.name)} product widget to my supplier portal.%0A%0ASupplier: ${encodeURIComponent(supplier.name)}%0A%0AThanks`}
+                          className="text-xs px-3 py-1.5 bg-brand hover:bg-brand-hover text-white rounded-lg font-medium transition-colors">
+                          Request this widget →
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
         </section>
@@ -385,19 +572,7 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
           )}
         </section>
 
-        {/* Help */}
-        <section className="bg-surface border border-border rounded-xl p-6">
-          <h2 className="text-base font-semibold text-text-primary mb-2">Need to make changes?</h2>
-          <p className="text-text-faint text-sm">
-            To update the products shown in your widget, add a new widget, or change your business details, contact BuildQuote:
-          </p>
-          <div className="mt-3 flex gap-4">
-            <a href="mailto:hello@buildquote.com.au" className="text-brand text-sm hover:underline">hello@buildquote.com.au</a>
-            <a href="https://buildquote.com.au" target="_blank" rel="noopener noreferrer" className="text-brand text-sm hover:underline">buildquote.com.au</a>
-          </div>
-        </section>
-
-        <p className="text-center text-text-faint text-xs">Powered by BuildQuote</p>
+        <p className="text-center text-text-faint text-xs pb-4">Powered by BuildQuote</p>
       </div>
     </div>
   )
