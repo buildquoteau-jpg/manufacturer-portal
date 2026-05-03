@@ -12,8 +12,8 @@ const PORTAL_LINKS = [
 
 // External buildquote.com.au links
 const MAIN_SITE_LINKS = [
-  { label: 'Home',         href: 'https://buildquote.com.au/' },
-  { label: 'Send a Quote', href: 'https://buildquote.com.au/rfq' },
+  { label: 'Home',                        href: 'https://buildquote.com.au/' },
+  { label: 'Send a Request for Quotation', href: 'https://buildquote.com.au/rfq' },
 ]
 
 // Portal legal & info links
