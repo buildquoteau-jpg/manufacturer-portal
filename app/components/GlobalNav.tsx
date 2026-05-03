@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 // Internal portal links (same domain, open in same tab)
 const PORTAL_LINKS = [
   { label: 'Manufacturers Portal', href: '/' },
+  { label: 'Supplier Login',       href: '/supplier' },
   { label: 'Admin',                href: '/admin' },
 ]
 
