@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 // Internal portal links (same domain, open in same tab)
 const PORTAL_LINKS = [
   { label: 'Manufacturers Portal', href: '/' },
-  { label: 'Supplier Admin',       href: '/admin/suppliers' },
+  { label: 'Admin',                href: '/admin' },
 ]
 
 // External buildquote.com.au links
