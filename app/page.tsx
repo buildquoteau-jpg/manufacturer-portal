@@ -20,7 +20,7 @@ export default function LandingPage() {
 
         <p className="text-text-secondary text-base max-w-md mx-auto leading-relaxed mb-14">
           Connecting Australian building materials manufacturers
-          with trade suppliers and builders.
+          with building trade suppliers and builders.
         </p>
 
         {/* Login cards */}
