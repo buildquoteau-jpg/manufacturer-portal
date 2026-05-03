@@ -11,11 +11,16 @@ export default function LandingPage() {
           mfp.buildquote.com.au
         </p>
 
-        <h1 className="text-5xl md:text-6xl font-bold leading-[1.1] mb-5">
-          <span className="text-text-primary">Welcome to </span>
-          <span style={{ color: '#185D7A' }}>Build</span><span style={{ color: '#f97316' }}>Quote</span>
-          <br />
-          <span className="text-text-primary">Manufacturer Portal</span>
+        <h1 className="leading-[1.1] mb-5">
+          <span className="block text-2xl md:text-3xl font-light text-text-secondary tracking-wide mb-1">
+            Welcome to
+          </span>
+          <span className="block text-5xl md:text-6xl font-bold">
+            <span style={{ color: '#185D7A' }}>Build</span><span style={{ color: '#f97316' }}>Quote</span>
+          </span>
+          <span className="block text-5xl md:text-6xl font-bold text-text-primary">
+            Manufacturer Portal
+          </span>
         </h1>
 
         <p className="text-text-secondary text-base max-w-md mx-auto leading-relaxed mb-14">
