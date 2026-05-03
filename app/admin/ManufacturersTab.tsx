@@ -15,6 +15,16 @@ type ManufacturerRow = {
   systems: { id: string }[]
 }
 
+type CatalogueSource = {
+  id: string
+  document_name: string
+  document_url: string | null
+  document_date: string | null
+  extracted_at: string
+  extracted_by: string | null
+  notes: string | null
+}
+
 function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }
@@ -58,6 +68,17 @@ export default function ManufacturersTab() {
   const [editDesc, setEditDesc]       = useState('')
   const [editSaving, setEditSaving]   = useState(false)
   const [editError, setEditError]     = useState<string | null>(null)
+
+  // Catalogue sources
+  const [sourcesOpen, setSourcesOpen]         = useState<string | null>(null) // manufacturer id
+  const [sourcesMap, setSourcesMap]           = useState<Record<string, CatalogueSource[]>>({})
+  const [sourcesLoading, setSourcesLoading]   = useState(false)
+  const [srcDocName, setSrcDocName]           = useState('')
+  const [srcDocUrl, setSrcDocUrl]             = useState('')
+  const [srcDocDate, setSrcDocDate]           = useState('')
+  const [srcNotes, setSrcNotes]               = useState('')
+  const [srcSaving, setSrcSaving]             = useState(false)
+  const [srcError, setSrcError]               = useState<string | null>(null)
 
   useEffect(() => { loadManufacturers() }, [])
 
@@ -124,6 +145,56 @@ export default function ManufacturersTab() {
     setEditId(null)
     setEditSaving(false)
     loadManufacturers()
+  }
+
+  async function toggleSources(manufacturerId: string) {
+    if (sourcesOpen === manufacturerId) { setSourcesOpen(null); return }
+    setSourcesOpen(manufacturerId)
+    if (sourcesMap[manufacturerId]) return // already loaded
+    setSourcesLoading(true)
+    const res = await fetch(`/api/admin/catalogue-sources?manufacturer_id=${manufacturerId}`)
+    const json = await res.json()
+    if (json.sources) setSourcesMap(prev => ({ ...prev, [manufacturerId]: json.sources }))
+    setSourcesLoading(false)
+  }
+
+  async function addSource(manufacturerId: string) {
+    if (!srcDocName.trim()) { setSrcError('Document name is required'); return }
+    setSrcSaving(true); setSrcError(null)
+    const res = await fetch('/api/admin/catalogue-sources', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
+      body: JSON.stringify({
+        manufacturer_id: manufacturerId,
+        document_name: srcDocName,
+        document_url: srcDocUrl,
+        document_date: srcDocDate,
+        notes: srcNotes,
+        extracted_by: 'BuildQuote admin',
+      }),
+    })
+    const json = await res.json()
+    if (!res.ok) { setSrcError(json.error); setSrcSaving(false); return }
+    // Refresh sources for this manufacturer
+    setSourcesMap(prev => ({
+      ...prev,
+      [manufacturerId]: [json.source, ...(prev[manufacturerId] ?? [])],
+    }))
+    setSrcDocName(''); setSrcDocUrl(''); setSrcDocDate(''); setSrcNotes('')
+    setSrcSaving(false)
+  }
+
+  async function deleteSource(manufacturerId: string, sourceId: string) {
+    if (!confirm('Remove this source document?')) return
+    await fetch('/api/admin/catalogue-sources', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
+      body: JSON.stringify({ id: sourceId }),
+    })
+    setSourcesMap(prev => ({
+      ...prev,
+      [manufacturerId]: (prev[manufacturerId] ?? []).filter(s => s.id !== sourceId),
+    }))
   }
 
   return (
@@ -267,10 +338,93 @@ export default function ManufacturersTab() {
                             )}
                           </div>
                         </div>
-                        <button onClick={() => openEdit(mf)}
-                          className="text-xs px-3 py-1.5 bg-ui hover:bg-surface-hover border border-border text-text-secondary rounded-lg font-medium transition-colors flex-shrink-0">
-                          Edit
-                        </button>
+                        <div className="flex gap-2 flex-shrink-0">
+                          <button onClick={() => toggleSources(mf.id)}
+                            className={`text-xs px-3 py-1.5 border rounded-lg font-medium transition-colors ${sourcesOpen === mf.id ? 'bg-brand text-white border-brand' : 'bg-ui hover:bg-surface-hover border-border text-text-secondary'}`}>
+                            Sources {sourcesMap[mf.id]?.length ? `(${sourcesMap[mf.id].length})` : ''}
+                          </button>
+                          <button onClick={() => openEdit(mf)}
+                            className="text-xs px-3 py-1.5 bg-ui hover:bg-surface-hover border border-border text-text-secondary rounded-lg font-medium transition-colors">
+                            Edit
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* ── Catalogue Sources panel ── */}
+                    {sourcesOpen === mf.id && (
+                      <div className="mt-4 pt-4 border-t border-border space-y-4">
+                        <p className="text-xs font-semibold text-text-faint uppercase tracking-widest">
+                          Catalogue Sources
+                        </p>
+                        <p className="text-xs text-text-faint">
+                          Documents this manufacturer's product data was extracted from. Manufacturers can see these to verify data is from current catalogues.
+                        </p>
+
+                        {/* Existing sources */}
+                        {sourcesLoading ? (
+                          <p className="text-xs text-text-faint">Loading...</p>
+                        ) : (sourcesMap[mf.id] ?? []).length === 0 ? (
+                          <p className="text-xs text-text-faint italic">No sources recorded yet.</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {(sourcesMap[mf.id] ?? []).map(src => (
+                              <div key={src.id} className="flex items-start gap-3 bg-ui rounded-lg px-4 py-3">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                                    <span className="text-sm font-medium text-text-primary">{src.document_name}</span>
+                                    {src.document_date && (
+                                      <span className="text-xs text-text-faint bg-surface px-2 py-0.5 rounded-full border border-border">{src.document_date}</span>
+                                    )}
+                                  </div>
+                                  {src.document_url && (
+                                    <a href={src.document_url} target="_blank" rel="noopener noreferrer"
+                                      className="text-xs text-brand hover:underline truncate block max-w-xs">
+                                      {src.document_url} ↗
+                                    </a>
+                                  )}
+                                  {src.notes && <p className="text-xs text-text-faint mt-0.5">{src.notes}</p>}
+                                  <p className="text-xs text-text-faint mt-1">
+                                    Extracted {new Date(src.extracted_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                    {src.extracted_by ? ` · ${src.extracted_by}` : ''}
+                                  </p>
+                                </div>
+                                <button onClick={() => deleteSource(mf.id, src.id)}
+                                  className="text-xs text-error hover:text-error opacity-50 hover:opacity-100 transition-opacity flex-shrink-0">
+                                  Remove
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Add source form */}
+                        <div className="bg-ui rounded-lg p-4 space-y-3">
+                          <p className="text-xs font-medium text-text-secondary">Add source document</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="sm:col-span-2">
+                              <input value={srcDocName} onChange={e => setSrcDocName(e.target.value)}
+                                placeholder="Document name e.g. Innova Product Range Guide Dec 2025"
+                                className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-xs focus:outline-none focus:border-brand" />
+                            </div>
+                            <input value={srcDocUrl} onChange={e => setSrcDocUrl(e.target.value)}
+                              placeholder="URL to PDF (optional)"
+                              className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-xs focus:outline-none focus:border-brand" />
+                            <input value={srcDocDate} onChange={e => setSrcDocDate(e.target.value)}
+                              placeholder="Document date e.g. December 2025"
+                              className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-xs focus:outline-none focus:border-brand" />
+                            <div className="sm:col-span-2">
+                              <input value={srcNotes} onChange={e => setSrcNotes(e.target.value)}
+                                placeholder="Notes e.g. Pages 12–34 used for decking systems (optional)"
+                                className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-xs focus:outline-none focus:border-brand" />
+                            </div>
+                          </div>
+                          {srcError && <p className="text-error text-xs">{srcError}</p>}
+                          <button onClick={() => addSource(mf.id)} disabled={srcSaving}
+                            className="text-xs px-4 py-2 bg-brand hover:bg-brand-hover disabled:opacity-50 text-white rounded-lg font-medium transition-colors">
+                            {srcSaving ? 'Adding...' : 'Add source →'}
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>

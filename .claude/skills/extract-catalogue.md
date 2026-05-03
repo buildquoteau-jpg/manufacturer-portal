@@ -76,6 +76,23 @@ notes        TEXT  -- e.g. "1 clip per fixing point", "use with grooved profile 
 sort_order   INTEGER
 ```
 
+### `catalogue_sources`
+```sql
+-- Tracks which document each extraction came from.
+-- Always create one of these per extraction session.
+id              UUID  (auto)
+manufacturer_id UUID  -- FK to manufacturers.id
+document_name   TEXT  -- e.g. "Innova Product Range Guide Dec 2025"
+document_url    TEXT  -- URL to the PDF on the manufacturer's site (if publicly available)
+document_date   TEXT  -- e.g. "December 2025" (as printed on document)
+extracted_at    TIMESTAMPTZ  -- use now()
+extracted_by    TEXT  -- "Claude extract-catalogue skill"
+notes           TEXT  -- e.g. "Pages 4–38 used. Fire rating supplements excluded."
+```
+
+Each `systems` row has a `source_document_id UUID` FK → `catalogue_sources.id`.
+Always populate this — it tells manufacturers exactly which document their data came from.
+
 ---
 
 ## Extraction Process
@@ -90,13 +107,18 @@ Read the entire document before extracting anything. Note:
 - Document structure (sections, chapters, product families)
 - Any index or table of contents
 
-### Step 2 — Identify the Manufacturer
+### Step 2 — Identify the Manufacturer and Document
 Extract:
 - Brand name (exact, as printed)
 - Website URL (if present)
 - A 1–2 sentence description of what they make
+- The document's own name/title (as printed on cover or header)
+- The document's date (as printed — e.g. "December 2025", "Issue 3 — Jan 2026")
+- The URL of the document if the user provides it or it's printed on the document
 
 Check with the user: **"Does [manufacturer name] already exist in the database? If so, provide the manufacturer UUID so I can link systems to it. If not, I'll generate an INSERT for it."**
+
+Also note: **The document's title and date will be recorded in `catalogue_sources` automatically in the SQL output.**
 
 ### Step 3 — Map Product Categories
 Before extracting individual products, identify how the catalogue organises products and map them to the three allowed categories:
@@ -149,7 +171,7 @@ Output as a single SQL file with clearly labelled sections. Use placeholder UUID
 ```sql
 -- ============================================================
 -- [MANUFACTURER NAME] — Catalogue Import
--- Source: [filename]
+-- Source: [document name and date]
 -- Extracted: [today's date]
 -- ============================================================
 
@@ -162,19 +184,36 @@ VALUES (
   'NewTech Wood manufactures co-extruded composite decking, cladding and screening products.'
 );
 
--- ── SYSTEMS ───────────────────────────────────────────────
--- Use a CTE so we can reference the manufacturer UUID by slug
+-- ── CATALOGUE SOURCE (always insert this) ─────────────────
+-- Records which document this data came from.
 WITH mf AS (SELECT id FROM manufacturers WHERE slug = 'newtech-wood')
-INSERT INTO systems (manufacturer_id, name, product_code, slug, category, subcategory, description, dimensions, length_m, double_sided, notes, sort_order)
+INSERT INTO catalogue_sources (manufacturer_id, document_name, document_url, document_date, extracted_by, notes)
 SELECT
   mf.id,
+  'NTW Technical Catalogue 2025',          -- exact title from document cover
+  'https://newtechwood.com.au/catalogue',  -- URL if known, else NULL
+  'February 2025',                         -- date as printed on document
+  'Claude extract-catalogue skill',
+  'Full catalogue. Pages 1–48.'
+FROM mf;
+
+-- ── SYSTEMS ───────────────────────────────────────────────
+-- Use a CTE so we can reference the manufacturer + source document UUIDs by slug
+WITH
+  mf  AS (SELECT id FROM manufacturers WHERE slug = 'newtech-wood'),
+  src AS (SELECT id FROM catalogue_sources
+          WHERE manufacturer_id = (SELECT id FROM manufacturers WHERE slug = 'newtech-wood')
+          ORDER BY created_at DESC LIMIT 1)
+INSERT INTO systems (manufacturer_id, source_document_id, name, product_code, slug, category, subcategory, description, dimensions, length_m, double_sided, notes, sort_order)
+SELECT
+  mf.id, src.id,
   'Avenue Range', 'US92', 'avenue-range-us92',
   'Decking', 'Grooved Decking',
   'Co-extruded composite decking with hidden clip fixing system.',
   '138mm x 29mm', 4.88, false,
   'Lengths: 2.44m, 3.66m, 4.88m. FSC certified.',
   0
-FROM mf;
+FROM mf, src;
 -- ... repeat for each system ...
 
 -- ── COLOURS ───────────────────────────────────────────────
@@ -210,6 +249,8 @@ FROM sys, clip;
 
 Before presenting the output, verify:
 
+- [ ] `catalogue_sources` INSERT is present with document name, date, and extracted_by
+- [ ] All `systems` rows include `source_document_id` referencing the catalogue source
 - [ ] Every `product_code` is unique within the manufacturer
 - [ ] Every `slug` is unique and URL-safe (lowercase, hyphens only)
 - [ ] Every `category` is exactly one of the three allowed values
