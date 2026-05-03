@@ -43,6 +43,8 @@ export default function ManufacturersTab() {
   const [website, setWebsite]       = useState('')
   const [logoUrl, setLogoUrl]       = useState('')
   const [description, setDescription] = useState('')
+  const [loginEmail, setLoginEmail]   = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]           = useState<string | null>(null)
   const [success, setSuccess]       = useState(false)
@@ -85,13 +87,14 @@ export default function ManufacturersTab() {
     const res = await fetch('/api/admin/create-manufacturer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
-      body: JSON.stringify({ name, slug, logo_url: logoUrl, website_url: website, description }),
+      body: JSON.stringify({ name, slug, logo_url: logoUrl, website_url: website, description, login_email: loginEmail, login_password: loginPassword }),
     })
     const json = await res.json()
     if (!res.ok) { setError(json.error); setSubmitting(false); return }
 
     setSuccess(true)
-    setName(''); setSlug(''); setWebsite(''); setLogoUrl(''); setDescription(''); setSlugEdited(false)
+    setName(''); setSlug(''); setWebsite(''); setLogoUrl(''); setDescription('')
+    setLoginEmail(''); setLoginPassword(''); setSlugEdited(false)
     setTimeout(() => setSuccess(false), 3000)
     setSubmitting(false)
     loadManufacturers()
@@ -165,6 +168,19 @@ export default function ManufacturersTab() {
                 placeholder="1–2 sentences about the brand and what they make."
                 rows={3}
                 className="w-full bg-ui border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand resize-none" />
+            </div>
+          </div>
+
+          {/* Portal login */}
+          <div className="pt-2 border-t border-border">
+            <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-1">Portal login (optional)</p>
+            <p className="text-xs text-text-faint mb-3">
+              Set an email + password now so the manufacturer can log in immediately.
+              You can also add this later by editing the manufacturer.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Field label="Login email" value={loginEmail} onChange={setLoginEmail} placeholder="contact@manufacturer.com.au" type="email" />
+              <Field label="Login password" value={loginPassword} onChange={setLoginPassword} placeholder="Initial password" type="password" />
             </div>
           </div>
 

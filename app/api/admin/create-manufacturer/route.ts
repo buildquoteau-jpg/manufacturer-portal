@@ -3,7 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
 )
 
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'buildquote2026'
@@ -13,18 +14,46 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { name, slug, logo_url, website_url, description } = await req.json()
-  if (!name?.trim() || !slug?.trim()) {
-    return NextResponse.json({ error: 'Name and slug are required' }, { status: 400 })
+  const { name, slug, logo_url, website_url, description, login_email, login_password } = await req.json()
+  if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+  if (!slug?.trim()) return NextResponse.json({ error: 'Slug is required' }, { status: 400 })
+
+  let authUserId: string | null = null
+
+  // Create auth user if email + password provided
+  if (login_email?.trim() && login_password?.trim()) {
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email: login_email.trim(),
+      password: login_password.trim(),
+      email_confirm: true,
+    })
+    if (authError) {
+      if (authError.message.includes('already registered') || authError.message.includes('already exists')) {
+        return NextResponse.json({ error: `A login account for ${login_email} already exists.` }, { status: 409 })
+      }
+      return NextResponse.json({ error: `Auth error: ${authError.message}` }, { status: 500 })
+    }
+    authUserId = authData.user?.id ?? null
   }
 
   const { data, error } = await supabaseAdmin
     .from('manufacturers')
-    .insert({ name: name.trim(), slug: slug.trim(), logo_url: logo_url || null, website_url: website_url || null, description: description || null })
+    .insert({
+      name:        name.trim(),
+      slug:        slug.trim(),
+      logo_url:    logo_url    || null,
+      website_url: website_url || null,
+      description: description || null,
+      auth_user_id: authUserId,
+    })
     .select()
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    if (authUserId) await supabaseAdmin.auth.admin.deleteUser(authUserId)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
   return NextResponse.json({ manufacturer: data })
 }
 
@@ -38,7 +67,13 @@ export async function PATCH(req: Request) {
 
   const { data, error } = await supabaseAdmin
     .from('manufacturers')
-    .update({ name: name?.trim(), slug: slug?.trim(), logo_url: logo_url || null, website_url: website_url || null, description: description || null })
+    .update({
+      name:        name?.trim(),
+      slug:        slug?.trim(),
+      logo_url:    logo_url    || null,
+      website_url: website_url || null,
+      description: description || null,
+    })
     .eq('id', id)
     .select()
     .single()

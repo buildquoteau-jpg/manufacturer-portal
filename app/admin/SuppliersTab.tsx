@@ -177,8 +177,9 @@ export default function SuppliersTab() {
   }
 
   function goStep2() {
-    if (!name.trim()) return setError('Business name is required')
-    if (!portalPassword.trim()) return setError('Portal password is required')
+    if (!name.trim())           return setError('Business name is required')
+    if (!email.trim())          return setError('Login email is required')
+    if (!portalPassword.trim()) return setError('Login password is required')
     setError(null); setStep(2)
   }
 
@@ -190,22 +191,21 @@ export default function SuppliersTab() {
     if (selectedSystems.length === 0) return setError('Select at least one product')
     if (!selectedManufacturer) return
     setSubmitting(true); setError(null)
-    const slug = slugify(name)
-    const { data: supplier, error: supErr } = await supabase.from('suppliers').insert({
-      name: name.trim(), slug,
-      address: address.trim() || null, suburb: suburb.trim() || null, state: stateVal || null,
-      website_url: website.trim() || null, email: email.trim() || null, phone: phone.trim() || null,
-      manager_name: managerName.trim() || null, it_name: itName.trim() || null,
-      it_email: itEmail.trim() || null, portal_password: portalPassword.trim(),
-    }).select().single()
-    if (supErr || !supplier) { setError(supErr?.message || 'Failed to create supplier'); setSubmitting(false); return }
-    const { data: widget, error: widErr } = await supabase.from('embed_widgets')
-      .insert({ supplier_id: supplier.id, status: 'active' }).select().single()
-    if (widErr || !widget) { setError(widErr?.message || 'Failed to create widget'); setSubmitting(false); return }
-    const { error: sysErr } = await supabase.from('embed_widget_systems')
-      .insert(selectedSystems.map((sid, i) => ({ embed_widget_id: widget.id, system_id: sid, sort_order: i })))
-    if (sysErr) { setError(sysErr.message); setSubmitting(false); return }
-    setNewWidget({ token: widget.public_token, supplierName: name.trim(), supplierSlug: slug })
+
+    const res = await fetch('/api/admin/create-supplier', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
+      body: JSON.stringify({
+        name, email, login_password: portalPassword,
+        address, suburb, state: stateVal, website_url: website,
+        phone, manager_name: managerName, it_name: itName, it_email: itEmail,
+        system_ids: selectedSystems,
+      }),
+    })
+    const json = await res.json()
+    if (!res.ok) { setError(json.error || 'Failed to create supplier'); setSubmitting(false); return }
+
+    setNewWidget({ token: json.widget.public_token, supplierName: name.trim(), supplierSlug: json.slug })
     setStep(4); setSubmitting(false); loadData()
   }
 
@@ -290,13 +290,17 @@ export default function SuppliersTab() {
               </div>
             </div>
             <div>
-              <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-3">Portal access</p>
+              <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-3">Portal login</p>
+              <p className="text-xs text-text-faint mb-3">
+                The supplier will use their <strong className="text-text-secondary">Email</strong> (entered above) and this password to log in to the portal.
+                Share the password with them securely — they can reset it themselves via "Forgot password".
+              </p>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">
-                Portal password <span className="text-error">*</span>
-                <span className="text-text-faint font-normal ml-1">— supplier uses this to log in</span>
+                Login password <span className="text-error">*</span>
               </label>
               <input value={portalPassword} onChange={e => setPortalPassword(e.target.value)}
-                placeholder="Choose a password for this supplier"
+                type="password"
+                placeholder="Set an initial password for this supplier"
                 className="w-full bg-ui border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand" />
             </div>
             {error && <p className="text-error text-sm">{error}</p>}
