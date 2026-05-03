@@ -11,15 +11,16 @@ export default function LandingPage() {
           mfp.buildquote.com.au
         </p>
 
-        <h1 className="text-5xl md:text-6xl font-bold text-text-primary leading-[1.05] mb-5">
-          Welcome to the<br />
-          <span className="text-brand">Manufacturer</span><br />
-          Portal
+        <h1 className="text-5xl md:text-6xl font-bold leading-[1.1] mb-5">
+          <span className="text-text-primary">Welcome to </span>
+          <span style={{ color: '#185D7A' }}>Build</span><span style={{ color: '#f97316' }}>Quote</span>
+          <br />
+          <span className="text-text-primary">Manufacturer Portal</span>
         </h1>
 
-        <p className="text-text-secondary text-base max-w-sm mx-auto leading-relaxed mb-14">
-          The digital platform connecting Australian building product
-          suppliers and manufacturers with the trade.
+        <p className="text-text-secondary text-base max-w-md mx-auto leading-relaxed mb-14">
+          Connecting Australian building materials manufacturers,
+          local building supply outlets and builders.
         </p>
 
         {/* Login cards */}
