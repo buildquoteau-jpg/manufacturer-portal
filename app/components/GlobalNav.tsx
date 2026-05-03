@@ -108,18 +108,27 @@ export function GlobalNav() {
       {/* Logo */}
       <a
         href="https://buildquote.com.au"
-        style={{ textDecoration: 'none' }}
         target="_blank"
         rel="noopener noreferrer"
+        style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', gap: '1px' }}
       >
         <span style={{
-          fontSize: '13px',
-          fontWeight: 700,
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          color: '#9ca3af',
+          fontSize: '15px',
+          fontWeight: 800,
+          letterSpacing: '0.01em',
+          lineHeight: 1,
         }}>
-          BUILD<span style={{ color: '#4ade80' }}>QUOTE</span>
+          <span style={{ color: '#185D7A' }}>Build</span><span style={{ color: '#f97316' }}>Quote</span>
+        </span>
+        <span style={{
+          fontSize: '9px',
+          fontWeight: 500,
+          letterSpacing: '0.04em',
+          color: 'rgba(255,255,255,0.35)',
+          lineHeight: 1,
+          whiteSpace: 'nowrap',
+        }}>
+          Request for Quotation, made simple
         </span>
       </a>
 
