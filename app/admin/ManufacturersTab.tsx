@@ -53,8 +53,20 @@ export default function ManufacturersTab() {
   const [website, setWebsite]       = useState('')
   const [logoUrl, setLogoUrl]       = useState('')
   const [description, setDescription] = useState('')
-  const [loginEmail, setLoginEmail]   = useState('')
+  const [loginEmail, setLoginEmail]       = useState('')
   const [loginPassword, setLoginPassword] = useState('')
+  const [mfAbn, setMfAbn]                 = useState('')
+  const [mfPhone, setMfPhone]             = useState('')
+
+  // Dynamic contacts
+  type ContactRow = { name: string; role: string; email: string; phone: string }
+  const emptyContact = (): ContactRow => ({ name: '', role: '', email: '', phone: '' })
+  const [mfContacts, setMfContacts] = useState<ContactRow[]>([emptyContact()])
+
+  function updateMfContact(i: number, field: keyof ContactRow, value: string) {
+    setMfContacts(prev => prev.map((c, idx) => idx === i ? { ...c, [field]: value } : c))
+  }
+
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]           = useState<string | null>(null)
   const [success, setSuccess]       = useState(false)
@@ -108,14 +120,15 @@ export default function ManufacturersTab() {
     const res = await fetch('/api/admin/create-manufacturer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
-      body: JSON.stringify({ name, slug, logo_url: logoUrl, website_url: website, description, login_email: loginEmail, login_password: loginPassword }),
+      body: JSON.stringify({ name, slug, logo_url: logoUrl, website_url: website, description, login_email: loginEmail, login_password: loginPassword, abn: mfAbn, phone: mfPhone, contacts: mfContacts.filter(c => c.name.trim()) }),
     })
     const json = await res.json()
     if (!res.ok) { setError(json.error); setSubmitting(false); return }
 
     setSuccess(true)
     setName(''); setSlug(''); setWebsite(''); setLogoUrl(''); setDescription('')
-    setLoginEmail(''); setLoginPassword(''); setSlugEdited(false)
+    setLoginEmail(''); setLoginPassword(''); setMfAbn(''); setMfPhone('')
+    setMfContacts([emptyContact()]); setSlugEdited(false)
     setTimeout(() => setSuccess(false), 3000)
     setSubmitting(false)
     loadManufacturers()
@@ -239,6 +252,45 @@ export default function ManufacturersTab() {
                 placeholder="1–2 sentences about the brand and what they make."
                 rows={3}
                 className="w-full bg-ui border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand resize-none" />
+            </div>
+          </div>
+
+          {/* ABN + Phone */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field label="ABN / ACN" value={mfAbn} onChange={setMfAbn} placeholder="12 345 678 901" />
+            <Field label="Business phone" value={mfPhone} onChange={setMfPhone} placeholder="08 9999 0000" />
+          </div>
+
+          {/* Contacts */}
+          <div className="pt-2 border-t border-border">
+            <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-1">Contacts</p>
+            <p className="text-xs text-text-faint mb-3">Owners, directors, key contacts — add as many as needed.</p>
+            <div className="space-y-3">
+              {mfContacts.map((c, i) => (
+                <div key={i} className="bg-ui rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-text-secondary">Contact {i + 1}</span>
+                    {mfContacts.length > 1 && (
+                      <button type="button" onClick={() => setMfContacts(prev => prev.filter((_, idx) => idx !== i))}
+                        className="text-xs text-error opacity-60 hover:opacity-100 transition-opacity">Remove</button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <input value={c.name} onChange={e => updateMfContact(i, 'name', e.target.value)} placeholder="Full name"
+                      className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand" />
+                    <input value={c.role} onChange={e => updateMfContact(i, 'role', e.target.value)} placeholder="Role e.g. Owner, Director"
+                      className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand" />
+                    <input value={c.email} onChange={e => updateMfContact(i, 'email', e.target.value)} placeholder="Email" type="email"
+                      className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand" />
+                    <input value={c.phone} onChange={e => updateMfContact(i, 'phone', e.target.value)} placeholder="Phone" type="tel"
+                      className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand" />
+                  </div>
+                </div>
+              ))}
+              <button type="button" onClick={() => setMfContacts(prev => [...prev, emptyContact()])}
+                className="text-xs text-brand hover:underline font-medium">
+                + Add another contact
+              </button>
             </div>
           </div>
 

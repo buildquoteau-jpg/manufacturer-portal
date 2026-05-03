@@ -13,16 +13,18 @@ function slugify(s: string) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }
 
+type ContactInput = { name: string; role?: string; email?: string; phone?: string }
+
 export async function POST(req: Request) {
   if (req.headers.get('x-admin-password') !== ADMIN_PASSWORD) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const {
-    name, address, suburb, state, website_url, email, phone,
-    manager_name, it_name, it_email,
-    login_password,   // becomes the Supabase Auth password
-    system_ids,       // array of system IDs for the first widget
+    name, address, suburb, state, website_url, email, phone, abn,
+    login_password,
+    system_ids,
+    contacts = [],   // array of { name, role, email, phone }
   } = await req.json()
 
   if (!name?.trim())           return NextResponse.json({ error: 'Business name is required' }, { status: 400 })
@@ -36,11 +38,10 @@ export async function POST(req: Request) {
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
     email: email.trim(),
     password: login_password.trim(),
-    email_confirm: true,   // skip email confirmation — admin is setting this up
+    email_confirm: true,
   })
 
   if (authError) {
-    // If user already exists, surface a clear message
     if (authError.message.includes('already registered') || authError.message.includes('already exists')) {
       return NextResponse.json({ error: `A login account for ${email} already exists. Use a different email.` }, { status: 409 })
     }
@@ -54,29 +55,42 @@ export async function POST(req: Request) {
   const { data: supplier, error: supErr } = await supabaseAdmin
     .from('suppliers')
     .insert({
-      name: name.trim(),
+      name:         name.trim(),
       slug,
       auth_user_id: authUserId,
-      address:      address?.trim()      || null,
-      suburb:       suburb?.trim()       || null,
-      state:        state                || null,
-      website_url:  website_url?.trim()  || null,
+      address:      address?.trim()     || null,
+      suburb:       suburb?.trim()      || null,
+      state:        state               || null,
+      website_url:  website_url?.trim() || null,
       email:        email.trim(),
-      phone:        phone?.trim()        || null,
-      manager_name: manager_name?.trim() || null,
-      it_name:      it_name?.trim()      || null,
-      it_email:     it_email?.trim()     || null,
+      phone:        phone?.trim()       || null,
+      abn:          abn?.trim()         || null,
     })
     .select()
     .single()
 
   if (supErr) {
-    // Roll back auth user if supplier insert fails
     await supabaseAdmin.auth.admin.deleteUser(authUserId)
     return NextResponse.json({ error: supErr.message }, { status: 500 })
   }
 
-  // ── 3. Create embed widget ────────────────────────────────────────────────
+  // ── 3. Save contacts ──────────────────────────────────────────────────────
+  const validContacts = (contacts as ContactInput[]).filter(c => c.name?.trim())
+  if (validContacts.length) {
+    await supabaseAdmin.from('portal_contacts').insert(
+      validContacts.map((c, i) => ({
+        entity_type: 'supplier',
+        entity_id:   supplier.id,
+        name:        c.name.trim(),
+        role:        c.role?.trim()  || null,
+        email:       c.email?.trim() || null,
+        phone:       c.phone?.trim() || null,
+        sort_order:  i,
+      }))
+    )
+  }
+
+  // ── 4. Create embed widget ────────────────────────────────────────────────
   const { data: widget, error: widErr } = await supabaseAdmin
     .from('embed_widgets')
     .insert({ supplier_id: supplier.id, status: 'active' })
@@ -89,7 +103,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: widErr.message }, { status: 500 })
   }
 
-  // ── 4. Attach systems to widget ───────────────────────────────────────────
+  // ── 5. Attach systems to widget ───────────────────────────────────────────
   const { error: sysErr } = await supabaseAdmin
     .from('embed_widget_systems')
     .insert(system_ids.map((sid: string, i: number) => ({

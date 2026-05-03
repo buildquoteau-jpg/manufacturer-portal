@@ -126,10 +126,19 @@ export default function SuppliersTab() {
   const [website, setWebsite] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
-  const [managerName, setManagerName] = useState('')
-  const [itName, setItName] = useState('')
-  const [itEmail, setItEmail] = useState('')
+  const [abn, setAbn] = useState('')
   const [portalPassword, setPortalPassword] = useState('')
+
+  // Dynamic contacts
+  type ContactRow = { name: string; role: string; email: string; phone: string }
+  const emptyContact = (): ContactRow => ({ name: '', role: '', email: '', phone: '' })
+  const [contacts, setContacts] = useState<ContactRow[]>([emptyContact()])
+
+  function updateContact(i: number, field: keyof ContactRow, value: string) {
+    setContacts(prev => prev.map((c, idx) => idx === i ? { ...c, [field]: value } : c))
+  }
+  function addContact() { setContacts(prev => [...prev, emptyContact()]) }
+  function removeContact(i: number) { setContacts(prev => prev.filter((_, idx) => idx !== i)) }
 
   // Wizard step 2 + 3
   const [selectedManufacturer, setSelectedManufacturer] = useState<Manufacturer | null>(null)
@@ -198,7 +207,8 @@ export default function SuppliersTab() {
       body: JSON.stringify({
         name, email, login_password: portalPassword,
         address, suburb, state: stateVal, website_url: website,
-        phone, manager_name: managerName, it_name: itName, it_email: itEmail,
+        phone, abn,
+        contacts: contacts.filter(c => c.name.trim()),
         system_ids: selectedSystems,
       }),
     })
@@ -212,7 +222,8 @@ export default function SuppliersTab() {
   function resetWizard() {
     setStep(1)
     setName(''); setAddress(''); setSuburb(''); setStateVal(''); setWebsite('')
-    setEmail(''); setPhone(''); setManagerName(''); setItName(''); setItEmail(''); setPortalPassword('')
+    setEmail(''); setPhone(''); setAbn(''); setPortalPassword('')
+    setContacts([emptyContact()])
     setSelectedManufacturer(null); setSelectedSystems([]); setNewWidget(null); setError(null)
   }
 
@@ -277,16 +288,46 @@ export default function SuppliersTab() {
                   </select>
                 </div>
                 <Field label="Website" value={website} onChange={setWebsite} placeholder="https://example.com.au" type="url" />
-                <Field label="Email" value={email} onChange={setEmail} placeholder="enquiries@example.com.au" type="email" />
-                <Field label="Phone" value={phone} onChange={setPhone} placeholder="08 9999 0000" type="tel" />
+                <Field label="Business phone" value={phone} onChange={setPhone} placeholder="08 9999 0000" type="tel" />
+                <Field label="ABN / ACN" value={abn} onChange={setAbn} placeholder="12 345 678 901" />
+                <Field label="Login email" value={email} onChange={setEmail} placeholder="login@example.com.au" type="email" />
               </div>
             </div>
             <div>
-              <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-3">Contacts</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field label="Manager's name" value={managerName} onChange={setManagerName} placeholder="Jane Smith" />
-                <Field label="IT contact name" value={itName} onChange={setItName} placeholder="John Smith" />
-                <div className="sm:col-span-2"><Field label="IT contact email" value={itEmail} onChange={setItEmail} placeholder="it@example.com.au" type="email" /></div>
+              <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-1">Contacts</p>
+              <p className="text-xs text-text-faint mb-3">Owners, directors, managers — add as many as needed.</p>
+              <div className="space-y-3">
+                {contacts.map((c, i) => (
+                  <div key={i} className="bg-ui rounded-xl p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-text-secondary">Contact {i + 1}</span>
+                      {contacts.length > 1 && (
+                        <button type="button" onClick={() => removeContact(i)}
+                          className="text-xs text-error opacity-60 hover:opacity-100 transition-opacity">
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <input value={c.name} onChange={e => updateContact(i, 'name', e.target.value)}
+                        placeholder="Full name"
+                        className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand" />
+                      <input value={c.role} onChange={e => updateContact(i, 'role', e.target.value)}
+                        placeholder="Role e.g. Owner, Director, Manager"
+                        className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand" />
+                      <input value={c.email} onChange={e => updateContact(i, 'email', e.target.value)}
+                        placeholder="Email" type="email"
+                        className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand" />
+                      <input value={c.phone} onChange={e => updateContact(i, 'phone', e.target.value)}
+                        placeholder="Phone" type="tel"
+                        className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand" />
+                    </div>
+                  </div>
+                ))}
+                <button type="button" onClick={addContact}
+                  className="text-xs text-brand hover:underline font-medium">
+                  + Add another contact
+                </button>
               </div>
             </div>
             <div>

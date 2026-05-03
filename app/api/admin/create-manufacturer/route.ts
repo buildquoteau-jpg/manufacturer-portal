@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { name, slug, logo_url, website_url, description, login_email, login_password } = await req.json()
+  const { name, slug, logo_url, website_url, description, login_email, login_password, abn, phone, contacts = [] } = await req.json()
   if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
   if (!slug?.trim()) return NextResponse.json({ error: 'Slug is required' }, { status: 400 })
 
@@ -39,11 +39,13 @@ export async function POST(req: Request) {
   const { data, error } = await supabaseAdmin
     .from('manufacturers')
     .insert({
-      name:        name.trim(),
-      slug:        slug.trim(),
-      logo_url:    logo_url    || null,
-      website_url: website_url || null,
-      description: description || null,
+      name:         name.trim(),
+      slug:         slug.trim(),
+      logo_url:     logo_url    || null,
+      website_url:  website_url || null,
+      description:  description || null,
+      abn:          abn?.trim() || null,
+      phone:        phone?.trim() || null,
       auth_user_id: authUserId,
     })
     .select()
@@ -52,6 +54,23 @@ export async function POST(req: Request) {
   if (error) {
     if (authUserId) await supabaseAdmin.auth.admin.deleteUser(authUserId)
     return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  // Save contacts
+  type ContactInput = { name: string; role?: string; email?: string; phone?: string }
+  const validContacts = (contacts as ContactInput[]).filter((c) => c.name?.trim())
+  if (validContacts.length) {
+    await supabaseAdmin.from('portal_contacts').insert(
+      validContacts.map((c, i) => ({
+        entity_type: 'manufacturer',
+        entity_id:   data.id,
+        name:        c.name.trim(),
+        role:        c.role?.trim()  || null,
+        email:       c.email?.trim() || null,
+        phone:       c.phone?.trim() || null,
+        sort_order:  i,
+      }))
+    )
   }
 
   return NextResponse.json({ manufacturer: data })

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
 
-type View = 'login' | 'forgot' | 'sent'
+type View = 'login' | 'forgot' | 'sent' | 'enquiry' | 'enquiry-sent'
 
 export default function SupplierLoginPage() {
   const [view, setView]         = useState<View>('login')
@@ -12,6 +12,22 @@ export default function SupplierLoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
+
+  // Enquiry form
+  const [enqName, setEnqName]         = useState('')
+  const [enqBusiness, setEnqBusiness] = useState('')
+  const [enqEmail, setEnqEmail]       = useState('')
+  const [enqMessage, setEnqMessage]   = useState('')
+  const [enqLoading, setEnqLoading]   = useState(false)
+
+  async function handleEnquiry(e: React.FormEvent) {
+    e.preventDefault()
+    setEnqLoading(true)
+    // Send via mailto as fallback — swap for API call when email route is ready
+    window.location.href = `mailto:hello@buildquote.com.au?subject=Supplier Portal Enquiry — ${encodeURIComponent(enqBusiness)}&body=${encodeURIComponent(`Name: ${enqName}\nBusiness: ${enqBusiness}\nEmail: ${enqEmail}\n\n${enqMessage}`)}`
+    setEnqLoading(false)
+    setView('enquiry-sent')
+  }
 
   // Redirect if already logged in
   useEffect(() => {
@@ -107,16 +123,7 @@ export default function SupplierLoginPage() {
               />
             </div>
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-sm font-medium text-text-secondary">Password</label>
-                <button
-                  type="button"
-                  onClick={() => { setView('forgot'); setError('') }}
-                  className="text-xs text-brand hover:underline"
-                >
-                  Forgot password?
-                </button>
-              </div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">Password</label>
               <input
                 type="password"
                 value={password}
@@ -134,6 +141,15 @@ export default function SupplierLoginPage() {
             >
               {loading ? 'Logging in…' : 'Log in →'}
             </button>
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => { setView('forgot'); setError('') }}
+                className="text-xs text-text-faint hover:text-brand transition-colors"
+              >
+                Forgot password?
+              </button>
+            </div>
           </form>
         )}
 
@@ -195,12 +211,47 @@ export default function SupplierLoginPage() {
           </div>
         )}
 
-        <p className="text-center text-text-faint text-xs mt-5">
-          Don't have an account?{' '}
-          <a href="mailto:hello@buildquote.com.au" className="text-brand hover:underline">
-            Contact BuildQuote
-          </a>
-        </p>
+        {view !== 'enquiry' && view !== 'enquiry-sent' && (
+          <p className="text-center text-text-faint text-xs mt-5">
+            Don't have an account?{' '}
+            <button onClick={() => setView('enquiry')} className="text-brand hover:underline">
+              Request access
+            </button>
+          </p>
+        )}
+
+        {/* ── Enquiry form ── */}
+        {view === 'enquiry' && (
+          <form onSubmit={handleEnquiry} className="bg-surface border border-border rounded-2xl p-8 mt-2 space-y-4">
+            <div>
+              <p className="text-text-primary font-semibold text-sm mb-1">Request portal access</p>
+              <p className="text-text-faint text-xs">We'll set up your account and be in touch shortly.</p>
+            </div>
+            <input value={enqName} onChange={e => setEnqName(e.target.value)} placeholder="Your name" required
+              className="w-full bg-ui border border-border rounded-lg px-3 py-2.5 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand" />
+            <input value={enqBusiness} onChange={e => setEnqBusiness(e.target.value)} placeholder="Business name" required
+              className="w-full bg-ui border border-border rounded-lg px-3 py-2.5 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand" />
+            <input value={enqEmail} onChange={e => setEnqEmail(e.target.value)} placeholder="Your email" type="email" required
+              className="w-full bg-ui border border-border rounded-lg px-3 py-2.5 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand" />
+            <textarea value={enqMessage} onChange={e => setEnqMessage(e.target.value)} placeholder="What products do you supply? (optional)" rows={3}
+              className="w-full bg-ui border border-border rounded-lg px-3 py-2.5 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand resize-none" />
+            <button type="submit" disabled={enqLoading}
+              className="w-full py-2.5 bg-brand hover:bg-brand-hover disabled:opacity-50 text-white rounded-lg font-semibold text-sm transition-colors">
+              Send enquiry →
+            </button>
+            <button type="button" onClick={() => setView('login')}
+              className="w-full text-center text-xs text-text-faint hover:text-text-secondary transition-colors">
+              ← Back to login
+            </button>
+          </form>
+        )}
+
+        {view === 'enquiry-sent' && (
+          <div className="text-center mt-2 text-text-faint text-xs space-y-2">
+            <p className="text-success font-medium text-sm">Enquiry sent — we'll be in touch soon.</p>
+            <button onClick={() => setView('login')} className="text-brand hover:underline text-xs">← Back to login</button>
+          </div>
+        )}
 
         <p className="text-center text-text-faint text-xs mt-3">
           Are you a manufacturer?{' '}
