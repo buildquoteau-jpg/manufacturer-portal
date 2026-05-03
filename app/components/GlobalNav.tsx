@@ -5,17 +5,22 @@ import { usePathname } from 'next/navigation'
 
 // Internal portal links (same domain, open in same tab)
 const PORTAL_LINKS = [
-  { label: 'Manufacturers Portal', href: '/' },
-  { label: 'Supplier Login',       href: '/supplier' },
-  { label: 'Admin',                href: '/admin' },
+  { label: 'Portal Home',          href: '/' },
+  { label: 'Supplier Login',       href: '/supplier/login' },
+  { label: 'Manufacturer Login',   href: '/manufacturer/login' },
 ]
 
 // External buildquote.com.au links
 const MAIN_SITE_LINKS = [
-  { label: 'Home',           href: 'https://buildquote.com.au/' },
-  { label: 'Send a Quote',   href: 'https://buildquote.com.au/rfq' },
-  { label: 'Privacy Policy', href: 'https://buildquote.com.au/privacy' },
-  { label: 'Terms of Use',   href: 'https://buildquote.com.au/terms' },
+  { label: 'Home',         href: 'https://buildquote.com.au/' },
+  { label: 'Send a Quote', href: 'https://buildquote.com.au/rfq' },
+]
+
+// Portal legal & info links
+const LEGAL_LINKS = [
+  { label: 'Terms of Use',   href: '/legal#terms' },
+  { label: 'Privacy Policy', href: '/legal#privacy' },
+  { label: 'Disclaimer',     href: '/legal#disclaimer' },
 ]
 
 function MenuLink({ href, label, external, onClose }: { href: string; label: string; external: boolean; onClose: () => void }) {
@@ -187,6 +192,17 @@ export function GlobalNav() {
           </div>
           {MAIN_SITE_LINKS.map((link) => (
             <MenuLink key={link.href} href={link.href} label={link.label} external={true} onClose={() => setOpen(false)} />
+          ))}
+
+          {/* Divider */}
+          <div style={{ margin: '6px 0', borderTop: '1px solid rgba(255,255,255,0.08)' }} />
+
+          {/* Section: legal */}
+          <div style={{ padding: '4px 20px 4px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#4b5563' }}>
+            Legal
+          </div>
+          {LEGAL_LINKS.map((link) => (
+            <MenuLink key={link.href} href={link.href} label={link.label} external={false} onClose={() => setOpen(false)} />
           ))}
 
           <div style={{ height: '6px' }} />
