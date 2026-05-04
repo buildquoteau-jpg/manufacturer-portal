@@ -12,6 +12,7 @@ type ManufacturerRow = {
   logo_url: string | null
   description: string | null
   website_url: string | null
+  auth_user_id: string | null
   systems: { id: string }[]
 }
 
@@ -81,6 +82,14 @@ export default function ManufacturersTab() {
   const [editSaving, setEditSaving]   = useState(false)
   const [editError, setEditError]     = useState<string | null>(null)
 
+  // Set login for existing manufacturer
+  const [loginOpen, setLoginOpen]             = useState<string | null>(null) // manufacturer id
+  const [loginEmail, setLoginEmailSet]        = useState('')
+  const [loginPassword, setLoginPasswordSet]  = useState('')
+  const [loginSaving, setLoginSaving]         = useState(false)
+  const [loginError, setLoginError]           = useState<string | null>(null)
+  const [loginSuccess, setLoginSuccess]       = useState(false)
+
   // Catalogue sources
   const [sourcesOpen, setSourcesOpen]         = useState<string | null>(null) // manufacturer id
   const [sourcesMap, setSourcesMap]           = useState<Record<string, CatalogueSource[]>>({})
@@ -98,10 +107,29 @@ export default function ManufacturersTab() {
     setLoading(true)
     const { data } = await supabase
       .from('manufacturers')
-      .select('id, name, slug, logo_url, description, website_url, systems(id)')
+      .select('id, name, slug, logo_url, description, website_url, auth_user_id, systems(id)')
       .order('name')
     if (data) setManufacturers(data as unknown as ManufacturerRow[])
     setLoading(false)
+  }
+
+  async function handleSetLogin(manufacturerId: string) {
+    if (!loginEmail.trim())    { setLoginError('Email is required'); return }
+    if (!loginPassword.trim()) { setLoginError('Password is required'); return }
+    setLoginSaving(true)
+    setLoginError(null)
+    const res = await fetch('/api/admin/set-manufacturer-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
+      body: JSON.stringify({ manufacturer_id: manufacturerId, email: loginEmail, password: loginPassword }),
+    })
+    const json = await res.json()
+    if (!res.ok) { setLoginError(json.error); setLoginSaving(false); return }
+    setLoginSuccess(true)
+    setLoginEmailSet(''); setLoginPasswordSet('')
+    setLoginSaving(false)
+    setTimeout(() => { setLoginSuccess(false); setLoginOpen(null) }, 2000)
+    loadManufacturers()
   }
 
   // Auto-generate slug from name unless user has manually edited it
@@ -390,7 +418,19 @@ export default function ManufacturersTab() {
                             )}
                           </div>
                         </div>
-                        <div className="flex gap-2 flex-shrink-0">
+                        <div className="flex flex-wrap gap-2 flex-shrink-0">
+                          {/* Login status badge + button */}
+                          {mf.auth_user_id ? (
+                            <span className="text-xs px-3 py-1.5 border border-success/30 bg-success/10 text-success rounded-lg font-medium">
+                              ✓ Login set
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => { setLoginOpen(loginOpen === mf.id ? null : mf.id); setLoginError(null); setLoginSuccess(false); setLoginEmailSet(''); setLoginPasswordSet('') }}
+                              className={`text-xs px-3 py-1.5 border rounded-lg font-medium transition-colors ${loginOpen === mf.id ? 'bg-brand text-white border-brand' : 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-400'}`}>
+                              {loginOpen === mf.id ? 'Cancel' : '⚠ Set login'}
+                            </button>
+                          )}
                           <button onClick={() => toggleSources(mf.id)}
                             className={`text-xs px-3 py-1.5 border rounded-lg font-medium transition-colors ${sourcesOpen === mf.id ? 'bg-brand text-white border-brand' : 'bg-ui hover:bg-surface-hover border-border text-text-secondary'}`}>
                             Sources {sourcesMap[mf.id]?.length ? `(${sourcesMap[mf.id].length})` : ''}
@@ -400,6 +440,48 @@ export default function ManufacturersTab() {
                             Edit
                           </button>
                         </div>
+                      </div>
+                    )}
+
+                    {/* ── Set login panel ── */}
+                    {loginOpen === mf.id && !mf.auth_user_id && (
+                      <div className="mt-4 pt-4 border-t border-border space-y-3">
+                        <p className="text-xs font-semibold text-text-faint uppercase tracking-widest">Set portal login</p>
+                        <p className="text-xs text-text-faint">
+                          Creates a Supabase Auth account and links it to {mf.name}. They can then log in at{' '}
+                          <span className="font-mono">mfp.buildquote.com.au/manufacturer/login</span>
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-text-secondary mb-1">Login email</label>
+                            <input
+                              value={loginEmail}
+                              onChange={e => setLoginEmailSet(e.target.value)}
+                              placeholder="contact@newtechwood.com.au"
+                              type="email"
+                              className="w-full bg-ui border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-text-secondary mb-1">Password</label>
+                            <input
+                              value={loginPassword}
+                              onChange={e => setLoginPasswordSet(e.target.value)}
+                              placeholder="Initial password"
+                              type="password"
+                              className="w-full bg-ui border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand"
+                            />
+                          </div>
+                        </div>
+                        {loginError   && <p className="text-error text-xs">{loginError}</p>}
+                        {loginSuccess && <p className="text-success text-xs font-medium">✓ Login created — they can now sign in!</p>}
+                        <button
+                          onClick={() => handleSetLogin(mf.id)}
+                          disabled={loginSaving || loginSuccess}
+                          className="text-xs px-4 py-2 bg-brand hover:bg-brand-hover disabled:opacity-50 text-white rounded-lg font-medium transition-colors"
+                        >
+                          {loginSaving ? 'Creating login…' : 'Create login →'}
+                        </button>
                       </div>
                     )}
 
