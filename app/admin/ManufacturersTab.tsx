@@ -83,12 +83,12 @@ export default function ManufacturersTab() {
   const [editError, setEditError]     = useState<string | null>(null)
 
   // Set login for existing manufacturer
-  const [loginOpen, setLoginOpen]             = useState<string | null>(null) // manufacturer id
-  const [loginEmail, setLoginEmailSet]        = useState('')
-  const [loginPassword, setLoginPasswordSet]  = useState('')
-  const [loginSaving, setLoginSaving]         = useState(false)
-  const [loginError, setLoginError]           = useState<string | null>(null)
-  const [loginSuccess, setLoginSuccess]       = useState(false)
+  const [loginOpen, setLoginOpen]           = useState<string | null>(null) // manufacturer id
+  const [setLoginEmail, setSetLoginEmail]   = useState('')
+  const [setLoginPass, setSetLoginPass]     = useState('')
+  const [loginSaving, setLoginSaving]       = useState(false)
+  const [loginError, setLoginError]         = useState<string | null>(null)
+  const [loginSuccess, setLoginSuccess]     = useState(false)
 
   // Catalogue sources
   const [sourcesOpen, setSourcesOpen]         = useState<string | null>(null) // manufacturer id
@@ -114,19 +114,19 @@ export default function ManufacturersTab() {
   }
 
   async function handleSetLogin(manufacturerId: string) {
-    if (!loginEmail.trim())    { setLoginError('Email is required'); return }
-    if (!loginPassword.trim()) { setLoginError('Password is required'); return }
+    if (!setLoginEmail.trim()) { setLoginError('Email is required'); return }
+    if (!setLoginPass.trim())  { setLoginError('Password is required'); return }
     setLoginSaving(true)
     setLoginError(null)
     const res = await fetch('/api/admin/set-manufacturer-login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
-      body: JSON.stringify({ manufacturer_id: manufacturerId, email: loginEmail, password: loginPassword }),
+      body: JSON.stringify({ manufacturer_id: manufacturerId, email: setLoginEmail, password: setLoginPass }),
     })
     const json = await res.json()
     if (!res.ok) { setLoginError(json.error); setLoginSaving(false); return }
     setLoginSuccess(true)
-    setLoginEmailSet(''); setLoginPasswordSet('')
+    setSetLoginEmail(''); setSetLoginPass('')
     setLoginSaving(false)
     setTimeout(() => { setLoginSuccess(false); setLoginOpen(null) }, 2000)
     loadManufacturers()
@@ -426,7 +426,7 @@ export default function ManufacturersTab() {
                             </span>
                           ) : (
                             <button
-                              onClick={() => { setLoginOpen(loginOpen === mf.id ? null : mf.id); setLoginError(null); setLoginSuccess(false); setLoginEmailSet(''); setLoginPasswordSet('') }}
+                              onClick={() => { setLoginOpen(loginOpen === mf.id ? null : mf.id); setLoginError(null); setLoginSuccess(false); setSetLoginEmail(''); setSetLoginPass('') }}
                               className={`text-xs px-3 py-1.5 border rounded-lg font-medium transition-colors ${loginOpen === mf.id ? 'bg-brand text-white border-brand' : 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-400'}`}>
                               {loginOpen === mf.id ? 'Cancel' : '⚠ Set login'}
                             </button>
@@ -455,8 +455,8 @@ export default function ManufacturersTab() {
                           <div>
                             <label className="block text-xs font-medium text-text-secondary mb-1">Login email</label>
                             <input
-                              value={loginEmail}
-                              onChange={e => setLoginEmailSet(e.target.value)}
+                              value={setLoginEmail}
+                              onChange={e => setSetLoginEmail(e.target.value)}
                               placeholder="contact@newtechwood.com.au"
                               type="email"
                               className="w-full bg-ui border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand"
@@ -465,8 +465,8 @@ export default function ManufacturersTab() {
                           <div>
                             <label className="block text-xs font-medium text-text-secondary mb-1">Password</label>
                             <input
-                              value={loginPassword}
-                              onChange={e => setLoginPasswordSet(e.target.value)}
+                              value={setLoginPass}
+                              onChange={e => setSetLoginPass(e.target.value)}
                               placeholder="Initial password"
                               type="password"
                               className="w-full bg-ui border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand"
