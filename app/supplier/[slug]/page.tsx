@@ -219,24 +219,24 @@ function InfoRow({ label, value }: { label: string; value: string | null }) {
 export default function SupplierPortalPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
 
-  const [supplier, setSupplier] = useState<SupplierData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [notFound, setNotFound] = useState(false)
-  const [authed, setAuthed] = useState(false)
-  const [passwordInput, setPasswordInput] = useState('')
-  const [passwordError, setPasswordError] = useState(false)
-  const [origin, setOrigin] = useState('')
-  const [enquiries, setEnquiries] = useState<RfqEnquiry[]>([])
+  const [supplier, setSupplier]     = useState<SupplierData | null>(null)
+  const [loading, setLoading]       = useState(true)
+  const [notFound, setNotFound]     = useState(false)
+  const [authed, setAuthed]         = useState(false)
+  const [unauthorized, setUnauthorized] = useState(false)
+  const [accessToken, setAccessToken]   = useState('')
+  const [origin, setOrigin]         = useState('')
+  const [enquiries, setEnquiries]   = useState<RfqEnquiry[]>([])
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([])
 
   // Edit widget products
   type EditState = { widgetId: string; manufacturerId: string }
   type EditSystem = { id: string; name: string; product_code: string; category: string; subcategory: string | null; sort_order: number }
-  const [editState, setEditState] = useState<EditState | null>(null)
-  const [editSystems, setEditSystems] = useState<EditSystem[]>([])
+  const [editState, setEditState]         = useState<EditState | null>(null)
+  const [editSystems, setEditSystems]     = useState<EditSystem[]>([])
   const [editSelectedIds, setEditSelectedIds] = useState<string[]>([])
-  const [editSaving, setEditSaving] = useState(false)
-  const [editError, setEditError] = useState<string | null>(null)
+  const [editSaving, setEditSaving]       = useState(false)
+  const [editError, setEditError]         = useState<string | null>(null)
 
   useEffect(() => {
     setOrigin(window.location.origin)
@@ -244,11 +244,19 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
   }, [])
 
   async function loadSupplier() {
+    // Check Supabase Auth session
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) {
+      window.location.href = '/supplier/login'
+      return
+    }
+    setAccessToken(session.access_token)
+
     const { data, error } = await supabase
       .from('suppliers')
       .select(`
         id, name, slug, address, suburb, state, website_url, email, phone,
-        manager_name, it_name, it_email, portal_password, created_at,
+        manager_name, it_name, it_email, portal_password, auth_user_id, created_at,
         embed_widgets (
           id, name, public_token, status, created_at,
           embed_widget_systems ( system_id, systems ( name, product_code, manufacturer_id ) )
@@ -264,15 +272,18 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
     }
 
     const s = data as unknown as SupplierData
-    setSupplier(s)
 
-    const stored = sessionStorage.getItem(`supplier_portal_${slug}`)
-    if (stored && s.portal_password && stored === s.portal_password) {
-      setAuthed(true)
-      loadEnquiries(s)
-      loadManufacturers()
+    // Verify this user owns this supplier (auth_user_id must match)
+    if (s.auth_user_id && s.auth_user_id !== session.user.id) {
+      setUnauthorized(true)
+      setLoading(false)
+      return
     }
 
+    setSupplier(s)
+    setAuthed(true)
+    loadEnquiries(s)
+    loadManufacturers()
     setLoading(false)
   }
 
@@ -306,17 +317,15 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
   async function saveEdit() {
     if (!editState || !supplier) return
     if (editSelectedIds.length === 0) { setEditError('Select at least one product'); return }
-    const stored = sessionStorage.getItem(`supplier_portal_${slug}`) || ''
     setEditSaving(true)
     setEditError(null)
     const res = await fetch('/api/supplier/update-widget-systems', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
       body: JSON.stringify({
         widgetId: editState.widgetId,
         systemIds: editSelectedIds,
         supplierSlug: slug,
-        password: stored,
       }),
     })
     const json = await res.json()
@@ -357,50 +366,33 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
     )
   }
 
-  if (notFound || !supplier) {
+  if (notFound) {
     return (
       <div className="min-h-screen bg-page flex items-center justify-center px-4">
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <p className="text-text-faint text-sm">Supplier portal not found.</p>
-          <p className="text-text-faint text-xs mt-1">Check the URL is correct or contact BuildQuote.</p>
+          <p className="text-text-faint text-xs">Check the URL or contact BuildQuote.</p>
         </div>
       </div>
     )
   }
 
-  // ── Password gate ─────────────────────────────────────────────────────────
-  if (!authed) {
+  if (unauthorized) {
     return (
       <div className="min-h-screen bg-page flex items-center justify-center px-4">
-        <div className="w-full max-w-sm">
-          <div className="text-center mb-8">
-            <span className="text-2xl font-semibold tracking-widest text-text-faint uppercase">
-              BUILD<span className="text-brand">QUOTE</span>
-            </span>
-            <p className="text-text-primary font-semibold mt-3">{supplier.name}</p>
-            <p className="text-text-faint text-sm mt-1">Supplier Portal</p>
-          </div>
-          <form onSubmit={handleLogin} className="bg-surface border border-border rounded-2xl p-8 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">Password</label>
-              <input type="password" value={passwordInput} onChange={e => setPasswordInput(e.target.value)} autoFocus
-                className={`w-full bg-ui border rounded-lg px-3 py-2.5 text-text-primary text-sm focus:outline-none focus:border-brand transition-colors ${passwordError ? 'border-error' : 'border-border'}`}
-                placeholder="Enter your portal password" />
-              {passwordError && <p className="text-error text-xs mt-1">Incorrect password.</p>}
-            </div>
-            <button type="submit"
-              className="w-full py-2.5 bg-brand hover:bg-brand-hover text-white rounded-lg font-semibold text-sm transition-colors">
-              Sign in
-            </button>
-            <ForgotPassword supplierEmail={supplier.email} />
-          </form>
-          <p className="text-center text-text-faint text-xs mt-4">
-            Need access? Contact <a href="mailto:hello@buildquote.com.au" className="text-brand hover:underline">BuildQuote</a>
-          </p>
+        <div className="text-center space-y-3">
+          <p className="text-text-faint text-sm">You don't have access to this portal.</p>
+          <button
+            onClick={async () => { await supabase.auth.signOut(); window.location.href = '/supplier/login' }}
+            className="text-brand text-xs hover:underline block mx-auto">
+            Sign out and try another account
+          </button>
         </div>
       </div>
     )
   }
+
+  if (!supplier) return null
 
   // ── Dashboard ─────────────────────────────────────────────────────────────
   const location = [supplier.address, supplier.suburb, supplier.state].filter(Boolean).join(', ')
@@ -425,7 +417,8 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
             <span className="text-text-faint text-sm">/</span>
             <span className="text-text-primary font-semibold text-sm">{supplier.name}</span>
           </div>
-          <button onClick={() => { sessionStorage.removeItem(`supplier_portal_${slug}`); setAuthed(false) }}
+          <button
+            onClick={async () => { await supabase.auth.signOut(); window.location.href = '/supplier/login' }}
             className="text-xs text-text-faint hover:text-text-primary transition-colors">
             Sign out
           </button>

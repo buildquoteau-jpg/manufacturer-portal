@@ -21,6 +21,7 @@ type Supplier = {
   id: string; name: string; slug: string; suburb: string | null; state: string | null; address: string | null
   website_url: string | null; email: string | null; phone: string | null
   manager_name: string | null; it_name: string | null; it_email: string | null
+  auth_user_id: string | null
   embed_widgets: EmbedWidget[]
 }
 type Step = 1 | 2 | 3 | 4
@@ -149,6 +150,14 @@ export default function SuppliersTab() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Set login for existing supplier
+  const [supLoginOpen, setSupLoginOpen]     = useState<string | null>(null)
+  const [supLoginEmail, setSupLoginEmail]   = useState('')
+  const [supLoginPass, setSupLoginPass]     = useState('')
+  const [supLoginSaving, setSupLoginSaving] = useState(false)
+  const [supLoginError, setSupLoginError]   = useState<string | null>(null)
+  const [supLoginOk, setSupLoginOk]         = useState(false)
+
   // Edit widget modal
   type EditState = { widgetId: string; supplierName: string; manufacturerId: string }
   const [editState, setEditState] = useState<EditState | null>(null)
@@ -168,7 +177,7 @@ export default function SuppliersTab() {
       supabase.from('manufacturers').select('id, name, slug, logo_url, description, website_url').order('name'),
       supabase.from('suppliers').select(`
         id, name, slug, suburb, state, address, website_url, email, phone,
-        manager_name, it_name, it_email,
+        manager_name, it_name, it_email, auth_user_id,
         embed_widgets ( id, public_token, status, created_at,
           embed_widget_systems ( system_id, systems ( name, product_code, manufacturer_id ) ) )
       `).order('name'),
@@ -176,6 +185,23 @@ export default function SuppliersTab() {
     if (mfRes.data) setManufacturers(mfRes.data)
     if (suppliersRes.data) setSuppliers(suppliersRes.data as unknown as Supplier[])
     setLoadingData(false)
+  }
+
+  async function handleSetSupplierLogin(supplierId: string) {
+    if (!supLoginEmail.trim()) { setSupLoginError('Email is required'); return }
+    if (!supLoginPass.trim())  { setSupLoginError('Password is required'); return }
+    setSupLoginSaving(true); setSupLoginError(null)
+    const res = await fetch('/api/admin/set-supplier-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
+      body: JSON.stringify({ supplier_id: supplierId, email: supLoginEmail, password: supLoginPass }),
+    })
+    const json = await res.json()
+    if (!res.ok) { setSupLoginError(json.error); setSupLoginSaving(false); return }
+    setSupLoginOk(true); setSupLoginEmail(''); setSupLoginPass('')
+    setSupLoginSaving(false)
+    setTimeout(() => { setSupLoginOk(false); setSupLoginOpen(null) }, 2000)
+    loadData()
   }
 
   async function loadSystems(manufacturerId: string) {
@@ -471,10 +497,52 @@ export default function SuppliersTab() {
                     {(supplier.suburb || supplier.state) && <span className="text-text-faint text-sm">{[supplier.suburb, supplier.state].filter(Boolean).join(', ')}</span>}
                     {supplier.email && <span className="text-text-faint text-sm">{supplier.email}</span>}
                   </div>
-                  <div className="mb-4">
+                  <div className="mb-4 flex flex-wrap items-center gap-3">
                     <a href={`/supplier/${supplier.slug}`} target="_blank" rel="noopener noreferrer"
                       className="text-brand text-xs hover:underline">View supplier portal ↗</a>
+                    {supplier.auth_user_id ? (
+                      <span className="text-xs px-2.5 py-1 border border-success/30 bg-success/10 text-success rounded-full font-medium">
+                        ✓ Login set
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => { setSupLoginOpen(supLoginOpen === supplier.id ? null : supplier.id); setSupLoginError(null); setSupLoginOk(false); setSupLoginEmail(''); setSupLoginPass('') }}
+                        className={`text-xs px-2.5 py-1 border rounded-full font-medium transition-colors ${supLoginOpen === supplier.id ? 'bg-brand text-white border-brand' : 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-400'}`}>
+                        {supLoginOpen === supplier.id ? 'Cancel' : '⚠ Set login'}
+                      </button>
+                    )}
                   </div>
+
+                  {/* Set login panel */}
+                  {supLoginOpen === supplier.id && !supplier.auth_user_id && (
+                    <div className="mb-4 p-4 bg-ui rounded-xl space-y-3">
+                      <p className="text-xs font-semibold text-text-faint uppercase tracking-widest">Set portal login</p>
+                      <p className="text-xs text-text-faint">
+                        Creates a Supabase Auth account for <span className="font-medium text-text-secondary">{supplier.name}</span>.
+                        They can then log in at <span className="font-mono">mfp.buildquote.com.au/supplier/login</span>
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-text-secondary mb-1">Login email</label>
+                          <input value={supLoginEmail} onChange={e => setSupLoginEmail(e.target.value)}
+                            placeholder="contact@supplier.com.au" type="email"
+                            className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-text-secondary mb-1">Password</label>
+                          <input value={supLoginPass} onChange={e => setSupLoginPass(e.target.value)}
+                            placeholder="Initial password" type="password"
+                            className="w-full bg-surface border border-border rounded-lg px-3 py-2 text-text-primary placeholder-text-faint text-sm focus:outline-none focus:border-brand" />
+                        </div>
+                      </div>
+                      {supLoginError && <p className="text-error text-xs">{supLoginError}</p>}
+                      {supLoginOk    && <p className="text-success text-xs font-medium">✓ Login created — they can now sign in!</p>}
+                      <button onClick={() => handleSetSupplierLogin(supplier.id)} disabled={supLoginSaving || supLoginOk}
+                        className="text-xs px-4 py-2 bg-brand hover:bg-brand-hover disabled:opacity-50 text-white rounded-lg font-medium transition-colors">
+                        {supLoginSaving ? 'Creating login…' : 'Create login →'}
+                      </button>
+                    </div>
+                  )}
                   {supplier.embed_widgets.map(widget => {
                     const profiles = widget.embed_widget_systems.map(ews => ews.systems)
                     const code = buildEmbedCode(widget.public_token, origin)
