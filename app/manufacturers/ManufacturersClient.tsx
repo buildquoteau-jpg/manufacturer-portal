@@ -9,7 +9,6 @@ type Manufacturer = {
   name: string
   slug: string
   description?: string | null
-  category?: string | null
   logo_url?: string | null
   website_url?: string | null
   systemCount: number
@@ -29,7 +28,7 @@ function ManufacturersPageInner() {
 
       const { data: mfRows } = await supabase
         .from('manufacturers')
-        .select('id, name, slug, description, category, logo_url, website_url')
+        .select('id, name, slug, description, logo_url, website_url')
         .order('name', { ascending: true })
 
       if (!mfRows?.length) {
@@ -48,11 +47,11 @@ function ManufacturersPageInner() {
         countMap[row.manufacturer_id] = (countMap[row.manufacturer_id] || 0) + 1
       }
 
+      // Only show manufacturers that have at least one system
       setManufacturers(
-        mfRows.map((m) => ({
-          ...m,
-          systemCount: countMap[m.id] || 0,
-        }))
+        mfRows
+          .map((m) => ({ ...m, systemCount: countMap[m.id] || 0 }))
+          .filter((m) => m.systemCount > 0)
       )
       setLoading(false)
     }
@@ -155,7 +154,7 @@ function ManufacturersPageInner() {
                 )}
 
                 <div className="text-right text-xs text-text-faint uppercase tracking-widest">
-                  <div className="text-brand">{m.category || 'Manufacturer'}</div>
+                  <div className="text-brand">Manufacturer</div>
                   <div>
                     {m.systemCount} system{m.systemCount !== 1 ? 's' : ''}
                   </div>

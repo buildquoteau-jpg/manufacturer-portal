@@ -9,11 +9,8 @@ type Manufacturer = {
   name: string
   slug: string
   description?: string | null
-  category?: string | null
-  website_url?: string | null
-  website?: string | null
-  phone?: string | null
   logo_url?: string | null
+  website_url?: string | null
 }
 
 type SystemColour = {
@@ -496,7 +493,7 @@ export default function ManufacturerPage({
 
       const { data: manufacturer, error: manufacturerError } = await supabase
         .from('manufacturers')
-        .select('id, name, slug, description, category, logo_url, website_url, phone')
+        .select('id, name, slug, description, logo_url, website_url')
         .eq('slug', slug)
         .single()
 
@@ -662,7 +659,7 @@ export default function ManufacturerPage({
             )}
             <div>
               <p className="text-[11px] uppercase tracking-[0.28em] text-brand">
-                {mfr.category || 'Manufacturer'}
+                Manufacturer
               </p>
               <h1 className="mt-2 text-4xl font-bold uppercase leading-none md:text-6xl">
                 {mfr.name}
@@ -677,22 +674,14 @@ export default function ManufacturerPage({
           )}
 
           <div className="mt-5 flex flex-wrap gap-3">
-            {(mfr.website_url || mfr.website) && (
+            {mfr.website_url && (
               <a
-                href={(mfr.website_url || mfr.website)!}
+                href={mfr.website_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex rounded-xl border border-brand bg-brand-subtle px-4 py-3 text-sm font-semibold text-brand transition-colors hover:border-brand-hover hover:text-brand-hover"
               >
                 Visit Website ↗
-              </a>
-            )}
-            {mfr.phone && (
-              <a
-                href={`tel:${mfr.phone}`}
-                className="inline-flex rounded-xl border border-border bg-surface px-4 py-3 text-sm font-semibold text-text-primary transition-colors hover:border-brand hover:text-brand"
-              >
-                📞 {mfr.phone}
               </a>
             )}
           </div>
