@@ -8,6 +8,7 @@ const PORTAL_LINKS = [
   { label: 'Browse Manufacturers', href: '/manufacturers' },
   { label: 'Supplier Login',       href: '/supplier/login' },
   { label: 'Manufacturer Login',   href: '/manufacturer/login' },
+  { label: 'Admin',                href: '/admin' },
 ]
 
 // External buildquote.com.au links

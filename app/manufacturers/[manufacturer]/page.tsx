@@ -101,10 +101,12 @@ const CATEGORY_TEXT: Record<string, string> = {
 
 function PublicSystemCard({
   system,
-  href,
+  mfrWebsiteUrl,
+  rfqUrl,
 }: {
   system: SystemRow
-  href: string
+  mfrWebsiteUrl?: string | null
+  rfqUrl: string
 }) {
   const catBg   = CATEGORY_BG[system.category || '']   || '#f3f4f6'
   const catText = CATEGORY_TEXT[system.category || ''] || '#374151'
@@ -114,8 +116,7 @@ function PublicSystemCard({
   const profiles = (system.system_profiles || []).sort((a, b) => a.sort_order - b.sort_order)
 
   return (
-    <a
-      href={href}
+    <div
       style={{
         background: '#ffffff',
         border: '1px solid #e5e7eb',
@@ -124,19 +125,6 @@ function PublicSystemCard({
         display: 'flex',
         flexDirection: 'column',
         boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-        textDecoration: 'none',
-        color: 'inherit',
-        transition: 'border-color 0.15s, box-shadow 0.15s',
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget as HTMLAnchorElement
-        el.style.borderColor = 'var(--brand, #1b3a2d)'
-        el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)'
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget as HTMLAnchorElement
-        el.style.borderColor = '#e5e7eb'
-        el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'
       }}
     >
       {/* Hero image */}
@@ -481,22 +469,64 @@ function PublicSystemCard({
           </div>
         )}
 
-        {/* View details arrow */}
-        <div
-          style={{
-            marginTop: '12px',
-            paddingTop: '12px',
-            borderTop: '1px solid #f3f4f6',
-            display: 'flex',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <span style={{ fontSize: '12px', color: '#9ca3af', fontWeight: 500 }}>
-            View details ↗
-          </span>
+        {/* Action buttons */}
+        <div style={{
+          marginTop: 'auto',
+          paddingTop: '14px',
+          display: 'flex',
+          gap: '8px',
+          flexWrap: 'wrap',
+        }}>
+          {(system.website_url || mfrWebsiteUrl) && (
+            <a
+              href={system.website_url || mfrWebsiteUrl || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '9px 12px',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#374151',
+                background: '#f3f4f6',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                transition: 'background 0.15s',
+              }}
+            >
+              View on website ↗
+            </a>
+          )}
+          <a
+            href={rfqUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '9px 12px',
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#ffffff',
+              background: '#1b3a2d',
+              border: '1px solid #1b3a2d',
+              borderRadius: '8px',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Add to quote →
+          </a>
         </div>
       </div>
-    </a>
+    </div>
   )
 }
 
@@ -764,7 +794,11 @@ export default function ManufacturerPage({
                   <PublicSystemCard
                     key={sys.id}
                     system={sys}
-                    href={withDraft(`/manufacturers/${mfr.slug}/${sys.slug}`)}
+                    mfrWebsiteUrl={mfr.website_url}
+                    rfqUrl={draft
+                      ? `https://buildquote.com.au/rfq?draft=${encodeURIComponent(draft)}`
+                      : 'https://buildquote.com.au/rfq'
+                    }
                   />
                 ))}
               </div>
