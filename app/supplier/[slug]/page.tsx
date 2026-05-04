@@ -344,20 +344,6 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
     if (data) setManufacturers(data as unknown as Manufacturer[])
   }
 
-  function handleLogin(e: React.FormEvent) {
-    e.preventDefault()
-    if (!supplier?.portal_password) return
-    if (passwordInput === supplier.portal_password) {
-      sessionStorage.setItem(`supplier_portal_${slug}`, passwordInput)
-      setAuthed(true)
-      loadEnquiries(supplier)
-      loadManufacturers()
-    } else {
-      setPasswordError(true)
-      setTimeout(() => setPasswordError(false), 2000)
-    }
-  }
-
   // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) {
     return (
