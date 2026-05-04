@@ -51,6 +51,7 @@ type SupplierData = {
   it_name: string | null
   it_email: string | null
   portal_password: string | null
+  auth_user_id: string | null
   created_at: string
   embed_widgets: WidgetRecord[]
 }
