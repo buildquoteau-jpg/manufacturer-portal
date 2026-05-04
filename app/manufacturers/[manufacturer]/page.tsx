@@ -523,10 +523,10 @@ export default function ManufacturerPage({
           : (systems.map((s) => ({
               ...s,
               system_colours: (s.system_colours || []).sort(
-                (a: SystemColour, b: SystemColour) => a.sort_order - b.sort_order
+                (a, b) => a.sort_order - b.sort_order
               ),
               system_components: (s.system_components || []).sort(
-                (a: SystemComponent, b: SystemComponent) => a.sort_order - b.sort_order
+                (a, b) => a.sort_order - b.sort_order
               ),
             })) as unknown as SystemRow[])
       )
