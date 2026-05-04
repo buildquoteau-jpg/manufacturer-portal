@@ -26,6 +26,15 @@ type SystemComponent = {
   components: { name: string; sku: string | null } | null
 }
 
+type SystemProfile = {
+  id: string
+  name: string | null
+  product_code: string | null
+  dimensions: string | null
+  length_m: number | null
+  sort_order: number
+}
+
 type SystemRow = {
   id: string
   name: string
@@ -46,6 +55,7 @@ type SystemRow = {
   source_url?: string | null
   system_colours: SystemColour[]
   system_components: SystemComponent[]
+  system_profiles: SystemProfile[]
 }
 
 // ── Visual helpers ─────────────────────────────────────────────────────────────
@@ -101,6 +111,7 @@ function PublicSystemCard({
   const stocked    = system.system_colours.filter((c) => c.is_stocked)
   const required   = system.system_components.filter((c) => c.role === 'required'    && c.components)
   const recommended = system.system_components.filter((c) => c.role === 'recommended' && c.components)
+  const profiles = (system.system_profiles || []).sort((a, b) => a.sort_order - b.sort_order)
 
   return (
     <a
@@ -278,6 +289,34 @@ function PublicSystemCard({
           >
             {system.description}
           </p>
+        )}
+
+        {/* Profiles / size variants */}
+        {profiles.length > 0 && (
+          <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #f3f4f6' }}>
+            <div style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: '8px' }}>
+              Sizes &amp; Product Codes
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {profiles.map((p) => (
+                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 8px', background: '#f9fafb', borderRadius: '6px', border: '1px solid #f3f4f6' }}>
+                  <span style={{ flex: 1, fontSize: '12px', fontWeight: 500, color: '#374151' }}>
+                    {p.name || p.dimensions || '—'}
+                  </span>
+                  {p.product_code && (
+                    <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 600, color: '#6b7280', background: '#f3f4f6', padding: '1px 6px', borderRadius: '4px', flexShrink: 0 }}>
+                      {p.product_code}
+                    </span>
+                  )}
+                  {p.length_m && (
+                    <span style={{ fontSize: '11px', color: '#9ca3af', flexShrink: 0 }}>
+                      {p.length_m}m
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Colours */}
@@ -511,7 +550,8 @@ export default function ManufacturerPage({
           dimensions, length_m, double_sided, hero_image_url, website_url,
           sort_order, verification_status, verified_by, source_label, source_url,
           system_colours(colour_name, is_stocked, sort_order),
-          system_components(role, notes, sort_order, components(name, sku))
+          system_components(role, notes, sort_order, components(name, sku)),
+          system_profiles(id, name, product_code, dimensions, length_m, sort_order)
         `)
         .eq('manufacturer_id', manufacturer.id)
         .order('sort_order', { ascending: true })

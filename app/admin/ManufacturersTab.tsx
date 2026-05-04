@@ -90,6 +90,20 @@ export default function ManufacturersTab() {
   const [loginError, setLoginError]     = useState<string | null>(null)
   const [loginSuccess, setLoginSuccess] = useState(false)
 
+  // Products & profiles
+  type ProfileAdminRow = { id: string; name: string | null; product_code: string | null; dimensions: string | null; length_m: number | null; sort_order: number }
+  type SystemAdminRow  = { id: string; name: string; product_code: string; category: string; system_profiles: ProfileAdminRow[] }
+  const [productsOpen, setProductsOpen]           = useState<string | null>(null)
+  const [systemsMap, setSystemsMap]               = useState<Record<string, SystemAdminRow[]>>({})
+  const [systemsLoading, setSystemsLoading]       = useState(false)
+  const [addProfileSystemId, setAddProfileSystemId] = useState<string | null>(null)
+  const [newProfileName, setNewProfileName]       = useState('')
+  const [newProfileCode, setNewProfileCode]       = useState('')
+  const [newProfileDims, setNewProfileDims]       = useState('')
+  const [newProfileLength, setNewProfileLength]   = useState('')
+  const [profileSaving, setProfileSaving]         = useState(false)
+  const [profileError, setProfileError]           = useState<string | null>(null)
+
   // Catalogue sources
   const [sourcesOpen, setSourcesOpen]         = useState<string | null>(null) // manufacturer id
   const [sourcesMap, setSourcesMap]           = useState<Record<string, CatalogueSource[]>>({})
@@ -186,6 +200,58 @@ export default function ManufacturersTab() {
     setEditId(null)
     setEditSaving(false)
     loadManufacturers()
+  }
+
+  async function toggleProducts(manufacturerId: string) {
+    if (productsOpen === manufacturerId) { setProductsOpen(null); return }
+    setProductsOpen(manufacturerId)
+    if (systemsMap[manufacturerId]) return
+    setSystemsLoading(true)
+    const { data } = await supabase
+      .from('systems')
+      .select('id, name, product_code, category, system_profiles(id, name, product_code, dimensions, length_m, sort_order)')
+      .eq('manufacturer_id', manufacturerId)
+      .order('sort_order')
+    if (data) setSystemsMap(prev => ({ ...prev, [manufacturerId]: data as unknown as SystemAdminRow[] }))
+    setSystemsLoading(false)
+  }
+
+  async function addProfile(systemId: string, manufacturerId: string) {
+    if (!newProfileCode.trim() && !newProfileName.trim()) { setProfileError('Name or product code required'); return }
+    setProfileSaving(true); setProfileError(null)
+    const res = await fetch('/api/admin/system-profiles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
+      body: JSON.stringify({ system_id: systemId, name: newProfileName, product_code: newProfileCode, dimensions: newProfileDims, length_m: newProfileLength || null }),
+    })
+    const json = await res.json()
+    if (!res.ok) { setProfileError(json.error); setProfileSaving(false); return }
+    setSystemsMap(prev => ({
+      ...prev,
+      [manufacturerId]: (prev[manufacturerId] ?? []).map(sys =>
+        sys.id === systemId ? { ...sys, system_profiles: [...(sys.system_profiles ?? []), json.profile] } : sys
+      ),
+    }))
+    setNewProfileName(''); setNewProfileCode(''); setNewProfileDims(''); setNewProfileLength('')
+    setAddProfileSystemId(null)
+    setProfileSaving(false)
+  }
+
+  async function deleteProfile(systemId: string, manufacturerId: string, profileId: string) {
+    if (!confirm('Remove this size variant?')) return
+    await fetch('/api/admin/system-profiles', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PASSWORD },
+      body: JSON.stringify({ id: profileId }),
+    })
+    setSystemsMap(prev => ({
+      ...prev,
+      [manufacturerId]: (prev[manufacturerId] ?? []).map(sys =>
+        sys.id === systemId
+          ? { ...sys, system_profiles: (sys.system_profiles ?? []).filter(p => p.id !== profileId) }
+          : sys
+      ),
+    }))
   }
 
   async function toggleSources(manufacturerId: string) {
@@ -431,6 +497,10 @@ export default function ManufacturersTab() {
                               {loginOpen === mf.id ? 'Cancel' : '⚠ Set login'}
                             </button>
                           )}
+                          <button onClick={() => toggleProducts(mf.id)}
+                            className={`text-xs px-3 py-1.5 border rounded-lg font-medium transition-colors ${productsOpen === mf.id ? 'bg-brand text-white border-brand' : 'bg-ui hover:bg-surface-hover border-border text-text-secondary'}`}>
+                            Products {systemsMap[mf.id]?.length ? `(${systemsMap[mf.id].length})` : ''}
+                          </button>
                           <button onClick={() => toggleSources(mf.id)}
                             className={`text-xs px-3 py-1.5 border rounded-lg font-medium transition-colors ${sourcesOpen === mf.id ? 'bg-brand text-white border-brand' : 'bg-ui hover:bg-surface-hover border-border text-text-secondary'}`}>
                             Sources {sourcesMap[mf.id]?.length ? `(${sourcesMap[mf.id].length})` : ''}
@@ -482,6 +552,113 @@ export default function ManufacturersTab() {
                         >
                           {loginSaving ? 'Creating login…' : 'Create login →'}
                         </button>
+                      </div>
+                    )}
+
+                    {/* ── Products & Profiles panel ── */}
+                    {productsOpen === mf.id && (
+                      <div className="mt-4 pt-4 border-t border-border space-y-4">
+                        <p className="text-xs font-semibold text-text-faint uppercase tracking-widest">
+                          Products &amp; Size Variants
+                        </p>
+                        <p className="text-xs text-text-faint">
+                          Add or remove size/thickness variants for each product system. Each variant has its own SKU.
+                        </p>
+                        {systemsLoading ? (
+                          <p className="text-xs text-text-faint">Loading...</p>
+                        ) : (systemsMap[mf.id] ?? []).length === 0 ? (
+                          <p className="text-xs text-text-faint italic">No products loaded for this manufacturer yet.</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {(systemsMap[mf.id] ?? []).map(sys => (
+                              <div key={sys.id} className="bg-ui rounded-lg p-4">
+                                {/* System header */}
+                                <div className="flex items-start justify-between gap-2 mb-3">
+                                  <div>
+                                    <span className="text-sm font-semibold text-text-primary">{sys.name}</span>
+                                    <span className="ml-2 font-mono text-xs text-text-faint">{sys.product_code}</span>
+                                  </div>
+                                  <span className="text-xs px-2 py-0.5 rounded-full bg-surface border border-border text-text-faint flex-shrink-0">
+                                    {sys.category}
+                                  </span>
+                                </div>
+
+                                {/* Existing profiles */}
+                                {(sys.system_profiles ?? []).length > 0 ? (
+                                  <div className="space-y-1.5 mb-3">
+                                    {(sys.system_profiles ?? [])
+                                      .sort((a, b) => a.sort_order - b.sort_order)
+                                      .map(p => (
+                                        <div key={p.id} className="flex items-center gap-2 bg-surface border border-border-subtle rounded px-3 py-2">
+                                          <span className="text-xs font-medium text-text-primary flex-1 min-w-0 truncate">
+                                            {p.name || p.dimensions || '—'}
+                                          </span>
+                                          {p.product_code && (
+                                            <span className="font-mono text-xs text-text-faint bg-ui px-2 py-0.5 rounded flex-shrink-0">
+                                              {p.product_code}
+                                            </span>
+                                          )}
+                                          {p.dimensions && p.name && (
+                                            <span className="text-xs text-text-faint flex-shrink-0 hidden sm:block">{p.dimensions}</span>
+                                          )}
+                                          {p.length_m && (
+                                            <span className="text-xs text-text-faint flex-shrink-0">{p.length_m}m</span>
+                                          )}
+                                          <button onClick={() => deleteProfile(sys.id, mf.id, p.id)}
+                                            className="text-xs text-error opacity-50 hover:opacity-100 transition-opacity ml-1 flex-shrink-0">
+                                            ×
+                                          </button>
+                                        </div>
+                                      ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-text-faint italic mb-3">No size variants yet.</p>
+                                )}
+
+                                {/* Add profile form or button */}
+                                {addProfileSystemId === sys.id ? (
+                                  <div className="bg-surface border border-border rounded-lg p-3 space-y-2">
+                                    <p className="text-xs font-medium text-text-secondary">Add size variant</p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <input value={newProfileName} onChange={e => setNewProfileName(e.target.value)}
+                                        placeholder="Label e.g. 230mm Wide"
+                                        className="col-span-2 bg-ui border border-border rounded px-2.5 py-1.5 text-xs text-text-primary placeholder-text-faint focus:outline-none focus:border-brand" />
+                                      <input value={newProfileCode} onChange={e => setNewProfileCode(e.target.value)}
+                                        placeholder="SKU e.g. 4090011"
+                                        className="bg-ui border border-border rounded px-2.5 py-1.5 text-xs font-mono text-text-primary placeholder-text-faint focus:outline-none focus:border-brand" />
+                                      <input value={newProfileDims} onChange={e => setNewProfileDims(e.target.value)}
+                                        placeholder="Dims e.g. 7.5mm × 230mm"
+                                        className="bg-ui border border-border rounded px-2.5 py-1.5 text-xs text-text-primary placeholder-text-faint focus:outline-none focus:border-brand" />
+                                      <input value={newProfileLength} onChange={e => setNewProfileLength(e.target.value)}
+                                        placeholder="Length m e.g. 4.2" type="number" step="0.01"
+                                        className="bg-ui border border-border rounded px-2.5 py-1.5 text-xs text-text-primary placeholder-text-faint focus:outline-none focus:border-brand" />
+                                    </div>
+                                    {profileError && <p className="text-error text-xs">{profileError}</p>}
+                                    <div className="flex gap-2 items-center">
+                                      <button onClick={() => addProfile(sys.id, mf.id)} disabled={profileSaving}
+                                        className="text-xs px-3 py-1.5 bg-brand hover:bg-brand-hover disabled:opacity-50 text-white rounded font-medium transition-colors">
+                                        {profileSaving ? 'Adding…' : 'Add →'}
+                                      </button>
+                                      <button onClick={() => { setAddProfileSystemId(null); setProfileError(null); setNewProfileName(''); setNewProfileCode(''); setNewProfileDims(''); setNewProfileLength('') }}
+                                        className="text-xs text-text-faint hover:text-text-primary transition-colors">
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <button onClick={() => {
+                                    setAddProfileSystemId(sys.id)
+                                    setNewProfileName(''); setNewProfileCode(''); setNewProfileDims(''); setNewProfileLength('')
+                                    setProfileError(null)
+                                  }}
+                                    className="text-xs text-brand hover:underline font-medium">
+                                    + Add size variant
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
 
