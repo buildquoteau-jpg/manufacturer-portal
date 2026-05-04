@@ -65,8 +65,7 @@ function ManufacturersPageInner() {
         ? manufacturers.filter(
             (m) =>
               m.name.toLowerCase().includes(query.toLowerCase()) ||
-              m.description?.toLowerCase().includes(query.toLowerCase()) ||
-              m.category?.toLowerCase().includes(query.toLowerCase())
+              m.description?.toLowerCase().includes(query.toLowerCase())
           )
         : manufacturers,
     [query, manufacturers]
