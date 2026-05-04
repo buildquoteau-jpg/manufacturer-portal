@@ -520,7 +520,7 @@ export default function ManufacturerPage({
       setAllSystems(
         systemsError || !systems
           ? []
-          : systems.map((s) => ({
+          : (systems.map((s) => ({
               ...s,
               system_colours: (s.system_colours || []).sort(
                 (a: SystemColour, b: SystemColour) => a.sort_order - b.sort_order
@@ -528,7 +528,7 @@ export default function ManufacturerPage({
               system_components: (s.system_components || []).sort(
                 (a: SystemComponent, b: SystemComponent) => a.sort_order - b.sort_order
               ),
-            }))
+            })) as unknown as SystemRow[]))
       )
       setLoading(false)
     }
