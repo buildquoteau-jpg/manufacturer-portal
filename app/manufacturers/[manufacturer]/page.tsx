@@ -115,11 +115,15 @@ function PublicSystemCard({
   mfrWebsiteUrl,
   selectedIds,
   onToggle,
+  selectedColour,
+  onColourSelect,
 }: {
   system: SystemRow
   mfrWebsiteUrl?: string | null
   selectedIds: Set<string>
   onToggle: (item: SelectedItem) => void
+  selectedColour: string
+  onColourSelect: (systemId: string, colourName: string) => void
 }) {
   const catBg   = CATEGORY_BG[system.category || '']   || '#f3f4f6'
   const catText = CATEGORY_TEXT[system.category || ''] || '#374151'
@@ -282,10 +286,6 @@ function PublicSystemCard({
               fontSize: '12px',
               color: '#6b7280',
               lineHeight: 1.5,
-              display: '-webkit-box',
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
             }}
           >
             {system.description}
@@ -346,7 +346,7 @@ function PublicSystemCard({
           </div>
         </div>
 
-        {/* Colours — selectable */}
+        {/* Colours — radio pick per system, merges into panel name on save */}
         {stocked.length > 0 && (
           <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #f3f4f6' }}>
             <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#374151', marginBottom: '6px' }}>
@@ -354,12 +354,11 @@ function PublicSystemCard({
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
               {stocked.map((c) => {
-                const itemId = `${system.id}_colour_${c.colour_name}`
-                const selected = selectedIds.has(itemId)
+                const selected = selectedColour === c.colour_name
                 return (
                   <button
                     key={c.colour_name}
-                    onClick={() => onToggle({ id: itemId, type: 'colour', systemId: system.id, systemName: system.name, name: c.colour_name, sku: null, dimensions: null, length_m: null })}
+                    onClick={() => onColourSelect(system.id, c.colour_name)}
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: selected ? 600 : 400, color: selected ? '#15803d' : '#6b7280', background: selected ? '#f0fdf4' : '#f3f4f6', border: `1px solid ${selected ? '#86efac' : 'transparent'}`, borderRadius: '20px', padding: '4px 10px 4px 6px', cursor: 'pointer', transition: 'all 0.12s' }}
                   >
                     <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', borderRadius: '50%', background: selected ? '#16a34a' : (COLOUR_MAP[c.colour_name] || '#888'), border: selected ? 'none' : '1px solid rgba(0,0,0,0.15)', fontSize: '9px', color: '#fff', fontWeight: 700, flexShrink: 0 }}>
@@ -518,6 +517,7 @@ export default function ManufacturerPage({
 
   const [query, setQuery] = useState('')
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([])
+  const [selectedColours, setSelectedColours] = useState<Record<string, string>>({})
   const [addingToRfq, setAddingToRfq] = useState(false)
   const [showRequest, setShowRequest] = useState(false)
 
@@ -529,6 +529,13 @@ export default function ManufacturerPage({
         ? prev.filter((i) => i.id !== item.id)
         : [...prev, item]
     )
+  }
+
+  function handleColourSelect(systemId: string, colourName: string) {
+    setSelectedColours((prev) => ({
+      ...prev,
+      [systemId]: prev[systemId] === colourName ? '' : colourName,
+    }))
   }
 
   async function handleAddToRFQ() {
@@ -547,20 +554,19 @@ export default function ManufacturerPage({
         draftId = data.id
       }
 
-      // Map selections to rfq_draft_items rows
-      const rows = selectedItems.map((item) => ({
-        draft_id: draftId,
-        name: item.type === 'colour'
-          ? `${item.systemName} — Colour: ${item.name}`
-          : item.name,
-        description: item.type === 'colour'
-          ? 'Colour / finish selection'
-          : [item.dimensions, item.length_m ? `${item.length_m}m` : null]
-              .filter(Boolean).join(' · '),
-        sku: item.sku || '',
-        uom: item.type === 'accessory' ? 'EA' : '',
-        qty: 1,
-      }))
+      // Map selections to rfq_draft_items rows (colours fold into panel name)
+      const rows = selectedItems.map((item) => {
+        const colour = item.type === 'panel' ? selectedColours[item.systemId] : null
+        return {
+          draft_id: draftId,
+          name: colour ? `${item.name} — ${colour}` : item.name,
+          description: [item.dimensions, item.length_m ? `${item.length_m}m` : null]
+            .filter(Boolean).join(' · '),
+          sku: item.sku || '',
+          uom: item.type === 'accessory' ? 'EA' : '',
+          qty: 1,
+        }
+      })
 
       const { error: insertError } = await supabase
         .from('rfq_draft_items')
@@ -826,7 +832,9 @@ export default function ManufacturerPage({
                     system={sys}
                     mfrWebsiteUrl={mfr.website_url}
                     selectedIds={selectedIds}
-                    onToggle={handleToggle
+                    onToggle={handleToggle}
+                    selectedColour={selectedColours[sys.id] || ''}
+                    onColourSelect={handleColourSelect
                     }
                   />
                 ))}
