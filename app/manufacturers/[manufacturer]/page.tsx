@@ -35,6 +35,17 @@ type SystemProfile = {
   sort_order: number
 }
 
+type SelectedItem = {
+  id: string
+  type: 'panel' | 'accessory'
+  systemId: string
+  systemName: string
+  name: string
+  sku: string | null
+  dimensions: string | null
+  length_m: number | null
+}
+
 type SystemRow = {
   id: string
   name: string
@@ -102,11 +113,13 @@ const CATEGORY_TEXT: Record<string, string> = {
 function PublicSystemCard({
   system,
   mfrWebsiteUrl,
-  rfqUrl,
+  selectedIds,
+  onToggle,
 }: {
   system: SystemRow
   mfrWebsiteUrl?: string | null
-  rfqUrl: string
+  selectedIds: Set<string>
+  onToggle: (item: SelectedItem) => void
 }) {
   const catBg   = CATEGORY_BG[system.category || '']   || '#f3f4f6'
   const catText = CATEGORY_TEXT[system.category || ''] || '#374151'
@@ -292,17 +305,28 @@ function PublicSystemCard({
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
               {profiles.map((p) => {
+                const itemId = p.id
+                const selected = selectedIds.has(itemId)
                 const specs = [p.product_code, p.dimensions, p.length_m ? `${p.length_m}m` : null].filter(Boolean).join(' · ')
                 return (
-                  <div key={p.id} style={{ padding: '7px 10px', background: '#f9fafb', borderRadius: '7px', border: '1px solid #e5e7eb' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>
-                      {p.name || p.dimensions || '—'}
-                    </div>
-                    {specs && (
-                      <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px', fontFamily: 'monospace' }}>
-                        {specs}
+                  <div
+                    key={p.id}
+                    onClick={() => onToggle({ id: itemId, type: 'panel', systemId: system.id, systemName: system.name, name: p.name || p.dimensions || '—', sku: p.product_code, dimensions: p.dimensions, length_m: p.length_m })}
+                    style={{ padding: '7px 10px', background: selected ? '#f0fdf4' : '#f9fafb', borderRadius: '7px', border: `1px solid ${selected ? '#86efac' : '#e5e7eb'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.12s' }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>
+                        {p.name || p.dimensions || '—'}
                       </div>
-                    )}
+                      {specs && (
+                        <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px', fontFamily: 'monospace' }}>
+                          {specs}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: selected ? '#16a34a' : '#fff', border: `1.5px solid ${selected ? '#16a34a' : '#d1d5db'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: selected ? '#fff' : '#9ca3af', flexShrink: 0, fontWeight: 700, transition: 'all 0.12s' }}>
+                      {selected ? '✓' : '+'}
+                    </div>
                   </div>
                 )
               })}
@@ -400,52 +424,38 @@ function PublicSystemCard({
                     {role}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                    {items.map((item, i) => (
-                      <div
-                        key={i}
-                        style={{
-                          padding: '6px 10px',
-                          background: role === 'Required' ? '#f9fafb' : '#fafafa',
-                          border: `1px solid ${role === 'Required' ? '#e5e7eb' : '#f3f4f6'}`,
-                          borderRadius: '6px',
-                        }}
-                      >
+                    {items.map((item, i) => {
+                      const itemId = `${system.id}_${item.components!.sku || i}`
+                      const selected = selectedIds.has(itemId)
+                      return (
                         <div
-                          style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'flex-start',
-                            gap: '8px',
-                          }}
+                          key={i}
+                          onClick={() => onToggle({ id: itemId, type: 'accessory', systemId: system.id, systemName: system.name, name: item.components!.name, sku: item.components!.sku ?? null, dimensions: null, length_m: null })}
+                          style={{ padding: '6px 10px', background: selected ? '#f0fdf4' : (role === 'Required' ? '#f9fafb' : '#fafafa'), border: `1px solid ${selected ? '#86efac' : (role === 'Required' ? '#e5e7eb' : '#f3f4f6')}`, borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.12s' }}
                         >
-                          <span
-                            style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}
-                          >
-                            {item.components!.name}
-                          </span>
-                          {item.components!.sku && (
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                fontFamily: 'monospace',
-                                color: '#6b7280',
-                                background: '#f3f4f6',
-                                padding: '1px 5px',
-                                borderRadius: '4px',
-                                flexShrink: 0,
-                              }}
-                            >
-                              {item.components!.sku}
-                            </span>
-                          )}
-                        </div>
-                        {item.notes && (
-                          <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>
-                            {item.notes}
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                              <span style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>
+                                {item.components!.name}
+                              </span>
+                              {item.components!.sku && (
+                                <span style={{ fontSize: '10px', fontFamily: 'monospace', color: '#6b7280', background: '#f3f4f6', padding: '1px 5px', borderRadius: '4px', flexShrink: 0 }}>
+                                  {item.components!.sku}
+                                </span>
+                              )}
+                            </div>
+                            {item.notes && (
+                              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>
+                                {item.notes}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    ))}
+                          <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: selected ? '#16a34a' : '#fff', border: `1.5px solid ${selected ? '#16a34a' : '#d1d5db'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: selected ? '#fff' : '#9ca3af', flexShrink: 0, fontWeight: 700, transition: 'all 0.12s' }}>
+                            {selected ? '✓' : '+'}
+                          </div>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )
@@ -501,28 +511,6 @@ function PublicSystemCard({
               View on website ↗
             </a>
           )}
-          <a
-            href={rfqUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '9px 12px',
-              fontSize: '12px',
-              fontWeight: 600,
-              color: '#ffffff',
-              background: '#1b3a2d',
-              border: '1px solid #1b3a2d',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            Add to quote →
-          </a>
         </div>
       </div>
     </div>
@@ -543,7 +531,18 @@ export default function ManufacturerPage({
   const [loading, setLoading] = useState(true)
 
   const [query, setQuery] = useState('')
+  const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([])
   const [showRequest, setShowRequest] = useState(false)
+
+  const selectedIds = new Set(selectedItems.map((i) => i.id))
+
+  function handleToggle(item: SelectedItem) {
+    setSelectedItems((prev) =>
+      prev.some((i) => i.id === item.id)
+        ? prev.filter((i) => i.id !== item.id)
+        : [...prev, item]
+    )
+  }
   const [requestText, setRequestText] = useState('')
   const [requestEmail, setRequestEmail] = useState('')
   const [requestSent, setRequestSent] = useState(false)
@@ -715,7 +714,7 @@ export default function ManufacturerPage({
         </div>
       </nav>
 
-      <main className="mx-auto max-w-6xl px-4 py-6 md:px-8 md:py-8">
+      <main className="mx-auto max-w-6xl px-4 py-6 pb-24 md:px-8 md:py-8 md:pb-24">
         {/* Manufacturer header */}
         <section className="max-w-3xl">
           <div className="flex items-start gap-4">
@@ -794,9 +793,8 @@ export default function ManufacturerPage({
                     key={sys.id}
                     system={sys}
                     mfrWebsiteUrl={mfr.website_url}
-                    rfqUrl={draft
-                      ? `https://buildquote.com.au/rfq?draft=${encodeURIComponent(draft)}`
-                      : 'https://buildquote.com.au/rfq'
+                    selectedIds={selectedIds}
+                    onToggle={handleToggle
                     }
                   />
                 ))}
@@ -880,6 +878,36 @@ export default function ManufacturerPage({
           </section>
         )}
       </main>
+
+      {/* Sticky RFQ footer */}
+      {selectedItems.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-[#1b3a2d] px-4 py-3 sm:px-8">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-white">
+                {selectedItems.length} {selectedItems.length === 1 ? 'item' : 'items'} selected
+              </p>
+              <p className="text-xs text-white/50">
+                {[...new Set(selectedItems.map(i => i.systemName))].join(', ')}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setSelectedItems([])}
+                className="text-xs text-white/50 hover:text-white transition-colors"
+              >
+                Clear
+              </button>
+              <button
+                className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-[#1b3a2d] transition-opacity hover:opacity-90"
+                onClick={() => {/* wire up next session */}}
+              >
+                Add to RFQ →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
