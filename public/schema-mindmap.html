@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BuildQuote · Database Mind Map</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d0f1a; color: #e2e8f0; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
+
+  header {
+    height: 52px;
+    padding: 0 24px;
+    background: #13162b;
+    border-bottom: 1px solid #1e2340;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    z-index: 10;
+  }
+  header h1 { font-size: 16px; font-weight: 700; color: #f1f5f9; letter-spacing: -.01em; }
+  .pill {
+    font-size: 11px; font-weight: 500;
+    border-radius: 99px;
+    padding: 2px 10px;
+  }
+  .pill-bq  { background:#1d3557; color:#60a5fa; border:1px solid #2563eb44; }
+  .pill-mfp { background:#2d1b4e; color:#a78bfa; border:1px solid #7c3aed44; }
+
+  #tip {
+    margin-left: auto;
+    font-size: 11px;
+    color: #374151;
+  }
+
+  #wrap {
+    width: 100vw;
+    height: calc(100vh - 52px);
+    overflow: hidden;
+    cursor: grab;
+    user-select: none;
+  }
+  #wrap.drag { cursor: grabbing; }
+
+  svg { display: block; }
+
+  /* ── legend ── */
+  #legend {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #13162b;
+    border: 1px solid #1e2340;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 11.5px;
+    pointer-events: none;
+    z-index: 20;
+    min-width: 170px;
+  }
+  #legend h3 {
+    font-size: 10px; text-transform: uppercase; letter-spacing: .1em;
+    color: #4b5563; margin-bottom: 8px;
+  }
+  .lr { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; color: #94a3b8; }
+  .ld { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .lsep { border: none; border-top: 1px solid #1e2340; margin: 8px 0; }
+  .lkey { font-size: 10.5px; color: #64748b; }
+</style>
+</head>
+<body>
+<header>
+  <h1>BuildQuote · Database Schema</h1>
+  <span class="pill pill-bq">buildquote.com.au</span>
+  <span class="pill pill-mfp">mfp.buildquote.com.au</span>
+  <span id="tip">Scroll to zoom &nbsp;·&nbsp; Drag to pan</span>
+</header>
+
+<div id="wrap">
+  <svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
+</div>
+
+<div id="legend">
+  <h3>Domain</h3>
+  <div class="lr"><div class="ld" style="background:#1d4ed8"></div>Manufacturer / Product</div>
+  <div class="lr"><div class="ld" style="background:#7c3aed"></div>Supplier</div>
+  <div class="lr"><div class="ld" style="background:#065f46"></div>Widget / Embed</div>
+  <div class="lr"><div class="ld" style="background:#92400e"></div>RFQ Flow (bq)</div>
+  <div class="lr"><div class="ld" style="background:#713f12"></div>RFQ Enquiry (mfp)</div>
+  <div class="lr"><div class="ld" style="background:#164e63"></div>Catalogue</div>
+  <div class="lr"><div class="ld" style="background:#1e3a5f;border:1px solid #475569"></div>Auth / Contacts</div>
+  <div class="lr"><div class="ld" style="background:#1a2636;border:1px dashed #475569"></div>View (read-only)</div>
+  <hr class="lsep">
+  <h3>Columns</h3>
+  <div class="lr lkey"><span style="color:#fbbf24">🔑</span>&nbsp;Primary key</div>
+  <div class="lr lkey"><span style="color:#818cf8">→</span>&nbsp;Foreign key</div>
+</div>
+
+<script>
+// ──────────────────────────────────────────────────────────────
+// TABLE DEFINITIONS
+// ──────────────────────────────────────────────────────────────
+// domain colours  fill / stroke
+const D = {
+  mfr:    { fill:'#0f2040', stroke:'#2563eb' },
+  sup:    { fill:'#1a0f35', stroke:'#7c3aed' },
+  widget: { fill:'#052e1c', stroke:'#059669' },
+  rfq:    { fill:'#1c0f00', stroke:'#d97706' },
+  rfq2:   { fill:'#1c1000', stroke:'#b45309' },
+  cat:    { fill:'#062030', stroke:'#0891b2' },
+  auth:   { fill:'#101828', stroke:'#475569' },
+  view:   { fill:'#0a1525', stroke:'#334155', dashed: true },
+};
+
+const TABLES = [
+  // ── Manufacturer / product catalog ──────────────────────────
+  {
+    id:'manufacturers', label:'manufacturers', d: D.mfr, x: 440, y: 60,
+    cols:[
+      {n:'id',               t:'uuid',       pk:true},
+      {n:'name',             t:'text'},
+      {n:'slug',             t:'text  UNIQUE'},
+      {n:'logo_url',         t:'text'},
+      {n:'website_url',      t:'text'},
+      {n:'hero_image_url',   t:'text'},
+      {n:'description',      t:'text'},
+      {n:'abn / phone',      t:'text'},
+      {n:'auth_user_id',     t:'uuid',       fk:'auth.users'},
+      {n:'created_at',       t:'timestamptz'},
+    ]
+  },
+  {
+    id:'systems', label:'systems', d: D.mfr, x: 160, y: 300,
+    cols:[
+      {n:'id',                  t:'uuid',   pk:true},
+      {n:'manufacturer_id',     t:'uuid',   fk:'manufacturers'},
+      {n:'name',                t:'text'},
+      {n:'product_code',        t:'text'},
+      {n:'slug',                t:'text'},
+      {n:'category',            t:'text'},
+      {n:'subcategory',         t:'text'},
+      {n:'description',         t:'text'},
+      {n:'dimensions / length_m', t:'text / numeric'},
+      {n:'double_sided',        t:'bool'},
+      {n:'source_document_id',  t:'uuid',   fk:'catalogue_sources'},
+      {n:'verification_status', t:'text'},
+      {n:'verified_by/at',      t:'text / timestamptz'},
+      {n:'sort_order',          t:'int'},
+      {n:'created_at',          t:'timestamptz'},
+    ]
+  },
+  {
+    id:'system_colours', label:'system_colours', d: D.mfr, x:-80, y: 580,
+    cols:[
+      {n:'id',          t:'uuid', pk:true},
+      {n:'system_id',   t:'uuid', fk:'systems'},
+      {n:'colour_name', t:'text'},
+      {n:'image_url',   t:'text'},
+      {n:'is_stocked',  t:'bool'},
+      {n:'sort_order',  t:'int'},
+    ]
+  },
+  {
+    id:'system_profiles', label:'system_profiles', d: D.mfr, x: 160, y: 620,
+    cols:[
+      {n:'id',          t:'uuid', pk:true},
+      {n:'system_id',   t:'uuid', fk:'systems'},
+      {n:'name',        t:'text'},
+      {n:'product_code',t:'text'},
+      {n:'dimensions',  t:'text'},
+      {n:'length_m',    t:'numeric'},
+      {n:'sort_order',  t:'int'},
+      {n:'created_at',  t:'timestamptz'},
+    ]
+  },
+  {
+    id:'components', label:'components', d: D.mfr, x: 580, y: 300,
+    cols:[
+      {n:'id',             t:'uuid', pk:true},
+      {n:'manufacturer_id',t:'uuid', fk:'manufacturers'},
+      {n:'sku',            t:'text'},
+      {n:'name',           t:'text'},
+      {n:'description',    t:'text'},
+      {n:'category',       t:'text'},
+      {n:'unit',           t:'text'},
+      {n:'sort_order',     t:'int'},
+    ]
+  },
+  {
+    id:'system_components', label:'system_components', d: D.mfr, x: 370, y: 580,
+    cols:[
+      {n:'id',           t:'uuid', pk:true},
+      {n:'system_id',    t:'uuid', fk:'systems'},
+      {n:'component_id', t:'uuid', fk:'components'},
+      {n:'role',         t:'text'},
+      {n:'notes',        t:'text'},
+      {n:'sort_order',   t:'int'},
+    ]
+  },
+  {
+    id:'catalogue_sources', label:'catalogue_sources', d: D.cat, x:-80, y: 820,
+    cols:[
+      {n:'id',              t:'uuid', pk:true},
+      {n:'manufacturer_id', t:'uuid', fk:'manufacturers'},
+      {n:'document_name',   t:'text'},
+      {n:'document_url',    t:'text'},
+      {n:'document_date',   t:'text'},
+      {n:'extracted_at',    t:'timestamptz'},
+      {n:'extracted_by',    t:'text'},
+      {n:'notes',           t:'text'},
+      {n:'created_at',      t:'timestamptz'},
+    ]
+  },
+  {
+    id:'products_view', label:'products_by_manufacturer  (VIEW)', d: D.view, x: 160, y: 900,
+    cols:[
+      {n:'manufacturer',       t:'text'},
+      {n:'category / subcategory', t:'text'},
+      {n:'product_code / name',t:'text'},
+      {n:'colours',            t:'text[]  (aggregated)'},
+      {n:'colour_count',       t:'int'},
+      {n:'component_count',    t:'int'},
+      {n:'system_id / manufacturer_id', t:'uuid'},
+    ]
+  },
+
+  // ── Supplier ─────────────────────────────────────────────────
+  {
+    id:'suppliers', label:'suppliers', d: D.sup, x: 940, y: 60,
+    cols:[
+      {n:'id',             t:'uuid', pk:true},
+      {n:'name',           t:'text'},
+      {n:'slug',           t:'text  UNIQUE'},
+      {n:'website_url',    t:'text'},
+      {n:'email / phone',  t:'text'},
+      {n:'suburb / state', t:'text'},
+      {n:'address',        t:'text'},
+      {n:'manager_name',   t:'text'},
+      {n:'it_name / it_email', t:'text'},
+      {n:'portal_password',t:'text'},
+      {n:'abn',            t:'text'},
+      {n:'auth_user_id',   t:'uuid', fk:'auth.users'},
+      {n:'created_at',     t:'timestamptz'},
+    ]
+  },
+  {
+    id:'supplier_systems', label:'supplier_systems', d: D.sup, x: 780, y: 360,
+    cols:[
+      {n:'id',          t:'uuid', pk:true},
+      {n:'supplier_id', t:'uuid', fk:'suppliers'},
+      {n:'system_id',   t:'uuid', fk:'systems'},
+    ]
+  },
+  {
+    id:'supplier_tokens', label:'supplier_tokens', d: D.auth, x:1160, y: 300,
+    cols:[
+      {n:'id',          t:'uuid', pk:true},
+      {n:'supplier_id', t:'uuid', fk:'suppliers'},
+      {n:'token',       t:'text  UNIQUE'},
+      {n:'type',        t:'text — setup | reset'},
+      {n:'used',        t:'bool'},
+      {n:'expires_at',  t:'timestamptz'},
+      {n:'created_at',  t:'timestamptz'},
+    ]
+  },
+  {
+    id:'portal_contacts', label:'portal_contacts', d: D.auth, x:1160, y: 60,
+    cols:[
+      {n:'id',          t:'uuid', pk:true},
+      {n:'entity_type', t:'text — supplier | manufacturer'},
+      {n:'entity_id',   t:'uuid  (polymorphic)'},
+      {n:'name',        t:'text'},
+      {n:'role',        t:'text'},
+      {n:'email / phone', t:'text'},
+      {n:'sort_order',  t:'int'},
+      {n:'created_at',  t:'timestamptz'},
+    ]
+  },
+
+  // ── Widgets ──────────────────────────────────────────────────
+  {
+    id:'embed_widgets', label:'embed_widgets', d: D.widget, x: 940, y: 440,
+    cols:[
+      {n:'id',              t:'uuid', pk:true},
+      {n:'supplier_id',     t:'uuid', fk:'suppliers'},
+      {n:'manufacturer_id', t:'uuid', fk:'manufacturers'},
+      {n:'name',            t:'text'},
+      {n:'public_token',    t:'text  UNIQUE'},
+      {n:'status',          t:'text'},
+      {n:'created_at',      t:'timestamptz'},
+    ]
+  },
+  {
+    id:'embed_widget_systems', label:'embed_widget_systems', d: D.widget, x: 780, y: 620,
+    cols:[
+      {n:'id',              t:'uuid', pk:true},
+      {n:'embed_widget_id', t:'uuid', fk:'embed_widgets'},
+      {n:'system_id',       t:'uuid', fk:'systems'},
+      {n:'sort_order',      t:'int'},
+    ]
+  },
+
+  // ── RFQ enquiries (mfp) ───────────────────────────────────────
+  {
+    id:'rfq_enquiries', label:'rfq_enquiries', d: D.rfq2, x:1160, y: 560,
+    cols:[
+      {n:'id',           t:'uuid', pk:true},
+      {n:'widget_id',    t:'uuid', fk:'embed_widgets'},
+      {n:'system_id',    t:'uuid', fk:'systems'},
+      {n:'system_name',  t:'text'},
+      {n:'product_code', t:'text'},
+      {n:'supplier_name',t:'text'},
+      {n:'name',         t:'text'},
+      {n:'email / phone',t:'text'},
+      {n:'message',      t:'text'},
+      {n:'created_at',   t:'timestamptz'},
+    ]
+  },
+
+  // ── RFQ flow (buildquote.com.au) ─────────────────────────────
+  {
+    id:'rfq_requests', label:'rfq_requests', d: D.rfq, x:-360, y: 60,
+    cols:[
+      {n:'id',                t:'uuid', pk:true},
+      {n:'builder_name',      t:'text'},
+      {n:'builder_email',     t:'text'},
+      {n:'project_name',      t:'text'},
+      {n:'project_reference', t:'text'},
+      {n:'delivery_location', t:'text'},
+      {n:'notes',             t:'text'},
+      {n:'status',            t:'text'},
+      {n:'send_to_supplier',  t:'bool'},
+      {n:'terms_confirmed',   t:'bool'},
+      {n:'terms_confirmed_at',t:'timestamptz'},
+      {n:'supplier_name',     t:'text'},
+      {n:'supplier_email',    t:'text'},
+    ]
+  },
+  {
+    id:'rfq_items', label:'rfq_items', d: D.rfq, x:-360, y: 380,
+    cols:[
+      {n:'id',          t:'uuid', pk:true},
+      {n:'rfq_id',      t:'uuid', fk:'rfq_requests'},
+      {n:'item_name',   t:'text'},
+      {n:'quantity',    t:'numeric'},
+      {n:'unit',        t:'text'},
+      {n:'specification',t:'text'},
+      {n:'notes',       t:'text'},
+      {n:'source',      t:'text — ai_parsed | …'},
+      {n:'sort_order',  t:'int'},
+    ]
+  },
+  {
+    id:'rfq_drafts', label:'rfq_drafts', d: D.rfq, x:-360, y: 620,
+    cols:[
+      {n:'id',         t:'uuid', pk:true},
+      {n:'status',     t:'text — draft | …'},
+      {n:'created_at', t:'timestamptz'},
+      {n:'updated_at', t:'timestamptz'},
+    ]
+  },
+  {
+    id:'rfq_draft_items', label:'rfq_draft_items', d: D.rfq, x:-360, y: 800,
+    cols:[
+      {n:'id',           t:'uuid', pk:true},
+      {n:'draft_id',     t:'text — shared via URL'},
+      {n:'component_id', t:'uuid', fk:'components'},
+      {n:'sku',          t:'text'},
+      {n:'name',         t:'text'},
+      {n:'description',  t:'text'},
+      {n:'uom',          t:'text'},
+      {n:'qty',          t:'int'},
+      {n:'created_at',   t:'timestamptz'},
+    ]
+  },
+  {
+    id:'community_signups', label:'community_signups', d: D.rfq, x:-360, y:1020,
+    cols:[
+      {n:'id',         t:'uuid', pk:true},
+      {n:'email',      t:'text'},
+      {n:'rfq_id',     t:'uuid  (soft link to rfq_requests)'},
+      {n:'created_at', t:'timestamptz'},
+    ]
+  },
+];
+
+// ──────────────────────────────────────────────────────────────
+// EDGES  { from, to, cls, dashed?, label? }
+// ──────────────────────────────────────────────────────────────
+const EDGES = [
+  // manufacturers → children
+  { from:'manufacturers', to:'systems',           color:'#2563eb' },
+  { from:'manufacturers', to:'components',        color:'#2563eb' },
+  { from:'manufacturers', to:'catalogue_sources', color:'#0891b2' },
+  { from:'manufacturers', to:'embed_widgets',     color:'#059669' },
+
+  // systems → children
+  { from:'systems', to:'system_colours',       color:'#2563eb' },
+  { from:'systems', to:'system_profiles',      color:'#2563eb' },
+  { from:'systems', to:'system_components',    color:'#2563eb' },
+  { from:'systems', to:'supplier_systems',     color:'#7c3aed' },
+  { from:'systems', to:'embed_widget_systems', color:'#059669' },
+  { from:'systems', to:'rfq_enquiries',        color:'#b45309' },
+
+  // catalogue sources → systems (FK)
+  { from:'catalogue_sources', to:'systems', color:'#0891b2', dashed:true },
+
+  // components → junction
+  { from:'components', to:'system_components',  color:'#2563eb' },
+  { from:'components', to:'rfq_draft_items',    color:'#d97706' },
+
+  // views
+  { from:'systems',       to:'products_view', color:'#334155', dashed:true },
+  { from:'manufacturers', to:'products_view', color:'#334155', dashed:true },
+
+  // suppliers → children
+  { from:'suppliers', to:'supplier_systems',  color:'#7c3aed' },
+  { from:'suppliers', to:'supplier_tokens',   color:'#475569' },
+  { from:'suppliers', to:'embed_widgets',     color:'#059669' },
+
+  // embed widgets → children
+  { from:'embed_widgets', to:'embed_widget_systems', color:'#059669' },
+  { from:'embed_widgets', to:'rfq_enquiries',         color:'#b45309' },
+
+  // rfq flow (buildquote.com.au)
+  { from:'rfq_requests',   to:'rfq_items',        color:'#d97706' },
+  { from:'rfq_drafts',     to:'rfq_draft_items',  color:'#d97706' },
+
+  // cross-site: draft passed via URL param
+  {
+    from:'rfq_drafts', to:'rfq_draft_items',
+    color:'#d97706'
+  },
+  {
+    from:'rfq_requests', to:'community_signups',
+    color:'#d97706', dashed:true,
+    label:'rfq_id (soft link)'
+  },
+];
+
+// ──────────────────────────────────────────────────────────────
+// RENDER ENGINE
+// ──────────────────────────────────────────────────────────────
+const PAD  = 12;
+const ROW  = 15;
+const TH   = 20;   // title row height
+const W    = 230;
+
+function nodeHeight(t) {
+  const titleLines = t.label.split('\n').length;
+  return PAD * 2 + titleLines * (TH - 4) + t.cols.length * ROW + 4;
+}
+
+const svg  = document.getElementById('svg');
+const wrap = document.getElementById('wrap');
+
+svg.setAttribute('width', '100%');
+svg.setAttribute('height', '100%');
+
+// add defs
+svg.insertAdjacentHTML('afterbegin', `<defs>
+  <marker id="arr" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
+    <path d="M0,1 L5,3.5 L0,6" fill="none" stroke="#475569" stroke-width="1.2"/>
+  </marker>
+  <filter id="glow">
+    <feGaussianBlur stdDeviation="3" result="blur"/>
+    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</defs>`);
+
+const root = document.createElementNS('http://www.w3.org/2000/svg','g');
+svg.appendChild(root);
+
+// build centre lookup
+const centres = {};
+TABLES.forEach(t => {
+  const h = nodeHeight(t);
+  centres[t.id] = { x: t.x + W/2, y: t.y + h/2 };
+});
+
+// ── draw edges ──
+EDGES.forEach(e => {
+  const a = centres[e.from], b = centres[e.to];
+  if (!a || !b) return;
+
+  const dx = b.x - a.x;
+  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+  const cx1 = a.x + dx * 0.45, cy1 = a.y;
+  const cx2 = b.x - dx * 0.45, cy2 = b.y;
+  path.setAttribute('d', `M${a.x},${a.y} C${cx1},${cy1} ${cx2},${cy2} ${b.x},${b.y}`);
+  path.setAttribute('fill','none');
+  path.setAttribute('stroke', e.color);
+  path.setAttribute('stroke-width','1.4');
+  path.setAttribute('opacity','0.55');
+  path.setAttribute('marker-end','url(#arr)');
+  if (e.dashed) path.setAttribute('stroke-dasharray','5,4');
+  root.appendChild(path);
+
+  if (e.label) {
+    const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    const bg = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+    txt.setAttribute('x', mx); txt.setAttribute('y', my - 4);
+    txt.setAttribute('text-anchor','middle');
+    txt.setAttribute('font-size','9.5');
+    txt.setAttribute('fill', e.color);
+    txt.setAttribute('font-family','Segoe UI,system-ui,sans-serif');
+    txt.textContent = e.label;
+    root.appendChild(txt);
+  }
+});
+
+// ── draw nodes ──
+TABLES.forEach(t => {
+  const h  = nodeHeight(t);
+  const g  = document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('transform', `translate(${t.x},${t.y})`);
+
+  // shadow rect
+  const shadow = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  shadow.setAttribute('x','2'); shadow.setAttribute('y','4');
+  shadow.setAttribute('width', W); shadow.setAttribute('height', h);
+  shadow.setAttribute('rx','9');
+  shadow.setAttribute('fill','rgba(0,0,0,.4)');
+  g.appendChild(shadow);
+
+  // main rect
+  const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  rect.setAttribute('width', W); rect.setAttribute('height', h);
+  rect.setAttribute('rx','9');
+  rect.setAttribute('fill', t.d.fill);
+  rect.setAttribute('stroke', t.d.stroke);
+  rect.setAttribute('stroke-width', t.d.dashed ? '1.2' : '1.5');
+  if (t.d.dashed) rect.setAttribute('stroke-dasharray','5,3');
+  g.appendChild(rect);
+
+  // title background band
+  const titleLines = t.label.split('\n');
+  const bandH = PAD + titleLines.length * (TH - 4) + 4;
+  const band = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  band.setAttribute('width', W); band.setAttribute('height', bandH);
+  band.setAttribute('rx','9'); band.setAttribute('fill', t.d.stroke);
+  band.setAttribute('opacity','0.18');
+  g.appendChild(band);
+
+  // title text
+  titleLines.forEach((line, li) => {
+    const tx = document.createElementNS('http://www.w3.org/2000/svg','text');
+    tx.setAttribute('x', PAD); tx.setAttribute('y', PAD + 13 + li * 14);
+    tx.setAttribute('font-size','12.5');
+    tx.setAttribute('font-weight','700');
+    tx.setAttribute('fill','#f1f5f9');
+    tx.setAttribute('font-family','Segoe UI,system-ui,sans-serif');
+    tx.textContent = line;
+    g.appendChild(tx);
+  });
+
+  // divider
+  const div = document.createElementNS('http://www.w3.org/2000/svg','line');
+  div.setAttribute('x1', PAD); div.setAttribute('x2', W - PAD);
+  div.setAttribute('y1', bandH); div.setAttribute('y2', bandH);
+  div.setAttribute('stroke', t.d.stroke); div.setAttribute('stroke-opacity','0.3');
+  g.appendChild(div);
+
+  // columns
+  t.cols.forEach((col, ci) => {
+    const y = bandH + 4 + ci * ROW + ROW - 3;
+    const tx = document.createElementNS('http://www.w3.org/2000/svg','text');
+    tx.setAttribute('x', PAD + 2); tx.setAttribute('y', y);
+    tx.setAttribute('font-size','10');
+    tx.setAttribute('font-family','Segoe UI,system-ui,sans-serif');
+
+    // name part
+    const nameSpan = document.createElementNS('http://www.w3.org/2000/svg','tspan');
+    nameSpan.setAttribute('fill', col.pk ? '#fbbf24' : col.fk ? '#818cf8' : '#cbd5e1');
+    nameSpan.textContent = (col.pk ? '🔑 ' : col.fk ? '→ ' : '  ') + col.n;
+
+    // type part
+    const typeSpan = document.createElementNS('http://www.w3.org/2000/svg','tspan');
+    typeSpan.setAttribute('fill','#374151');
+    typeSpan.setAttribute('dx','4');
+    typeSpan.textContent = col.t;
+
+    tx.appendChild(nameSpan);
+    tx.appendChild(typeSpan);
+    g.appendChild(tx);
+  });
+
+  root.appendChild(g);
+});
+
+// ──────────────────────────────────────────────────────────────
+// PAN + ZOOM
+// ──────────────────────────────────────────────────────────────
+// Start centred so the middle of the diagram is visible
+let vx = wrap.clientWidth  / 2 - 440,
+    vy = wrap.clientHeight / 2 - 550,
+    sc = 0.65;
+
+function apply() {
+  root.setAttribute('transform', `translate(${vx},${vy}) scale(${sc})`);
+}
+apply();
+
+let drag = false, ox = 0, oy = 0;
+wrap.addEventListener('mousedown', e => { drag=true; ox=e.clientX-vx; oy=e.clientY-vy; wrap.classList.add('drag'); });
+window.addEventListener('mouseup',   () => { drag=false; wrap.classList.remove('drag'); });
+window.addEventListener('mousemove', e => {
+  if (!drag) return;
+  vx = e.clientX - ox; vy = e.clientY - oy;
+  apply();
+});
+wrap.addEventListener('wheel', e => {
+  e.preventDefault();
+  const f = e.deltaY < 0 ? 1.1 : 0.91;
+  const r = wrap.getBoundingClientRect();
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  vx = mx - (mx - vx) * f;
+  vy = my - (my - vy) * f;
+  sc = Math.max(0.15, Math.min(4, sc * f));
+  apply();
+}, { passive: false });
+
+// touch support
+let lastDist = null;
+wrap.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) { drag=true; ox=e.touches[0].clientX-vx; oy=e.touches[0].clientY-vy; }
+}, { passive:true });
+wrap.addEventListener('touchend', () => { drag=false; lastDist=null; });
+wrap.addEventListener('touchmove', e => {
+  if (e.touches.length === 1 && drag) {
+    vx=e.touches[0].clientX-ox; vy=e.touches[0].clientY-oy; apply();
+  } else if (e.touches.length === 2) {
+    const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    if (lastDist) { const f=d/lastDist; sc=Math.max(0.15,Math.min(4,sc*f)); apply(); }
+    lastDist=d;
+  }
+}, { passive:true });
+</script>
+</body>
+</html>
