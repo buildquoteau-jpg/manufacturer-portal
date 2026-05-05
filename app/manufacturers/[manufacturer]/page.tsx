@@ -518,6 +518,7 @@ export default function ManufacturerPage({
 
   const [query, setQuery] = useState('')
   const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([])
+  const [addingToRfq, setAddingToRfq] = useState(false)
   const [showRequest, setShowRequest] = useState(false)
 
   const selectedIds = new Set(selectedItems.map((i) => i.id))
@@ -528,6 +529,51 @@ export default function ManufacturerPage({
         ? prev.filter((i) => i.id !== item.id)
         : [...prev, item]
     )
+  }
+
+  async function handleAddToRFQ() {
+    if (!selectedItems.length || addingToRfq) return
+    setAddingToRfq(true)
+    try {
+      // Get existing draft ID from URL, or create a new one
+      let draftId = draft
+      if (!draftId) {
+        const { data, error } = await supabase
+          .from('rfq_drafts')
+          .insert({ status: 'draft' })
+          .select('id')
+          .single()
+        if (error || !data) throw new Error('Could not create draft')
+        draftId = data.id
+      }
+
+      // Map selections to rfq_draft_items rows
+      const rows = selectedItems.map((item) => ({
+        draft_id: draftId,
+        name: item.type === 'colour'
+          ? `${item.systemName} — Colour: ${item.name}`
+          : item.name,
+        description: item.type === 'colour'
+          ? 'Colour / finish selection'
+          : [item.dimensions, item.length_m ? `${item.length_m}m` : null]
+              .filter(Boolean).join(' · '),
+        sku: item.sku || '',
+        uom: item.type === 'accessory' ? 'EA' : '',
+        qty: 1,
+      }))
+
+      const { error: insertError } = await supabase
+        .from('rfq_draft_items')
+        .insert(rows)
+
+      if (insertError) throw insertError
+
+      // Redirect back to buildquote RFQ with the draft ID
+      window.location.href = `https://buildquote.com.au/rfq?draft=${draftId}`
+    } catch (err) {
+      console.error('Add to RFQ failed:', err)
+      setAddingToRfq(false)
+    }
   }
   const [requestText, setRequestText] = useState('')
   const [requestEmail, setRequestEmail] = useState('')
@@ -885,10 +931,11 @@ export default function ManufacturerPage({
                 Clear
               </button>
               <button
-                className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-[#1b3a2d] transition-opacity hover:opacity-90"
-                onClick={() => {/* wire up next session */}}
+                className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-[#1b3a2d] transition-opacity hover:opacity-90 disabled:opacity-50"
+                onClick={handleAddToRFQ}
+                disabled={addingToRfq}
               >
-                Add to RFQ →
+                {addingToRfq ? 'Saving…' : 'Add to RFQ →'}
               </button>
             </div>
           </div>
