@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BuildQuote · Repo Map</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0d0f1a;
+  color: #e2e8f0;
+  font-family: 'Segoe UI', system-ui, monospace;
+  overflow-x: hidden;
+}
+
+header {
+  height: 52px;
+  padding: 0 24px;
+  background: #13162b;
+  border-bottom: 1px solid #1e2340;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+header h1 { font-size: 15px; font-weight: 700; color: #f1f5f9; }
+.pill {
+  font-size: 11px; font-weight: 600;
+  border-radius: 99px; padding: 3px 10px;
+}
+.pill-bq  { background:#1d3557; color:#60a5fa; border:1px solid #2563eb44; }
+.pill-mfp { background:#2d1b4e; color:#a78bfa; border:1px solid #7c3aed44; }
+
+/* legend */
+#legend {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 11px;
+  color: #64748b;
+}
+.litem { display:flex; align-items:center; gap:5px; }
+.ldot { width:10px; height:3px; border-radius:2px; }
+
+/* layout */
+#main {
+  display: grid;
+  grid-template-columns: 1fr 60px 1fr;
+  min-height: calc(100vh - 52px);
+  position: relative;
+}
+
+/* tree panels */
+.panel {
+  padding: 28px 20px 60px;
+  min-width: 0;
+}
+.panel-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  margin-bottom: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #1e2340;
+}
+.panel-url {
+  font-size: 10px;
+  color: #475569;
+  margin-top: 3px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* section headings */
+.section {
+  margin-top: 20px;
+  margin-bottom: 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: #6b82a0;
+  font-weight: 600;
+}
+
+/* file rows */
+.file {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 5px;
+  cursor: default;
+  transition: background .1s;
+  position: relative;
+}
+.file:hover { background: #161929; }
+.file-indent { padding-left: 18px; }
+.file-indent2 { padding-left: 34px; }
+.file-indent3 { padding-left: 50px; }
+
+.file-icon {
+  font-size: 11px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  width: 14px;
+  text-align: center;
+}
+.file-name {
+  font-size: 12px;
+  color: #e2e8f0;
+  line-height: 1.5;
+}
+.file-name span {
+  font-size: 10.5px;
+  color: #7e90a8;
+  margin-left: 6px;
+}
+.dir { color: #bfccd9; font-weight: 600; }
+
+/* connection dots */
+.dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+  margin-left: auto;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.dot-left { margin-left: 0; margin-right: auto; }
+.has-link .dot { opacity: 1; }
+
+/* SVG connector overlay */
+#connector-svg {
+  position: fixed;
+  top: 52px;
+  left: 0;
+  width: 100vw;
+  height: calc(100vh - 52px);
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* middle column (visual spacer + supabase badge) */
+#middle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 40px;
+  gap: 0;
+  position: relative;
+}
+#supabase-badge {
+  background: #0a2a1a;
+  border: 1px solid #059669;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 10px;
+  color: #34d399;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: .05em;
+  position: sticky;
+  top: 80px;
+}
+#supabase-badge .sub {
+  font-size: 9px;
+  color: #065f46;
+  font-weight: 400;
+  margin-top: 2px;
+}
+.vline {
+  width: 1px;
+  flex: 1;
+  background: linear-gradient(to bottom, #059669 0%, #059669 30%, transparent 100%);
+  margin-top: 8px;
+  opacity: .3;
+}
+
+/* description boxes */
+.desc-box {
+  background: #0f1628;
+  border: 1px solid #1e2340;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 20px 0 0;
+  font-size: 11.5px;
+  color: #8fa3bc;
+  line-height: 1.6;
+}
+.desc-box strong { color: #c8d8e8; }
+
+/* highlight colours by connection type */
+.c-db    { color: #34d399; }   /* supabase / shared DB */
+.c-draft { color: #f59e0b; }   /* draft handoff */
+.c-api   { color: #818cf8; }   /* API calls */
+.c-data  { color: #38bdf8; }   /* shared static data */
+.c-email { color: #f472b6; }   /* email / notify */
+</style>
+</head>
+<body>
+
+<header>
+  <h1>BuildQuote · Repo Map</h1>
+  <span class="pill pill-bq">buildquote.com.au</span>
+  <span style="color:#334155">↔</span>
+  <span class="pill pill-mfp">mfp.buildquote.com.au</span>
+  <div id="legend">
+    <div class="litem"><div class="ldot" style="background:#34d399"></div>Shared Supabase</div>
+    <div class="litem"><div class="ldot" style="background:#f59e0b"></div>Draft handoff</div>
+    <div class="litem"><div class="ldot" style="background:#818cf8"></div>API call</div>
+    <div class="litem"><div class="ldot" style="background:#38bdf8"></div>Shared data/types</div>
+    <div class="litem"><div class="ldot" style="background:#f472b6"></div>Email / notify</div>
+  </div>
+</header>
+
+<div id="main">
+
+  <!-- ── LEFT: buildquote.com.au ──────────────────────────── -->
+  <div class="panel" id="panel-bq">
+    <div class="panel-title" style="color:#60a5fa">
+      buildquote-v6-live / buildquote
+      <div class="panel-url">buildquote.com.au &nbsp;·&nbsp; RFQ platform for builders</div>
+    </div>
+
+    <div class="desc-box">
+      <strong>Purpose:</strong> The public-facing RFQ platform. Builders arrive here, build or upload a materials list, select a supplier, and submit an RFQ. It reads from the shared Supabase database and receives draft items created in the manufacturer portal.
+    </div>
+
+    <div class="section">Pages</div>
+    <div class="file"><div class="file-icon">📄</div><div class="file-name dir">app/</div></div>
+    <div class="file file-indent"><div class="file-icon">🏠</div><div class="file-name">page.tsx <span>Landing / home</span></div></div>
+    <div class="file file-indent has-link" id="bq-rfq"><div class="file-icon">📋</div><div class="file-name c-draft">rfq/page.tsx <span>RFQ builder — reads ?draft= param, loads draft items from Supabase</span></div><div class="dot" style="background:#f59e0b"></div></div>
+    <div class="file file-indent"><div class="file-icon">🛍️</div><div class="file-name">products/page.tsx <span>Product catalogue browser</span></div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">products/CatalogueClient.tsx <span>Client-side catalogue UI</span></div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">flyer/page.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">privacy/page.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">terms/page.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">layout.tsx <span>Root layout + GlobalNav</span></div></div>
+
+    <div class="section">API Routes</div>
+    <div class="file file-indent has-link" id="bq-get-draft"><div class="file-icon">🔌</div><div class="file-name c-draft">api/get-draft-items/route.ts <span>Fetches rfq_draft_items from Supabase by draft ID</span></div><div class="dot" style="background:#f59e0b"></div></div>
+    <div class="file file-indent has-link" id="bq-save-draft"><div class="file-icon">🔌</div><div class="file-name c-draft">api/save-draft-items/route.ts <span>Saves/updates rfq_draft_items in Supabase</span></div><div class="dot" style="background:#f59e0b"></div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/parse/route.ts <span>AI parses uploaded spec sheets into line items</span></div></div>
+    <div class="file file-indent has-link" id="bq-send"><div class="file-icon">🔌</div><div class="file-name c-email">api/send/route.ts <span>Sends RFQ email to supplier + builder confirmation</span></div><div class="dot" style="background:#f472b6"></div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/pdf/route.ts <span>Generates RFQ PDF</span></div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/csv/route.ts <span>Generates RFQ CSV export</span></div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/community/route.ts <span>Handles mailing list signup → community_signups</span></div></div>
+
+    <div class="section">Components</div>
+    <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">components/GlobalNav.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">components/screens/RFQScreen.tsx <span>Main RFQ form UI</span></div></div>
+    <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">components/screens/UploadScreen.tsx <span>PDF / photo upload</span></div></div>
+    <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">components/screens/ManualEntryScreen.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">components/screens/SendScreen.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">components/screens/SuccessScreen.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">components/ui/ <span>Button, Card, CheckRow, Input, SectionLabel, Toggle, TopBar</span></div></div>
+
+    <div class="section">Lib</div>
+    <div class="file file-indent has-link" id="bq-supabase"><div class="file-icon">🗄️</div><div class="file-name c-db">lib/supabase.ts <span>Supabase client — shared DB instance</span></div><div class="dot" style="background:#34d399"></div></div>
+    <div class="file file-indent has-link" id="bq-types"><div class="file-icon">📐</div><div class="file-name c-data">lib/types.ts <span>Shared TypeScript types</span></div><div class="dot" style="background:#38bdf8"></div></div>
+    <div class="file file-indent has-link" id="bq-email"><div class="file-icon">📧</div><div class="file-name c-email">lib/emailTemplate.ts <span>HTML email templates</span></div><div class="dot" style="background:#f472b6"></div></div>
+    <div class="file file-indent has-link" id="bq-csv"><div class="file-icon">📊</div><div class="file-name c-data">lib/generateCSV.ts</div><div class="dot" style="background:#38bdf8"></div></div>
+    <div class="file file-indent has-link" id="bq-pdf"><div class="file-icon">📄</div><div class="file-name c-data">lib/generatePDF.ts</div><div class="dot" style="background:#38bdf8"></div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">lib/rfqDraft.ts <span>Draft helpers</span></div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">lib/suppliers.ts</div></div>
+
+    <div class="section">Static Data</div>
+    <div class="file file-indent has-link" id="bq-mfr-json"><div class="file-icon">📋</div><div class="file-name c-data">data/manufacturers.json <span>Static manufacturer list (legacy)</span></div><div class="dot" style="background:#38bdf8"></div></div>
+    <div class="file file-indent has-link" id="bq-sup-json"><div class="file-icon">📋</div><div class="file-name c-data">data/suppliers.json <span>Static supplier list (legacy)</span></div><div class="dot" style="background:#38bdf8"></div></div>
+
+    <div class="section">DB</div>
+    <div class="file file-indent has-link" id="bq-rfq-sql"><div class="file-icon">🗃️</div><div class="file-name c-db">supabase/rfq_draft_tables.sql <span>rfq_drafts + rfq_draft_items schema</span></div><div class="dot" style="background:#34d399"></div></div>
+
+  </div>
+
+  <!-- ── MIDDLE ────────────────────────────────────────────── -->
+  <div id="middle">
+    <div id="supabase-badge">
+      🗄️ SUPABASE
+      <div class="sub">shared instance</div>
+    </div>
+    <div class="vline"></div>
+  </div>
+
+  <!-- ── RIGHT: mfp.buildquote.com.au ──────────────────────── -->
+  <div class="panel" id="panel-mfp">
+    <div class="panel-title" style="color:#a78bfa">
+      manufacturer-portal
+      <div class="panel-url">mfp.buildquote.com.au &nbsp;·&nbsp; Manufacturer & supplier portal</div>
+    </div>
+
+    <div class="desc-box">
+      <strong>Purpose:</strong> The back-office and public product browser. Manufacturers manage their product data, suppliers manage their widget configs, and builders browse products and select items to add to a draft RFQ — which then passes to buildquote.com.au via a shared draft ID in the URL.
+    </div>
+
+    <div class="section">Public Pages</div>
+    <div class="file"><div class="file-icon">📄</div><div class="file-name dir">app/</div></div>
+    <div class="file file-indent"><div class="file-icon">🏠</div><div class="file-name">page.tsx <span>Portal home</span></div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">manufacturers/page.tsx <span>All manufacturers listing</span></div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">manufacturers/ManufacturersClient.tsx</div></div>
+    <div class="file file-indent has-link" id="mfp-mfr-page"><div class="file-icon">📄</div><div class="file-name c-draft">manufacturers/[manufacturer]/page.tsx <span>Product browser — select items → creates draft → redirects to buildquote ?draft=UUID</span></div><div class="dot dot-left" style="background:#f59e0b"></div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">manufacturers/[manufacturer]/[system]/page.tsx <span>Individual system detail</span></div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">manufacturers/add/page.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">manufacturer/[slug]/page.tsx <span>Manufacturer dashboard (logged in)</span></div></div>
+    <div class="file file-indent"><div class="file-icon">🔐</div><div class="file-name">manufacturer/login/page.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">legal/page.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">auth/reset-password/page.tsx</div></div>
+
+    <div class="section">Supplier Pages</div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">supplier/page.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">supplier/[slug]/page.tsx <span>Supplier dashboard</span></div></div>
+    <div class="file file-indent"><div class="file-icon">🔐</div><div class="file-name">supplier/login/page.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">🔐</div><div class="file-name">supplier/reset/[token]/page.tsx</div></div>
+
+    <div class="section">Widget (embedded on supplier sites)</div>
+    <div class="file file-indent has-link" id="mfp-widget"><div class="file-icon">🔲</div><div class="file-name c-api">app/widget/[token]/page.tsx <span>Embeddable product chooser — served from mfp, shown on supplier sites</span></div><div class="dot dot-left" style="background:#818cf8"></div></div>
+    <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">app/widget/[token]/WidgetClient.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">app/widget/[token]/ManufacturerHero.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">app/widget/[token]/layout.tsx</div></div>
+
+    <div class="section">Admin</div>
+    <div class="file file-indent"><div class="file-icon">🔐</div><div class="file-name">app/admin/page.tsx <span>Password-gated admin dashboard</span></div></div>
+    <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">app/admin/ManufacturersTab.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">app/admin/SuppliersTab.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">app/admin/SchemaTab.tsx <span>Renders schema mindmap iframe</span></div></div>
+    <div class="file file-indent"><div class="file-icon">🗺️</div><div class="file-name">public/schema-mindmap.html <span>Interactive DB schema mind map</span></div></div>
+
+    <div class="section">API Routes</div>
+    <div class="file file-indent has-link" id="mfp-rfq-notify"><div class="file-icon">🔌</div><div class="file-name c-email">api/rfq-notify/route.ts <span>Sends email when RFQ enquiry submitted via widget</span></div><div class="dot dot-left" style="background:#f472b6"></div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/add-components/route.ts</div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/request-system/route.ts</div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/admin/create-manufacturer/route.ts</div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/admin/create-supplier/route.ts</div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/admin/catalogue-sources/route.ts</div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/admin/system-profiles/route.ts</div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/admin/manufacturer-widget/route.ts</div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/admin/portal-contacts/route.ts</div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/admin/update-widget-systems/route.ts</div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/admin/set-manufacturer-login/route.ts</div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/admin/set-supplier-login/route.ts</div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/supplier/request-reset/route.ts</div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/supplier/set-password/route.ts</div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/supplier/update-widget-systems/route.ts</div></div>
+    <div class="file file-indent"><div class="file-icon">🔌</div><div class="file-name">api/manufacturer/verify-system/route.ts</div></div>
+
+    <div class="section">Components</div>
+    <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">app/components/GlobalNav.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">components/ui/ <span>Button, Card, CheckRow, ComponentCard, Input, SectionLabel, SystemCard, Toggle</span></div></div>
+
+    <div class="section">Lib</div>
+    <div class="file file-indent has-link" id="mfp-supabase"><div class="file-icon">🗄️</div><div class="file-name c-db">lib/supabase/client.ts <span>Supabase client — same DB instance as buildquote</span></div><div class="dot dot-left" style="background:#34d399"></div></div>
+    <div class="file file-indent has-link" id="mfp-types"><div class="file-icon">📐</div><div class="file-name c-data">lib/types.ts</div><div class="dot dot-left" style="background:#38bdf8"></div></div>
+    <div class="file file-indent has-link" id="mfp-email"><div class="file-icon">📧</div><div class="file-name c-email">lib/emailTemplate.ts</div><div class="dot dot-left" style="background:#f472b6"></div></div>
+    <div class="file file-indent has-link" id="mfp-csv"><div class="file-icon">📊</div><div class="file-name c-data">lib/generateCSV.ts</div><div class="dot dot-left" style="background:#38bdf8"></div></div>
+    <div class="file file-indent has-link" id="mfp-pdf"><div class="file-icon">📄</div><div class="file-name c-data">lib/generatePDF.ts</div><div class="dot dot-left" style="background:#38bdf8"></div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">lib/data/getSystems.ts</div></div>
+    <div class="file file-indent"><div class="file-icon">📄</div><div class="file-name">lib/data/getWidgetData.ts</div></div>
+
+    <div class="section">Static Data</div>
+    <div class="file file-indent has-link" id="mfp-mfr-json"><div class="file-icon">📋</div><div class="file-name c-data">data/manufacturers.json <span>Mirrors buildquote (legacy)</span></div><div class="dot dot-left" style="background:#38bdf8"></div></div>
+    <div class="file file-indent has-link" id="mfp-sup-json"><div class="file-icon">📋</div><div class="file-name c-data">data/suppliers.json <span>Mirrors buildquote (legacy)</span></div><div class="dot dot-left" style="background:#38bdf8"></div></div>
+
+    <div class="section">DB Migrations & Seed</div>
+    <div class="file file-indent has-link" id="mfp-migrations"><div class="file-icon">🗃️</div><div class="file-name c-db">supabase/migrations/ <span>15 migration files — single source of truth for schema</span></div><div class="dot dot-left" style="background:#34d399"></div></div>
+    <div class="file file-indent"><div class="file-icon">🗃️</div><div class="file-name">supabase/seed/newtechwood_seed.sql</div></div>
+    <div class="file file-indent"><div class="file-icon">🗃️</div><div class="file-name">supabase/seed/bgc_innova_5_systems.sql</div></div>
+
+    <div class="section">Claude / Skills</div>
+    <div class="file file-indent"><div class="file-icon">🤖</div><div class="file-name">.claude/skills/extract-catalogue.md <span>AI skill for extracting PDFs into SQL</span></div></div>
+
+  </div>
+</div>
+
+<!-- SVG connector lines -->
+<svg id="connector-svg"></svg>
+
+<script>
+// Connection pairs: [leftId, rightId, colour]
+const CONNECTIONS = [
+  ['bq-supabase',    'mfp-supabase',    '#34d399'],
+  ['bq-rfq-sql',     'mfp-migrations',  '#34d399'],
+  ['bq-rfq',         'mfp-mfr-page',    '#f59e0b'],
+  ['bq-get-draft',   'mfp-mfr-page',    '#f59e0b'],
+  ['bq-save-draft',  'mfp-mfr-page',    '#f59e0b'],
+  ['bq-types',       'mfp-types',       '#38bdf8'],
+  ['bq-email',       'mfp-email',       '#f472b6'],
+  ['bq-send',        'mfp-rfq-notify',  '#f472b6'],
+  ['bq-csv',         'mfp-csv',         '#38bdf8'],
+  ['bq-pdf',         'mfp-pdf',         '#38bdf8'],
+  ['bq-mfr-json',    'mfp-mfr-json',    '#38bdf8'],
+  ['bq-sup-json',    'mfp-sup-json',    '#38bdf8'],
+];
+
+const svg = document.getElementById('connector-svg');
+
+function getCenter(el) {
+  const r = el.getBoundingClientRect();
+  return {
+    x: r.left + r.width / 2,
+    y: r.top - 52 + r.height / 2  // subtract header height
+  };
+}
+
+function drawConnectors() {
+  svg.innerHTML = '';
+  const W = window.innerWidth;
+  const midX = W / 2;
+
+  CONNECTIONS.forEach(([lid, rid, color]) => {
+    const lEl = document.getElementById(lid);
+    const rEl = document.getElementById(rid);
+    if (!lEl || !rEl) return;
+
+    const lDot = lEl.querySelector('.dot');
+    const rDot = rEl.querySelector('.dot');
+
+    const lR = lEl.getBoundingClientRect();
+    const rR = rEl.getBoundingClientRect();
+
+    const lY = lR.top - 52 + lR.height / 2;
+    const rY = rR.top - 52 + rR.height / 2;
+    const lX = lR.right - 4;
+    const rX = rR.left + 4;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    const cx1 = midX - 10;
+    const cx2 = midX + 10;
+    path.setAttribute('d', `M${lX},${lY} C${cx1},${lY} ${cx2},${rY} ${rX},${rY}`);
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke', color);
+    path.setAttribute('stroke-width','1.5');
+    path.setAttribute('stroke-opacity','0.5');
+    svg.appendChild(path);
+
+    // dots at endpoints
+    [[lX, lY], [rX, rY]].forEach(([x,y]) => {
+      const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx', x); c.setAttribute('cy', y);
+      c.setAttribute('r','3'); c.setAttribute('fill', color);
+      c.setAttribute('opacity','0.7');
+      svg.appendChild(c);
+    });
+  });
+}
+
+drawConnectors();
+window.addEventListener('resize', drawConnectors);
+window.addEventListener('scroll', drawConnectors);
+document.querySelectorAll('.panel').forEach(p => p.addEventListener('scroll', drawConnectors));
+</script>
+
+</body>
+</html>

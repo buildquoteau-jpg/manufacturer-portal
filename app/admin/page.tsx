@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react'
 import ManufacturersTab from './ManufacturersTab'
 import SuppliersTab from './SuppliersTab'
 import SchemaTab from './SchemaTab'
+import ArchitectureTab from './ArchitectureTab'
 
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'buildquote2026'
 const SESSION_KEY = 'bq_admin_auth'
 
-type Tab = 'manufacturers' | 'suppliers' | 'schema'
+type Tab = 'manufacturers' | 'suppliers' | 'schema' | 'architecture'
 
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false)
@@ -89,6 +90,7 @@ export default function AdminPage() {
               { key: 'manufacturers', label: 'Manufacturers' },
               { key: 'suppliers',     label: 'Suppliers' },
               { key: 'schema',        label: 'DB Schema' },
+              { key: 'architecture',  label: 'Architecture' },
             ] as { key: Tab; label: string }[]).map(tab => (
               <button
                 key={tab.key}
@@ -109,6 +111,8 @@ export default function AdminPage() {
       {/* Tab content */}
       {activeTab === 'schema' ? (
         <SchemaTab />
+      ) : activeTab === 'architecture' ? (
+        <ArchitectureTab />
       ) : (
         <div className="max-w-4xl mx-auto px-6 py-10">
           {activeTab === 'manufacturers' && <ManufacturersTab />}
