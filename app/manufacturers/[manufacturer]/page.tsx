@@ -37,7 +37,7 @@ type SystemProfile = {
 
 type SelectedItem = {
   id: string
-  type: 'panel' | 'accessory'
+  type: 'panel' | 'colour' | 'accessory'
   systemId: string
   systemName: string
   name: string
@@ -292,97 +292,83 @@ function PublicSystemCard({
           </p>
         )}
 
-        {/* Panels / profile size variants */}
-        {profiles.length > 0 && (
-          <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #f3f4f6' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#374151' }}>
-                Panels
-              </div>
-              <div style={{ fontSize: '10px', color: '#9ca3af' }}>
-                {profiles.length} {profiles.length === 1 ? 'variant' : 'variants'}
-              </div>
+        {/* Panels / profile size variants — always shown */}
+        <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #f3f4f6' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#374151' }}>
+              Product
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-              {profiles.map((p) => {
-                const itemId = p.id
-                const selected = selectedIds.has(itemId)
-                const specs = [p.product_code, p.dimensions, p.length_m ? `${p.length_m}m` : null].filter(Boolean).join(' · ')
-                return (
-                  <div
-                    key={p.id}
-                    onClick={() => onToggle({ id: itemId, type: 'panel', systemId: system.id, systemName: system.name, name: p.name || p.dimensions || '—', sku: p.product_code, dimensions: p.dimensions, length_m: p.length_m })}
-                    style={{ padding: '7px 10px', background: selected ? '#f0fdf4' : '#f9fafb', borderRadius: '7px', border: `1px solid ${selected ? '#86efac' : '#e5e7eb'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.12s' }}
-                  >
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>
-                        {p.name || p.dimensions || '—'}
-                      </div>
-                      {specs && (
-                        <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px', fontFamily: 'monospace' }}>
-                          {specs}
-                        </div>
-                      )}
-                    </div>
-                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: selected ? '#16a34a' : '#fff', border: `1.5px solid ${selected ? '#16a34a' : '#d1d5db'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: selected ? '#fff' : '#9ca3af', flexShrink: 0, fontWeight: 700, transition: 'all 0.12s' }}>
-                      {selected ? '✓' : '+'}
-                    </div>
-                  </div>
-                )
-              })}
+            <div style={{ fontSize: '10px', color: '#9ca3af' }}>
+              {profiles.length > 0 ? `${profiles.length} ${profiles.length === 1 ? 'variant' : 'variants'}` : ''}
             </div>
           </div>
-        )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            {profiles.length > 0 ? profiles.map((p) => {
+              const itemId = p.id
+              const selected = selectedIds.has(itemId)
+              const specs = [p.product_code, p.dimensions, p.length_m ? `${p.length_m}m` : null].filter(Boolean).join(' · ')
+              return (
+                <div
+                  key={p.id}
+                  onClick={() => onToggle({ id: itemId, type: 'panel', systemId: system.id, systemName: system.name, name: p.name || p.dimensions || system.name, sku: p.product_code, dimensions: p.dimensions, length_m: p.length_m })}
+                  style={{ padding: '7px 10px', background: selected ? '#f0fdf4' : '#f9fafb', borderRadius: '7px', border: `1px solid ${selected ? '#86efac' : '#e5e7eb'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.12s' }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>{p.name || p.dimensions || system.name}</div>
+                    {specs && <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px', fontFamily: 'monospace' }}>{specs}</div>}
+                  </div>
+                  <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: selected ? '#16a34a' : '#fff', border: `1.5px solid ${selected ? '#16a34a' : '#d1d5db'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: selected ? '#fff' : '#9ca3af', flexShrink: 0, fontWeight: 700, transition: 'all 0.12s' }}>
+                    {selected ? '✓' : '+'}
+                  </div>
+                </div>
+              )
+            }) : (() => {
+              // No profiles yet — show the system itself as one selectable row
+              const itemId = system.id
+              const selected = selectedIds.has(itemId)
+              const specs = [system.product_code, system.dimensions].filter(Boolean).join(' · ')
+              return (
+                <div
+                  key={itemId}
+                  onClick={() => onToggle({ id: itemId, type: 'panel', systemId: system.id, systemName: system.name, name: system.name, sku: system.product_code ?? null, dimensions: system.dimensions ?? null, length_m: system.length_m ?? null })}
+                  style={{ padding: '7px 10px', background: selected ? '#f0fdf4' : '#f9fafb', borderRadius: '7px', border: `1px solid ${selected ? '#86efac' : '#e5e7eb'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.12s' }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>{system.name}</div>
+                    {specs && <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px', fontFamily: 'monospace' }}>{specs}</div>}
+                  </div>
+                  <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: selected ? '#16a34a' : '#fff', border: `1.5px solid ${selected ? '#16a34a' : '#d1d5db'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: selected ? '#fff' : '#9ca3af', flexShrink: 0, fontWeight: 700, transition: 'all 0.12s' }}>
+                    {selected ? '✓' : '+'}
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+        </div>
 
-        {/* Colours */}
+        {/* Colours — selectable */}
         {stocked.length > 0 && (
-          <div
-            style={{
-              marginTop: '14px',
-              paddingTop: '14px',
-              borderTop: '1px solid #f3f4f6',
-            }}
-          >
-            <div
-              style={{
-                fontSize: '10px',
-                fontWeight: 600,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-                color: '#9ca3af',
-                marginBottom: '6px',
-              }}
-            >
-              Available Colours
+          <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #f3f4f6' }}>
+            <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#374151', marginBottom: '6px' }}>
+              Colour / Finish
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {stocked.map((c) => (
-                <span
-                  key={c.colour_name}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    fontSize: '11px',
-                    color: '#6b7280',
-                    background: '#f3f4f6',
-                    borderRadius: '20px',
-                    padding: '3px 8px 3px 5px',
-                  }}
-                >
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                      background: COLOUR_MAP[c.colour_name] || '#888',
-                      border: '1px solid rgba(0,0,0,0.15)',
-                    }}
-                  />
-                  {c.colour_name}
-                </span>
-              ))}
+              {stocked.map((c) => {
+                const itemId = `${system.id}_colour_${c.colour_name}`
+                const selected = selectedIds.has(itemId)
+                return (
+                  <button
+                    key={c.colour_name}
+                    onClick={() => onToggle({ id: itemId, type: 'colour', systemId: system.id, systemName: system.name, name: c.colour_name, sku: null, dimensions: null, length_m: null })}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11px', fontWeight: selected ? 600 : 400, color: selected ? '#15803d' : '#6b7280', background: selected ? '#f0fdf4' : '#f3f4f6', border: `1px solid ${selected ? '#86efac' : 'transparent'}`, borderRadius: '20px', padding: '4px 10px 4px 6px', cursor: 'pointer', transition: 'all 0.12s' }}
+                  >
+                    <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '14px', height: '14px', borderRadius: '50%', background: selected ? '#16a34a' : (COLOUR_MAP[c.colour_name] || '#888'), border: selected ? 'none' : '1px solid rgba(0,0,0,0.15)', fontSize: '9px', color: '#fff', fontWeight: 700, flexShrink: 0 }}>
+                      {selected ? '✓' : ''}
+                    </span>
+                    {c.colour_name}
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}
