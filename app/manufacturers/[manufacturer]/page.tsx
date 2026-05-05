@@ -279,30 +279,33 @@ function PublicSystemCard({
           </p>
         )}
 
-        {/* Profiles / size variants */}
+        {/* Panels / profile size variants */}
         {profiles.length > 0 && (
           <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #f3f4f6' }}>
-            <div style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#9ca3af', marginBottom: '8px' }}>
-              Sizes &amp; Product Codes
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#374151' }}>
+                Panels
+              </div>
+              <div style={{ fontSize: '10px', color: '#9ca3af' }}>
+                {profiles.length} {profiles.length === 1 ? 'variant' : 'variants'}
+              </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              {profiles.map((p) => (
-                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 8px', background: '#f9fafb', borderRadius: '6px', border: '1px solid #f3f4f6' }}>
-                  <span style={{ flex: 1, fontSize: '12px', fontWeight: 500, color: '#374151' }}>
-                    {p.name || p.dimensions || '—'}
-                  </span>
-                  {p.product_code && (
-                    <span style={{ fontSize: '11px', fontFamily: 'monospace', fontWeight: 600, color: '#6b7280', background: '#f3f4f6', padding: '1px 6px', borderRadius: '4px', flexShrink: 0 }}>
-                      {p.product_code}
-                    </span>
-                  )}
-                  {p.length_m && (
-                    <span style={{ fontSize: '11px', color: '#9ca3af', flexShrink: 0 }}>
-                      {p.length_m}m
-                    </span>
-                  )}
-                </div>
-              ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              {profiles.map((p) => {
+                const specs = [p.product_code, p.dimensions, p.length_m ? `${p.length_m}m` : null].filter(Boolean).join(' · ')
+                return (
+                  <div key={p.id} style={{ padding: '7px 10px', background: '#f9fafb', borderRadius: '7px', border: '1px solid #e5e7eb' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>
+                      {p.name || p.dimensions || '—'}
+                    </div>
+                    {specs && (
+                      <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px', fontFamily: 'monospace' }}>
+                        {specs}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
@@ -370,17 +373,13 @@ function PublicSystemCard({
               flex: 1,
             }}
           >
-            <div
-              style={{
-                fontSize: '10px',
-                fontWeight: 600,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-                color: '#9ca3af',
-                marginBottom: '8px',
-              }}
-            >
-              Fixings &amp; Components
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#374151' }}>
+                Accessories
+              </div>
+              <div style={{ fontSize: '10px', color: '#9ca3af' }}>
+                {required.length + recommended.length} items
+              </div>
             </div>
             {[
               { items: required, role: 'Required' },
