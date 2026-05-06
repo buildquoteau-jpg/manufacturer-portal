@@ -310,13 +310,11 @@ INSERT INTO system_colours (system_id, colour_name, sort_order) VALUES
   ('b1000000-0000-0000-0000-000000000001', 'Teak', 2),
   ('b1000000-0000-0000-0000-000000000001', 'Walnut', 3);
 
--- Avenue Range US93: Blackbutt, Antique, Teak, Ipe, Silver Grey
+-- Avenue Range US93: Antique, Teak, Walnut  (same palette as US92, per brochure p.3)
 INSERT INTO system_colours (system_id, colour_name, sort_order) VALUES
-  ('b1000000-0000-0000-0000-000000000002', 'Blackbutt', 1),
-  ('b1000000-0000-0000-0000-000000000002', 'Antique', 2),
-  ('b1000000-0000-0000-0000-000000000002', 'Teak', 3),
-  ('b1000000-0000-0000-0000-000000000002', 'Ipe', 4),
-  ('b1000000-0000-0000-0000-000000000002', 'Silver Grey', 5);
+  ('b1000000-0000-0000-0000-000000000002', 'Antique', 1),
+  ('b1000000-0000-0000-0000-000000000002', 'Teak',    2),
+  ('b1000000-0000-0000-0000-000000000002', 'Walnut',  3);
 
 -- Terrace Range US49C: Blackbutt, Antique, Teak, Ipe, Silver Grey
 INSERT INTO system_colours (system_id, colour_name, sort_order) VALUES
