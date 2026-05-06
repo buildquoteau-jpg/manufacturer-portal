@@ -1,3 +1,7 @@
+'use client'
+
+import { useState } from 'react'
+
 type Item = {
   code: string
   name: string
@@ -123,6 +127,7 @@ export default function SystemCard({
   onQtyChange: (code: string, qty: number) => void
 }) {
   const verificationLevel = getVerificationLevel(verificationStatus)
+  const [accessoriesOpen, setAccessoriesOpen] = useState(false)
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-4 md:p-5">
@@ -163,19 +168,38 @@ export default function SystemCard({
         </section>
 
         <section>
-          <div className="mb-3 flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => setAccessoriesOpen((o) => !o)}
+            className="mb-3 flex w-full items-center justify-between gap-3 text-left"
+          >
             <h3 className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: 'var(--brand-bright)' }}>Accessories</h3>
-            <span className="text-xs text-text-faint">{accessories.length} items</span>
-          </div>
-          <div className="space-y-2">
-            {accessories.map((item) => (
-              <ItemRow
-                key={item.code}
-                item={item}
-                onQtyChange={(qty) => onQtyChange(item.code, qty)}
-              />
-            ))}
-          </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-text-faint">{accessories.length} items</span>
+              <svg
+                className={`h-4 w-4 text-text-faint transition-transform duration-200 ${accessoriesOpen ? 'rotate-180' : ''}`}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+          </button>
+          {accessoriesOpen && (
+            <div className="space-y-2">
+              {accessories.map((item) => (
+                <ItemRow
+                  key={item.code}
+                  item={item}
+                  onQtyChange={(qty) => onQtyChange(item.code, qty)}
+                />
+              ))}
+            </div>
+          )}
         </section>
       </div>
 
