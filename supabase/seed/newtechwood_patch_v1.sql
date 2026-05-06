@@ -10,11 +10,95 @@
 
 
 -- ============================================================
+-- 0. ENSURE MISSING SYSTEMS EXIST
+--    The live DB was seeded from an earlier version that omitted
+--    US93, US63C, and US142C from the systems table. All subsequent
+--    sections reference these systems, so insert them first.
+--    ON CONFLICT DO NOTHING means this is safe if they already exist.
+-- ============================================================
+
+-- Avenue Range US93
+INSERT INTO systems (id, manufacturer_id, name, product_code, slug, category, subcategory, description, dimensions, length_m, double_sided, sort_order)
+VALUES (
+  'b1000000-0000-0000-0000-000000000002',
+  'a1000000-0000-0000-0000-000000000001',
+  'Avenue Range', 'US93', 'avenue-range-us93', 'Decking', 'Avenue Range',
+  'The most natural looking board on the market. Re-engineered with a commercial-grade, slip-resistant surface backing for enhanced safety and durability. Ideal for residential and high-traffic commercial environments.',
+  '138mm x 29mm', 4.88, false, 11
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Terrace Range US63C
+INSERT INTO systems (id, manufacturer_id, name, product_code, slug, category, subcategory, description, dimensions, length_m, double_sided, sort_order)
+VALUES (
+  'b1000000-0000-0000-0000-000000000004',
+  'a1000000-0000-0000-0000-000000000001',
+  'Terrace Range', 'US63C', 'terrace-range-us63c', 'Decking', 'Terrace Range',
+  'Perfectly emulating a natural timber look. Double-sided composite decking board suitable for residential and commercial applications.',
+  '138mm x 25mm', 5.4, true, 21
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Coastal Range US142C
+INSERT INTO systems (id, manufacturer_id, name, product_code, slug, category, subcategory, description, dimensions, length_m, double_sided, sort_order)
+VALUES (
+  'b1000000-0000-0000-0000-000000000006',
+  'a1000000-0000-0000-0000-000000000001',
+  'Coastal Range', 'US142C', 'coastal-range-us142c', 'Decking', 'Coastal Range',
+  'Hamptons style decking with deep weathered look on one side and slip-resistant surface on the reverse. Double-sided board for versatile installation.',
+  '138mm x 23mm', 4.88, true, 31
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Colours for newly-inserted systems (skip if already present)
+INSERT INTO system_colours (system_id, colour_name, sort_order) VALUES
+  -- US63C: Terrace Range colours (Blackbutt, Antique, Teak, Ipe, Silver Grey)
+  ('b1000000-0000-0000-0000-000000000004', 'Blackbutt',   1),
+  ('b1000000-0000-0000-0000-000000000004', 'Antique',     2),
+  ('b1000000-0000-0000-0000-000000000004', 'Teak',        3),
+  ('b1000000-0000-0000-0000-000000000004', 'Ipe',         4),
+  ('b1000000-0000-0000-0000-000000000004', 'Silver Grey', 5),
+  -- US142C: Coastal Range colours (Beech, Antique, Teak, Aged Wood)
+  ('b1000000-0000-0000-0000-000000000006', 'Beech',       1),
+  ('b1000000-0000-0000-0000-000000000006', 'Antique',     2),
+  ('b1000000-0000-0000-0000-000000000006', 'Teak',        3),
+  ('b1000000-0000-0000-0000-000000000006', 'Aged Wood',   4)
+ON CONFLICT (system_id, colour_name) DO NOTHING;
+
+-- Core fixings for US93 (TC28 / COBRA-M / MG3 / K37 / CDS)
+INSERT INTO system_components (system_id, component_id, role, notes, sort_order) VALUES
+  ('b1000000-0000-0000-0000-000000000002', 'c1000000-0000-0000-0000-000000000001', 'required',    'TC28 clip — 1 per joist, timber frame', 10),
+  ('b1000000-0000-0000-0000-000000000002', 'c1000000-0000-0000-0000-000000000002', 'required',    'Cobra M-Clip — 1 per joist, metal frame', 11),
+  ('b1000000-0000-0000-0000-000000000002', 'c1000000-0000-0000-0000-000000000003', 'required',    'MG3 Starter Clip — 1 per joist on first board', 12),
+  ('b1000000-0000-0000-0000-000000000002', 'c1000000-0000-0000-0000-000000000004', 'required',    'K37 End Clip — 1 per joist on first and last board', 13),
+  ('b1000000-0000-0000-0000-000000000002', 'c1000000-0000-0000-0000-000000000010', 'recommended', 'CDS screw — for picture frame and breaker boards', 14)
+ON CONFLICT (system_id, component_id) DO NOTHING;
+
+-- Core fixings for US63C (TC28 / COBRA-M / MG3 / K37 / CDS)
+INSERT INTO system_components (system_id, component_id, role, notes, sort_order) VALUES
+  ('b1000000-0000-0000-0000-000000000004', 'c1000000-0000-0000-0000-000000000001', 'required',    'TC28 clip — 1 per joist, timber frame', 10),
+  ('b1000000-0000-0000-0000-000000000004', 'c1000000-0000-0000-0000-000000000002', 'required',    'Cobra M-Clip — 1 per joist, metal frame', 11),
+  ('b1000000-0000-0000-0000-000000000004', 'c1000000-0000-0000-0000-000000000003', 'required',    'MG3 Starter Clip — 1 per joist on first board', 12),
+  ('b1000000-0000-0000-0000-000000000004', 'c1000000-0000-0000-0000-000000000004', 'required',    'K37 End Clip — 1 per joist on first and last board', 13),
+  ('b1000000-0000-0000-0000-000000000004', 'c1000000-0000-0000-0000-000000000010', 'recommended', 'CDS screw — for picture frame and breaker boards', 14)
+ON CONFLICT (system_id, component_id) DO NOTHING;
+
+-- Core fixings for US142C (TC28 / COBRA-M / MG3 / CDS)
+INSERT INTO system_components (system_id, component_id, role, notes, sort_order) VALUES
+  ('b1000000-0000-0000-0000-000000000006', 'c1000000-0000-0000-0000-000000000001', 'required',    'TC28 clip — 1 per joist, timber frame', 10),
+  ('b1000000-0000-0000-0000-000000000006', 'c1000000-0000-0000-0000-000000000002', 'required',    'Cobra M-Clip — 1 per joist, metal frame', 11),
+  ('b1000000-0000-0000-0000-000000000006', 'c1000000-0000-0000-0000-000000000003', 'required',    'MG3 Starter Clip — 1 per joist on first board', 12),
+  ('b1000000-0000-0000-0000-000000000006', 'c1000000-0000-0000-0000-000000000010', 'recommended', 'CDS screw — for picture frame and breaker boards', 14)
+ON CONFLICT (system_id, component_id) DO NOTHING;
+
+
+-- ============================================================
 -- 1. FIX US93 COLOURS
 --    Seed incorrectly had: Blackbutt, Antique, Teak, Ipe, Silver Grey
 --    Brochure p.3: Avenue Range US92 + US93 share Antique, Teak, Walnut
 -- ============================================================
 
+-- Remove any stale colours (0 rows deleted if system was just inserted above)
 DELETE FROM system_colours
 WHERE system_id = 'b1000000-0000-0000-0000-000000000002';
 
