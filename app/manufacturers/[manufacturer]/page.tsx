@@ -366,8 +366,13 @@ function PublicSystemCard({
                         key={group.key}
                         style={{ padding: '8px 10px', background: groupSelectedCount > 0 ? '#f0fdf4' : '#f9fafb', borderRadius: '8px', border: `1px solid ${groupSelectedCount > 0 ? '#86efac' : '#e5e7eb'}` }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '7px' }}>
-                          <span style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>{group.label}</span>
+                        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '7px' }}>
+                          <div>
+                            <span style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>{group.label}</span>
+                            {group.items[0].dimensions && (
+                              <span style={{ fontSize: '11px', color: '#6b7280', marginLeft: '6px' }}>{group.items[0].dimensions}</span>
+                            )}
+                          </div>
                           {groupSelectedCount > 0 && (
                             <span style={{ fontSize: '10px', fontWeight: 600, color: '#16a34a' }}>{groupSelectedCount} selected</span>
                           )}
