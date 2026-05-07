@@ -111,8 +111,18 @@ const CATEGORY_TEXT: Record<string, string> = {
 // ── Profile grouping helpers ───────────────────────────────────────────────────
 
 type ProfileGroup = {
-  dimensions: string
+  key: string
+  label: string
   items: SystemProfile[]
+}
+
+function getNamePrefix(p: SystemProfile): string {
+  const name = (p.name || '').trim()
+  return name
+    .replace(/\s*[×xX]\s*\d+(?:[.,]\d+)?\s*mm\s*$/i, '')
+    .trim()
+    .replace(/[·•\-,\s]+$/, '')
+    .trim()
 }
 
 function groupProfiles(profiles: SystemProfile[]): { groups: ProfileGroup[]; ungrouped: SystemProfile[] } {
@@ -120,20 +130,22 @@ function groupProfiles(profiles: SystemProfile[]): { groups: ProfileGroup[]; ung
   const ungrouped: SystemProfile[] = []
 
   for (const p of profiles) {
-    if (p.dimensions) {
-      if (!map.has(p.dimensions)) map.set(p.dimensions, [])
-      map.get(p.dimensions)!.push(p)
+    const prefix = getNamePrefix(p)
+    const key = prefix || p.dimensions || ''
+    if (key) {
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(p)
     } else {
       ungrouped.push(p)
     }
   }
 
   const groups: ProfileGroup[] = []
-  for (const [dimensions, items] of map.entries()) {
+  for (const [key, items] of map.entries()) {
     if (items.length === 1) {
       ungrouped.push(items[0])
     } else {
-      groups.push({ dimensions, items })
+      groups.push({ key, label: key, items })
     }
   }
 
@@ -351,11 +363,11 @@ function PublicSystemCard({
                     const groupSelectedCount = group.items.filter((p) => selectedIds.has(p.id)).length
                     return (
                       <div
-                        key={group.dimensions}
+                        key={group.key}
                         style={{ padding: '8px 10px', background: groupSelectedCount > 0 ? '#f0fdf4' : '#f9fafb', borderRadius: '8px', border: `1px solid ${groupSelectedCount > 0 ? '#86efac' : '#e5e7eb'}` }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '7px' }}>
-                          <span style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>{group.dimensions}</span>
+                          <span style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>{group.label}</span>
                           {groupSelectedCount > 0 && (
                             <span style={{ fontSize: '10px', fontWeight: 600, color: '#16a34a' }}>{groupSelectedCount} selected</span>
                           )}
@@ -367,10 +379,16 @@ function PublicSystemCard({
                               <button
                                 key={p.id}
                                 onClick={() => onToggle({ id: p.id, type: 'panel', systemId: system.id, systemName: system.name, name: p.name || p.dimensions || system.name, sku: p.product_code, dimensions: p.dimensions, length_m: p.length_m })}
-                                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '6px', border: `1.5px solid ${selected ? '#16a34a' : '#d1d5db'}`, background: selected ? '#16a34a' : '#fff', color: selected ? '#fff' : '#374151', fontSize: '12px', fontWeight: selected ? 700 : 500, cursor: 'pointer', transition: 'all 0.12s' }}
+                                style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', padding: '5px 10px', borderRadius: '6px', border: `1.5px solid ${selected ? '#16a34a' : '#d1d5db'}`, background: selected ? '#16a34a' : '#fff', color: selected ? '#fff' : '#374151', cursor: 'pointer', transition: 'all 0.12s', textAlign: 'center' }}
                               >
-                                {selected && <span style={{ fontSize: '10px' }}>✓</span>}
-                                {getLengthLabel(p)}
+                                <span style={{ fontSize: '12px', fontWeight: selected ? 700 : 600 }}>
+                                  {selected && '✓ '}{getLengthLabel(p)}
+                                </span>
+                                {p.product_code && (
+                                  <span style={{ fontSize: '10px', fontFamily: 'monospace', opacity: selected ? 0.85 : 0.55, marginTop: '1px' }}>
+                                    {p.product_code}
+                                  </span>
+                                )}
                               </button>
                             )
                           })}
