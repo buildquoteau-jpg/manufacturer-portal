@@ -327,8 +327,11 @@ header h1 { font-size: 15px; font-weight: 700; color: #f1f5f9; }
     <div class="file file-indent"><div class="file-icon">🔐</div><div class="file-name">app/admin/page.tsx <span>Password-gated admin dashboard</span></div></div>
     <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">app/admin/ManufacturersTab.tsx</div></div>
     <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">app/admin/SuppliersTab.tsx</div></div>
+    <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">app/admin/suppliers/page.tsx <span>Suppliers sub-page</span></div></div>
     <div class="file file-indent"><div class="file-icon">📦</div><div class="file-name">app/admin/SchemaTab.tsx <span>Renders schema mindmap iframe</span></div></div>
+    <div class="file file-indent"><div class="file-icon">🗺️</div><div class="file-name">app/admin/ArchitectureTab.tsx <span>Renders repo map iframe</span></div></div>
     <div class="file file-indent"><div class="file-icon">🗺️</div><div class="file-name">public/schema-mindmap.html <span>Interactive DB schema mind map</span></div></div>
+    <div class="file file-indent"><div class="file-icon">🗺️</div><div class="file-name">public/repo-map.html <span>This file — architecture diagram</span></div></div>
 
     <div class="section">API Routes</div>
     <div class="file file-indent has-link" id="mfp-rfq-notify"><div class="file-icon">🔌</div><div class="file-name c-email">api/rfq-notify/route.ts <span>Sends email when RFQ enquiry submitted via widget</span></div><div class="dot dot-left" style="background:#f472b6"></div></div>
@@ -365,13 +368,19 @@ header h1 { font-size: 15px; font-weight: 700; color: #f1f5f9; }
     <div class="file file-indent has-link" id="mfp-mfr-json"><div class="file-icon">📋</div><div class="file-name c-data">data/manufacturers.json <span>Mirrors buildquote (legacy)</span></div><div class="dot dot-left" style="background:#38bdf8"></div></div>
     <div class="file file-indent has-link" id="mfp-sup-json"><div class="file-icon">📋</div><div class="file-name c-data">data/suppliers.json <span>Mirrors buildquote (legacy)</span></div><div class="dot dot-left" style="background:#38bdf8"></div></div>
 
-    <div class="section">DB Migrations & Seed</div>
-    <div class="file file-indent has-link" id="mfp-migrations"><div class="file-icon">🗃️</div><div class="file-name c-db">supabase/migrations/ <span>15 migration files — single source of truth for schema</span></div><div class="dot dot-left" style="background:#34d399"></div></div>
+    <div class="section">DB Migrations, Schema & Seed</div>
+    <div class="file file-indent has-link" id="mfp-migrations"><div class="file-icon">🗃️</div><div class="file-name c-db">supabase/migrations/ <span>16 migration files</span></div><div class="dot dot-left" style="background:#34d399"></div></div>
+    <div class="file file-indent has-link" id="mfp-schema"><div class="file-icon">🗃️</div><div class="file-name c-db">supabase/schema_complete.sql <span>Canonical live schema — verified 2026-05-07</span></div><div class="dot dot-left" style="background:#34d399"></div></div>
+    <div class="file file-indent"><div class="file-icon">🗃️</div><div class="file-name">supabase/snapshots/2026-05-07/ <span>Raw CSV exports: columns, RLS policies, indexes</span></div></div>
     <div class="file file-indent"><div class="file-icon">🗃️</div><div class="file-name">supabase/seed/newtechwood_seed.sql</div></div>
     <div class="file file-indent"><div class="file-icon">🗃️</div><div class="file-name">supabase/seed/bgc_innova_5_systems.sql</div></div>
+    <div class="file file-indent"><div class="file-icon">🗃️</div><div class="file-name">supabase/seed/bgc_innova_remaining_systems.sql</div></div>
+    <div class="file file-indent"><div class="file-icon">🗃️</div><div class="file-name">supabase/seed/newtechwood_patch_v1.sql</div></div>
 
     <div class="section">Claude / Skills</div>
-    <div class="file file-indent"><div class="file-icon">🤖</div><div class="file-name">.claude/skills/extract-catalogue.md <span>AI skill for extracting PDFs into SQL</span></div></div>
+    <div class="file file-indent"><div class="file-icon">🤖</div><div class="file-name">.claude/skills/extract-catalogue.md <span>AI skill: extract manufacturer PDFs into SQL</span></div></div>
+    <div class="file file-indent"><div class="file-icon">🤖</div><div class="file-name">.claude/skills/verify-catalogue.md <span>AI skill: verify extracted data against source</span></div></div>
+    <div class="file file-indent"><div class="file-icon">🤖</div><div class="file-name">.claude/skills/catalogue-schema-reference.md <span>Live column reference for extraction — tables, types, allowed values</span></div></div>
 
   </div>
 </div>

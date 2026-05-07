@@ -1,0 +1,198 @@
+type,table_name,column_name,data_type,is_nullable,column_default
+COLUMN,catalogue_sources,id,uuid,NO,gen_random_uuid()
+COLUMN,catalogue_sources,manufacturer_id,uuid,NO,null
+COLUMN,catalogue_sources,document_name,text,NO,null
+COLUMN,catalogue_sources,document_url,text,YES,null
+COLUMN,catalogue_sources,document_date,text,YES,null
+COLUMN,catalogue_sources,extracted_at,timestamp with time zone,YES,now()
+COLUMN,catalogue_sources,extracted_by,text,YES,null
+COLUMN,catalogue_sources,notes,text,YES,null
+COLUMN,catalogue_sources,created_at,timestamp with time zone,YES,now()
+COLUMN,community_signups,id,uuid,NO,gen_random_uuid()
+COLUMN,community_signups,created_at,timestamp with time zone,YES,now()
+COLUMN,community_signups,email,text,YES,null
+COLUMN,community_signups,rfq_id,text,YES,null
+COLUMN,components,id,uuid,NO,gen_random_uuid()
+COLUMN,components,manufacturer_id,uuid,YES,null
+COLUMN,components,sku,text,YES,null
+COLUMN,components,name,text,NO,null
+COLUMN,components,description,text,YES,null
+COLUMN,components,category,text,YES,null
+COLUMN,components,unit,text,YES,null
+COLUMN,components,sort_order,integer,YES,0
+COLUMN,embed_widget_systems,id,uuid,NO,gen_random_uuid()
+COLUMN,embed_widget_systems,embed_widget_id,uuid,NO,null
+COLUMN,embed_widget_systems,system_id,uuid,NO,null
+COLUMN,embed_widget_systems,sort_order,integer,YES,0
+COLUMN,embed_widgets,id,uuid,NO,gen_random_uuid()
+COLUMN,embed_widgets,supplier_id,uuid,YES,null
+COLUMN,embed_widgets,name,text,NO,'My Widget'::text
+COLUMN,embed_widgets,public_token,text,NO,"encode(gen_random_bytes(16), 'hex'::text)"
+COLUMN,embed_widgets,status,text,YES,'active'::text
+COLUMN,embed_widgets,created_at,timestamp with time zone,YES,now()
+COLUMN,embed_widgets,manufacturer_id,uuid,YES,null
+COLUMN,manufacturers,id,uuid,NO,gen_random_uuid()
+COLUMN,manufacturers,name,text,NO,null
+COLUMN,manufacturers,slug,text,NO,null
+COLUMN,manufacturers,logo_url,text,YES,null
+COLUMN,manufacturers,website_url,text,YES,null
+COLUMN,manufacturers,description,text,YES,null
+COLUMN,manufacturers,created_at,timestamp with time zone,YES,now()
+COLUMN,manufacturers,hero_image_url,text,YES,null
+COLUMN,manufacturers,auth_user_id,uuid,YES,null
+COLUMN,manufacturers,abn,text,YES,null
+COLUMN,manufacturers,phone,text,YES,null
+COLUMN,portal_contacts,id,uuid,NO,gen_random_uuid()
+COLUMN,portal_contacts,entity_type,text,NO,null
+COLUMN,portal_contacts,entity_id,uuid,NO,null
+COLUMN,portal_contacts,name,text,NO,null
+COLUMN,portal_contacts,role,text,YES,null
+COLUMN,portal_contacts,email,text,YES,null
+COLUMN,portal_contacts,phone,text,YES,null
+COLUMN,portal_contacts,sort_order,integer,YES,0
+COLUMN,portal_contacts,created_at,timestamp with time zone,YES,now()
+COLUMN,products_by_manufacturer,manufacturer,text,YES,null
+COLUMN,products_by_manufacturer,category,text,YES,null
+COLUMN,products_by_manufacturer,subcategory,text,YES,null
+COLUMN,products_by_manufacturer,product_code,text,YES,null
+COLUMN,products_by_manufacturer,product_name,text,YES,null
+COLUMN,products_by_manufacturer,dimensions,text,YES,null
+COLUMN,products_by_manufacturer,length_m,numeric,YES,null
+COLUMN,products_by_manufacturer,double_sided,boolean,YES,null
+COLUMN,products_by_manufacturer,colour_count,bigint,YES,null
+COLUMN,products_by_manufacturer,colours,text,YES,null
+COLUMN,products_by_manufacturer,component_count,bigint,YES,null
+COLUMN,products_by_manufacturer,description,text,YES,null
+COLUMN,products_by_manufacturer,notes,text,YES,null
+COLUMN,products_by_manufacturer,sort_order,integer,YES,null
+COLUMN,products_by_manufacturer,system_id,uuid,YES,null
+COLUMN,products_by_manufacturer,manufacturer_id,uuid,YES,null
+COLUMN,rfq_draft_items,id,uuid,NO,gen_random_uuid()
+COLUMN,rfq_draft_items,draft_id,text,NO,null
+COLUMN,rfq_draft_items,component_id,uuid,YES,null
+COLUMN,rfq_draft_items,sku,text,YES,null
+COLUMN,rfq_draft_items,name,text,YES,null
+COLUMN,rfq_draft_items,description,text,YES,null
+COLUMN,rfq_draft_items,uom,text,YES,null
+COLUMN,rfq_draft_items,qty,numeric,YES,1
+COLUMN,rfq_draft_items,created_at,timestamp with time zone,YES,now()
+COLUMN,rfq_draft_items,manufacturer,text,YES,null
+COLUMN,rfq_draft_items,system,text,YES,null
+COLUMN,rfq_drafts,id,uuid,NO,gen_random_uuid()
+COLUMN,rfq_drafts,created_at,timestamp with time zone,YES,now()
+COLUMN,rfq_drafts,updated_at,timestamp with time zone,YES,now()
+COLUMN,rfq_drafts,status,text,YES,'draft'::text
+COLUMN,rfq_enquiries,id,uuid,NO,gen_random_uuid()
+COLUMN,rfq_enquiries,widget_id,uuid,YES,null
+COLUMN,rfq_enquiries,system_id,uuid,YES,null
+COLUMN,rfq_enquiries,system_name,text,YES,null
+COLUMN,rfq_enquiries,product_code,text,YES,null
+COLUMN,rfq_enquiries,supplier_name,text,YES,null
+COLUMN,rfq_enquiries,name,text,NO,null
+COLUMN,rfq_enquiries,email,text,NO,null
+COLUMN,rfq_enquiries,phone,text,YES,null
+COLUMN,rfq_enquiries,message,text,YES,null
+COLUMN,rfq_enquiries,created_at,timestamp with time zone,YES,now()
+COLUMN,rfq_items,id,uuid,NO,gen_random_uuid()
+COLUMN,rfq_items,created_at,timestamp with time zone,YES,now()
+COLUMN,rfq_items,rfq_id,uuid,NO,null
+COLUMN,rfq_items,item_name,text,NO,null
+COLUMN,rfq_items,quantity,numeric,YES,null
+COLUMN,rfq_items,unit,text,YES,null
+COLUMN,rfq_items,specification,text,YES,null
+COLUMN,rfq_items,notes,text,YES,null
+COLUMN,rfq_items,source,text,YES,'manual'::text
+COLUMN,rfq_items,sort_order,integer,YES,0
+COLUMN,rfq_items,sku,text,YES,null
+COLUMN,rfq_requests,id,uuid,NO,gen_random_uuid()
+COLUMN,rfq_requests,created_at,timestamp with time zone,YES,now()
+COLUMN,rfq_requests,builder_name,text,NO,null
+COLUMN,rfq_requests,builder_email,text,NO,null
+COLUMN,rfq_requests,project_name,text,YES,null
+COLUMN,rfq_requests,project_reference,text,YES,null
+COLUMN,rfq_requests,delivery_location,text,YES,null
+COLUMN,rfq_requests,notes,text,YES,null
+COLUMN,rfq_requests,status,text,YES,'draft'::text
+COLUMN,rfq_requests,send_to_supplier,boolean,YES,true
+COLUMN,rfq_requests,terms_confirmed,boolean,YES,false
+COLUMN,rfq_requests,terms_confirmed_at,timestamp with time zone,YES,null
+COLUMN,rfq_requests,supplier_name,text,YES,null
+COLUMN,rfq_requests,supplier_email,text,YES,null
+COLUMN,supplier_systems,id,uuid,NO,gen_random_uuid()
+COLUMN,supplier_systems,supplier_id,uuid,NO,null
+COLUMN,supplier_systems,system_id,uuid,NO,null
+COLUMN,supplier_tokens,id,uuid,NO,gen_random_uuid()
+COLUMN,supplier_tokens,supplier_id,uuid,NO,null
+COLUMN,supplier_tokens,token,text,NO,null
+COLUMN,supplier_tokens,type,text,NO,null
+COLUMN,supplier_tokens,used,boolean,NO,false
+COLUMN,supplier_tokens,expires_at,timestamp with time zone,NO,(now() + '24:00:00'::interval)
+COLUMN,supplier_tokens,created_at,timestamp with time zone,NO,now()
+COLUMN,suppliers,id,uuid,NO,gen_random_uuid()
+COLUMN,suppliers,name,text,NO,null
+COLUMN,suppliers,slug,text,NO,null
+COLUMN,suppliers,website_url,text,YES,null
+COLUMN,suppliers,email,text,YES,null
+COLUMN,suppliers,phone,text,YES,null
+COLUMN,suppliers,suburb,text,YES,null
+COLUMN,suppliers,state,text,YES,null
+COLUMN,suppliers,created_at,timestamp with time zone,YES,now()
+COLUMN,suppliers,address,text,YES,null
+COLUMN,suppliers,manager_name,text,YES,null
+COLUMN,suppliers,it_name,text,YES,null
+COLUMN,suppliers,it_email,text,YES,null
+COLUMN,suppliers,portal_password,text,YES,null
+COLUMN,suppliers,auth_user_id,uuid,YES,null
+COLUMN,suppliers,abn,text,YES,null
+COLUMN,system_colours,id,uuid,NO,gen_random_uuid()
+COLUMN,system_colours,system_id,uuid,NO,null
+COLUMN,system_colours,colour_name,text,NO,null
+COLUMN,system_colours,image_url,text,YES,null
+COLUMN,system_colours,is_stocked,boolean,YES,true
+COLUMN,system_colours,sort_order,integer,YES,0
+COLUMN,system_colours,sku,text,YES,null
+COLUMN,system_components,id,uuid,NO,gen_random_uuid()
+COLUMN,system_components,system_id,uuid,NO,null
+COLUMN,system_components,component_id,uuid,NO,null
+COLUMN,system_components,role,text,YES,'required'::text
+COLUMN,system_components,notes,text,YES,null
+COLUMN,system_components,sort_order,integer,YES,0
+COLUMN,system_profiles,id,uuid,NO,gen_random_uuid()
+COLUMN,system_profiles,system_id,uuid,NO,null
+COLUMN,system_profiles,name,text,YES,null
+COLUMN,system_profiles,product_code,text,YES,null
+COLUMN,system_profiles,dimensions,text,YES,null
+COLUMN,system_profiles,length_m,numeric,YES,null
+COLUMN,system_profiles,sort_order,integer,YES,0
+COLUMN,system_profiles,created_at,timestamp with time zone,YES,now()
+COLUMN,system_profiles,sheet_format,text,YES,null
+COLUMN,systems,id,uuid,NO,gen_random_uuid()
+COLUMN,systems,manufacturer_id,uuid,NO,null
+COLUMN,systems,name,text,NO,null
+COLUMN,systems,product_code,text,NO,null
+COLUMN,systems,slug,text,NO,null
+COLUMN,systems,category,text,NO,null
+COLUMN,systems,subcategory,text,YES,null
+COLUMN,systems,description,text,YES,null
+COLUMN,systems,dimensions,text,YES,null
+COLUMN,systems,length_m,numeric,YES,null
+COLUMN,systems,double_sided,boolean,YES,false
+COLUMN,systems,hero_image_url,text,YES,null
+COLUMN,systems,notes,text,YES,null
+COLUMN,systems,sort_order,integer,YES,0
+COLUMN,systems,created_at,timestamp with time zone,YES,now()
+COLUMN,systems,website_url,text,YES,null
+COLUMN,systems,source_document_id,uuid,YES,null
+COLUMN,systems,verified_by,text,YES,null
+COLUMN,systems,verified_at,timestamp with time zone,YES,null
+COLUMN,systems,change_notes,text,YES,null
+COLUMN,systems,source_label,text,YES,null
+COLUMN,systems,source_url,text,YES,null
+COLUMN,systems,verification_status,text,YES,null
+COLUMN,systems,sheet_format,text,YES,null
+COLUMN,systems,fire_rating,text,YES,null
+COLUMN,systems,acoustic_rating,text,YES,null
+COLUMN,systems,moisture_resistant,boolean,YES,false
+COLUMN,systems,structural_grade,text,YES,null
+COLUMN,systems,install_guide_url,text,YES,null
+COLUMN,systems,tech_data_url,text,YES,null

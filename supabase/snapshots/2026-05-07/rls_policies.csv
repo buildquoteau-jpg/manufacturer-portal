@@ -1,0 +1,34 @@
+tablename,policyname,cmd,qual,with_check
+catalogue_sources,Public can read catalogue sources,SELECT,true,null
+community_signups,Allow insert community_signups,INSERT,null,true
+components,public read,SELECT,true,null
+components,public_read_components,SELECT,true,null
+components,service_role full access,ALL,(auth.role() = 'service_role'::text),null
+embed_widget_systems,public_insert_embed_widget_systems,INSERT,null,true
+embed_widget_systems,public_read_widget_systems,SELECT,true,null
+embed_widgets,public_insert_embed_widgets,INSERT,null,true
+embed_widgets,public_read_embed_widgets,SELECT,true,null
+manufacturers,public_read_manufacturers,SELECT,true,null
+portal_contacts,Public can read portal contacts,SELECT,true,null
+rfq_draft_items,public_insert_rfq,INSERT,null,true
+rfq_draft_items,public_read_rfq,SELECT,true,null
+rfq_drafts,public_insert_rfq_drafts,INSERT,null,true
+rfq_drafts,public_read_rfq_drafts,SELECT,true,null
+rfq_enquiries,public_insert_rfq_enquiries,INSERT,null,true
+rfq_enquiries,public_select_rfq_enquiries,SELECT,true,null
+rfq_items,Allow insert rfq_items,INSERT,null,true
+rfq_items,Allow select rfq_items,SELECT,true,null
+rfq_requests,Allow insert rfq_requests,INSERT,null,true
+rfq_requests,Allow select rfq_requests,SELECT,true,null
+supplier_systems,public_read_supplier_systems,SELECT,true,null
+suppliers,public_insert_suppliers,INSERT,null,true
+suppliers,public_read_suppliers,SELECT,true,null
+suppliers,public_update_suppliers,UPDATE,true,null
+system_colours,public_read_system_colours,SELECT,true,null
+system_components,public read,SELECT,true,null
+system_components,public_read_system_components,SELECT,true,null
+system_components,service_role full access,ALL,(auth.role() = 'service_role'::text),null
+system_profiles,public_read_system_profiles,SELECT,true,null
+systems,public read,SELECT,true,null
+systems,public_read_systems,SELECT,true,null
+systems,service_role full access,ALL,(auth.role() = 'service_role'::text),null

@@ -1,0 +1,35 @@
+tablename,indexname,indexdef
+catalogue_sources,catalogue_sources_manufacturer_idx,CREATE INDEX catalogue_sources_manufacturer_idx ON public.catalogue_sources USING btree (manufacturer_id)
+catalogue_sources,catalogue_sources_pkey,CREATE UNIQUE INDEX catalogue_sources_pkey ON public.catalogue_sources USING btree (id)
+community_signups,community_signups_pkey,CREATE UNIQUE INDEX community_signups_pkey ON public.community_signups USING btree (id)
+components,components_pkey,CREATE UNIQUE INDEX components_pkey ON public.components USING btree (id)
+embed_widget_systems,embed_widget_systems_embed_widget_id_system_id_key,"CREATE UNIQUE INDEX embed_widget_systems_embed_widget_id_system_id_key ON public.embed_widget_systems USING btree (embed_widget_id, system_id)"
+embed_widget_systems,embed_widget_systems_pkey,CREATE UNIQUE INDEX embed_widget_systems_pkey ON public.embed_widget_systems USING btree (id)
+embed_widgets,embed_widgets_pkey,CREATE UNIQUE INDEX embed_widgets_pkey ON public.embed_widgets USING btree (id)
+embed_widgets,embed_widgets_public_token_key,CREATE UNIQUE INDEX embed_widgets_public_token_key ON public.embed_widgets USING btree (public_token)
+manufacturers,manufacturers_pkey,CREATE UNIQUE INDEX manufacturers_pkey ON public.manufacturers USING btree (id)
+manufacturers,manufacturers_slug_key,CREATE UNIQUE INDEX manufacturers_slug_key ON public.manufacturers USING btree (slug)
+portal_contacts,portal_contacts_entity_idx,"CREATE INDEX portal_contacts_entity_idx ON public.portal_contacts USING btree (entity_type, entity_id)"
+portal_contacts,portal_contacts_pkey,CREATE UNIQUE INDEX portal_contacts_pkey ON public.portal_contacts USING btree (id)
+rfq_draft_items,rfq_draft_items_draft_idx,CREATE INDEX rfq_draft_items_draft_idx ON public.rfq_draft_items USING btree (draft_id)
+rfq_draft_items,rfq_draft_items_pkey,CREATE UNIQUE INDEX rfq_draft_items_pkey ON public.rfq_draft_items USING btree (id)
+rfq_drafts,rfq_drafts_pkey,CREATE UNIQUE INDEX rfq_drafts_pkey ON public.rfq_drafts USING btree (id)
+rfq_enquiries,rfq_enquiries_pkey,CREATE UNIQUE INDEX rfq_enquiries_pkey ON public.rfq_enquiries USING btree (id)
+rfq_items,rfq_items_pkey,CREATE UNIQUE INDEX rfq_items_pkey ON public.rfq_items USING btree (id)
+rfq_items,rfq_items_rfq_id_idx,CREATE INDEX rfq_items_rfq_id_idx ON public.rfq_items USING btree (rfq_id)
+rfq_requests,rfq_requests_created_at_idx,CREATE INDEX rfq_requests_created_at_idx ON public.rfq_requests USING btree (created_at DESC)
+rfq_requests,rfq_requests_pkey,CREATE UNIQUE INDEX rfq_requests_pkey ON public.rfq_requests USING btree (id)
+supplier_systems,supplier_systems_pkey,CREATE UNIQUE INDEX supplier_systems_pkey ON public.supplier_systems USING btree (id)
+supplier_systems,supplier_systems_supplier_id_system_id_key,"CREATE UNIQUE INDEX supplier_systems_supplier_id_system_id_key ON public.supplier_systems USING btree (supplier_id, system_id)"
+supplier_tokens,supplier_tokens_pkey,CREATE UNIQUE INDEX supplier_tokens_pkey ON public.supplier_tokens USING btree (id)
+supplier_tokens,supplier_tokens_token_key,CREATE UNIQUE INDEX supplier_tokens_token_key ON public.supplier_tokens USING btree (token)
+suppliers,suppliers_pkey,CREATE UNIQUE INDEX suppliers_pkey ON public.suppliers USING btree (id)
+suppliers,suppliers_slug_key,CREATE UNIQUE INDEX suppliers_slug_key ON public.suppliers USING btree (slug)
+system_colours,system_colours_pkey,CREATE UNIQUE INDEX system_colours_pkey ON public.system_colours USING btree (id)
+system_colours,system_colours_system_id_colour_name_key,"CREATE UNIQUE INDEX system_colours_system_id_colour_name_key ON public.system_colours USING btree (system_id, colour_name)"
+system_components,system_components_pkey,CREATE UNIQUE INDEX system_components_pkey ON public.system_components USING btree (id)
+system_components,system_components_system_id_component_id_key,"CREATE UNIQUE INDEX system_components_system_id_component_id_key ON public.system_components USING btree (system_id, component_id)"
+system_profiles,system_profiles_pkey,CREATE UNIQUE INDEX system_profiles_pkey ON public.system_profiles USING btree (id)
+system_profiles,system_profiles_system_idx,CREATE INDEX system_profiles_system_idx ON public.system_profiles USING btree (system_id)
+systems,systems_manufacturer_id_product_code_key,"CREATE UNIQUE INDEX systems_manufacturer_id_product_code_key ON public.systems USING btree (manufacturer_id, product_code)"
+systems,systems_pkey,CREATE UNIQUE INDEX systems_pkey ON public.systems USING btree (id)
