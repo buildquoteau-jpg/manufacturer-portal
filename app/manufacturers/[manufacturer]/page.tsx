@@ -131,6 +131,7 @@ function PublicSystemCard({
   const required   = system.system_components.filter((c) => c.role === 'required'    && c.components)
   const recommended = system.system_components.filter((c) => c.role === 'recommended' && c.components)
   const profiles = (system.system_profiles || []).sort((a, b) => a.sort_order - b.sort_order)
+  const [accessoriesOpen, setAccessoriesOpen] = useState(false)
 
   return (
     <div
@@ -382,15 +383,32 @@ function PublicSystemCard({
               flex: 1,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setAccessoriesOpen((o) => !o)}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+            >
               <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#374151' }}>
                 Accessories
               </div>
-              <div style={{ fontSize: '10px', color: '#9ca3af' }}>
-                {required.length + recommended.length} items
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span style={{ fontSize: '10px', color: '#9ca3af' }}>
+                  {required.length + recommended.length} items
+                </span>
+                <svg
+                  style={{ width: '12px', height: '12px', color: '#9ca3af', transition: 'transform 0.2s', transform: accessoriesOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
               </div>
-            </div>
-            {[
+            </button>
+            {accessoriesOpen && [
               { items: required, role: 'Required' },
               { items: recommended, role: 'Recommended' },
             ].map(({ items, role }) =>
