@@ -672,20 +672,42 @@ export default function ManufacturerPage({
         draftId = data.id
       }
 
+      const brand = mfr?.name || ''
+
       // Map selections to rfq_draft_items rows
       const rows = selectedItems.map((item) => {
         const colour = item.type === 'panel' ? selectedColours[item.systemId] : null
+
+        // Build description/spec
         let description = ''
         if (item.type === 'panel') {
-          // item.name for profiles IS the full dimension spec (e.g. "9mm · 900 × 2450mm")
-          const parts = [item.name, colour].filter(Boolean)
-          description = parts.join(' · ')
+          let spec: string
+          if (item.dimensions && item.length_m) {
+            // dimensions has thickness×width; length_m has length — combined they are complete.
+            // Also extract a style prefix (e.g. "Square", "Bullnose") from the profile name if present.
+            const rawStyle = (item.name || '').split(/[\d·×]/)[0].trim()
+            const style = /^[A-Za-z\s]{3,}$/.test(rawStyle) ? rawStyle : ''
+            const dimWithLen = `${item.dimensions} × ${item.length_m}m`
+            spec = style ? `${style} · ${dimWithLen}` : dimWithLen
+          } else {
+            // Profile name already encodes the full dimensions (e.g. "9mm · 900 × 2450mm")
+            spec = item.name || ''
+          }
+          description = [spec, colour].filter(Boolean).join(' · ')
         } else if (item.type === 'accessory') {
-          description = item.description || ''
+          // Use component description but strip redundant trailing "each" units
+          description = (item.description || '').replace(/\s*[·,]\s*each\s*$/i, '').trim()
         }
+
+        // Product name: accessories use the component name; panels use the system name.
+        // Prefix with brand so the supplier knows the manufacturer.
+        const productName = item.type === 'accessory' ? item.name : item.systemName
+        const name = brand ? `${brand} · ${productName}` : productName
+
         return {
           draft_id: draftId,
-          name: item.systemName,
+          manufacturer: brand || null,
+          name,
           description,
           sku: item.sku || '',
           uom: 'EA',
