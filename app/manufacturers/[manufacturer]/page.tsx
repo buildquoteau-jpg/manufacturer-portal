@@ -108,6 +108,45 @@ const CATEGORY_TEXT: Record<string, string> = {
   'Lining': '#5b21b6',
 }
 
+// ── Profile grouping helpers ───────────────────────────────────────────────────
+
+type ProfileGroup = {
+  dimensions: string
+  items: SystemProfile[]
+}
+
+function groupProfiles(profiles: SystemProfile[]): { groups: ProfileGroup[]; ungrouped: SystemProfile[] } {
+  const map = new Map<string, SystemProfile[]>()
+  const ungrouped: SystemProfile[] = []
+
+  for (const p of profiles) {
+    if (p.dimensions) {
+      if (!map.has(p.dimensions)) map.set(p.dimensions, [])
+      map.get(p.dimensions)!.push(p)
+    } else {
+      ungrouped.push(p)
+    }
+  }
+
+  const groups: ProfileGroup[] = []
+  for (const [dimensions, items] of map.entries()) {
+    if (items.length === 1) {
+      ungrouped.push(items[0])
+    } else {
+      groups.push({ dimensions, items })
+    }
+  }
+
+  return { groups, ungrouped }
+}
+
+function getLengthLabel(p: SystemProfile): string {
+  if (p.length_m != null) return `${Math.round(p.length_m * 1000)}mm`
+  const match = p.name?.match(/[×x]\s*(\d[\d.]*\s*mm)\s*$/i)
+  if (match) return match[1].trim()
+  return p.name || p.product_code || '—'
+}
+
 // ── Public system card (widget-style, no verification panel) ───────────────────
 
 function PublicSystemCard({
@@ -303,27 +342,64 @@ function PublicSystemCard({
               {profiles.length > 0 ? `${profiles.length} ${profiles.length === 1 ? 'variant' : 'variants'}` : ''}
             </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-            {profiles.length > 0 ? profiles.map((p) => {
-              const itemId = p.id
-              const selected = selectedIds.has(itemId)
-              const specs = [p.product_code, p.dimensions, p.length_m ? `${p.length_m}m` : null].filter(Boolean).join(' · ')
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {profiles.length > 0 ? (() => {
+              const { groups, ungrouped } = groupProfiles(profiles)
               return (
-                <div
-                  key={p.id}
-                  onClick={() => onToggle({ id: itemId, type: 'panel', systemId: system.id, systemName: system.name, name: p.name || p.dimensions || system.name, sku: p.product_code, dimensions: p.dimensions, length_m: p.length_m })}
-                  style={{ padding: '7px 10px', background: selected ? '#f0fdf4' : '#f9fafb', borderRadius: '7px', border: `1px solid ${selected ? '#86efac' : '#e5e7eb'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.12s' }}
-                >
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>{p.name || p.dimensions || system.name}</div>
-                    {specs && <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px', fontFamily: 'monospace' }}>{specs}</div>}
-                  </div>
-                  <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: selected ? '#16a34a' : '#fff', border: `1.5px solid ${selected ? '#16a34a' : '#d1d5db'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: selected ? '#fff' : '#9ca3af', flexShrink: 0, fontWeight: 700, transition: 'all 0.12s' }}>
-                    {selected ? '✓' : '+'}
-                  </div>
-                </div>
+                <>
+                  {groups.map((group) => {
+                    const groupSelectedCount = group.items.filter((p) => selectedIds.has(p.id)).length
+                    return (
+                      <div
+                        key={group.dimensions}
+                        style={{ padding: '8px 10px', background: groupSelectedCount > 0 ? '#f0fdf4' : '#f9fafb', borderRadius: '8px', border: `1px solid ${groupSelectedCount > 0 ? '#86efac' : '#e5e7eb'}` }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '7px' }}>
+                          <span style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>{group.dimensions}</span>
+                          {groupSelectedCount > 0 && (
+                            <span style={{ fontSize: '10px', fontWeight: 600, color: '#16a34a' }}>{groupSelectedCount} selected</span>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                          {group.items.map((p) => {
+                            const selected = selectedIds.has(p.id)
+                            return (
+                              <button
+                                key={p.id}
+                                onClick={() => onToggle({ id: p.id, type: 'panel', systemId: system.id, systemName: system.name, name: p.name || p.dimensions || system.name, sku: p.product_code, dimensions: p.dimensions, length_m: p.length_m })}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '5px 10px', borderRadius: '6px', border: `1.5px solid ${selected ? '#16a34a' : '#d1d5db'}`, background: selected ? '#16a34a' : '#fff', color: selected ? '#fff' : '#374151', fontSize: '12px', fontWeight: selected ? 700 : 500, cursor: 'pointer', transition: 'all 0.12s' }}
+                              >
+                                {selected && <span style={{ fontSize: '10px' }}>✓</span>}
+                                {getLengthLabel(p)}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {ungrouped.map((p) => {
+                    const selected = selectedIds.has(p.id)
+                    const specs = [p.product_code, p.dimensions, p.length_m ? `${p.length_m}m` : null].filter(Boolean).join(' · ')
+                    return (
+                      <div
+                        key={p.id}
+                        onClick={() => onToggle({ id: p.id, type: 'panel', systemId: system.id, systemName: system.name, name: p.name || p.dimensions || system.name, sku: p.product_code, dimensions: p.dimensions, length_m: p.length_m })}
+                        style={{ padding: '7px 10px', background: selected ? '#f0fdf4' : '#f9fafb', borderRadius: '7px', border: `1px solid ${selected ? '#86efac' : '#e5e7eb'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.12s' }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '12px', fontWeight: 600, color: '#111827' }}>{p.name || p.dimensions || system.name}</div>
+                          {specs && <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px', fontFamily: 'monospace' }}>{specs}</div>}
+                        </div>
+                        <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: selected ? '#16a34a' : '#fff', border: `1.5px solid ${selected ? '#16a34a' : '#d1d5db'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: selected ? '#fff' : '#9ca3af', flexShrink: 0, fontWeight: 700, transition: 'all 0.12s' }}>
+                          {selected ? '✓' : '+'}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </>
               )
-            }) : (() => {
+            })() : (() => {
               // No profiles yet — show the system itself as one selectable row
               const itemId = system.id
               const selected = selectedIds.has(itemId)
