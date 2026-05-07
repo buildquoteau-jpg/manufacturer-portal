@@ -23,7 +23,7 @@ type SystemComponent = {
   role: string
   notes: string | null
   sort_order: number
-  components: { name: string; sku: string | null } | null
+  components: { name: string; sku: string | null; description: string | null } | null
 }
 
 type SystemProfile = {
@@ -44,6 +44,7 @@ type SelectedItem = {
   sku: string | null
   dimensions: string | null
   length_m: number | null
+  description: string | null
 }
 
 type SystemRow = {
@@ -383,7 +384,7 @@ function PublicSystemCard({
                             return (
                               <button
                                 key={p.id}
-                                onClick={() => onToggle({ id: p.id, type: 'panel', systemId: system.id, systemName: system.name, name: p.name || p.dimensions || system.name, sku: p.product_code, dimensions: p.dimensions, length_m: p.length_m })}
+                                onClick={() => onToggle({ id: p.id, type: 'panel', systemId: system.id, systemName: system.name, name: p.name || p.dimensions || system.name, sku: p.product_code, dimensions: p.dimensions, length_m: p.length_m, description: null })}
                                 style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', padding: '5px 10px', borderRadius: '6px', border: `1.5px solid ${selected ? '#16a34a' : '#d1d5db'}`, background: selected ? '#16a34a' : '#fff', color: selected ? '#fff' : '#374151', cursor: 'pointer', transition: 'all 0.12s', textAlign: 'center' }}
                               >
                                 <span style={{ fontSize: '12px', fontWeight: selected ? 700 : 600 }}>
@@ -407,7 +408,7 @@ function PublicSystemCard({
                     return (
                       <div
                         key={p.id}
-                        onClick={() => onToggle({ id: p.id, type: 'panel', systemId: system.id, systemName: system.name, name: p.name || p.dimensions || system.name, sku: p.product_code, dimensions: p.dimensions, length_m: p.length_m })}
+                        onClick={() => onToggle({ id: p.id, type: 'panel', systemId: system.id, systemName: system.name, name: p.name || p.dimensions || system.name, sku: p.product_code, dimensions: p.dimensions, length_m: p.length_m, description: null })}
                         style={{ padding: '7px 10px', background: selected ? '#f0fdf4' : '#f9fafb', borderRadius: '7px', border: `1px solid ${selected ? '#86efac' : '#e5e7eb'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.12s' }}
                       >
                         <div style={{ flex: 1 }}>
@@ -430,7 +431,7 @@ function PublicSystemCard({
               return (
                 <div
                   key={itemId}
-                  onClick={() => onToggle({ id: itemId, type: 'panel', systemId: system.id, systemName: system.name, name: system.name, sku: system.product_code ?? null, dimensions: system.dimensions ?? null, length_m: system.length_m ?? null })}
+                  onClick={() => onToggle({ id: itemId, type: 'panel', systemId: system.id, systemName: system.name, name: system.name, sku: system.product_code ?? null, dimensions: system.dimensions ?? null, length_m: system.length_m ?? null, description: null })}
                   style={{ padding: '7px 10px', background: selected ? '#f0fdf4' : '#f9fafb', borderRadius: '7px', border: `1px solid ${selected ? '#86efac' : '#e5e7eb'}`, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.12s' }}
                 >
                   <div style={{ flex: 1 }}>
@@ -532,7 +533,7 @@ function PublicSystemCard({
                       return (
                         <div
                           key={i}
-                          onClick={() => onToggle({ id: itemId, type: 'accessory', systemId: system.id, systemName: system.name, name: item.components!.name, sku: item.components!.sku ?? null, dimensions: null, length_m: null })}
+                          onClick={() => onToggle({ id: itemId, type: 'accessory', systemId: system.id, systemName: system.name, name: item.components!.name, sku: item.components!.sku ?? null, dimensions: null, length_m: null, description: item.components!.description ?? null })}
                           style={{ padding: '6px 10px', background: selected ? '#f0fdf4' : (role === 'Required' ? '#f9fafb' : '#fafafa'), border: `1px solid ${selected ? '#86efac' : (role === 'Required' ? '#e5e7eb' : '#f3f4f6')}`, borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.12s' }}
                         >
                           <div style={{ flex: 1 }}>
@@ -671,16 +672,23 @@ export default function ManufacturerPage({
         draftId = data.id
       }
 
-      // Map selections to rfq_draft_items rows (colours fold into panel name)
+      // Map selections to rfq_draft_items rows
       const rows = selectedItems.map((item) => {
         const colour = item.type === 'panel' ? selectedColours[item.systemId] : null
+        let description = ''
+        if (item.type === 'panel') {
+          // item.name for profiles IS the full dimension spec (e.g. "9mm · 900 × 2450mm")
+          const parts = [item.name, colour].filter(Boolean)
+          description = parts.join(' · ')
+        } else if (item.type === 'accessory') {
+          description = item.description || ''
+        }
         return {
           draft_id: draftId,
-          name: colour ? `${item.name} — ${colour}` : item.name,
-          description: [item.dimensions, item.length_m ? `${item.length_m}m` : null]
-            .filter(Boolean).join(' · '),
+          name: item.systemName,
+          description,
           sku: item.sku || '',
-          uom: item.type === 'accessory' ? 'EA' : '',
+          uom: 'EA',
           qty: 1,
         }
       })
@@ -733,7 +741,7 @@ export default function ManufacturerPage({
           dimensions, length_m, double_sided, hero_image_url, website_url,
           sort_order, verification_status, verified_by, source_label, source_url,
           system_colours(colour_name, is_stocked, sort_order),
-          system_components(role, notes, sort_order, components(name, sku)),
+          system_components(role, notes, sort_order, components(name, sku, description)),
           system_profiles(id, name, product_code, dimensions, length_m, sort_order)
         `)
         .eq('manufacturer_id', manufacturer.id)
