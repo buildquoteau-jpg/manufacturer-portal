@@ -22,6 +22,48 @@ type VerificationStatus =
   | null
   | undefined
 
+type PanelGroup = {
+  key: string
+  label: string
+  items: Item[]
+}
+
+function groupPanels(panels: Item[]): { groups: PanelGroup[]; ungrouped: Item[] } {
+  const map = new Map<string, Item[]>()
+  const ungrouped: Item[] = []
+
+  for (const item of panels) {
+    if (item.thickness != null || item.width != null) {
+      const key = `${item.thickness ?? 0}__${item.width ?? 0}__${item.texture ?? ''}`
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(item)
+    } else {
+      ungrouped.push(item)
+    }
+  }
+
+  const groups: PanelGroup[] = []
+  for (const items of map.values()) {
+    if (items.length === 1) {
+      ungrouped.push(items[0])
+      continue
+    }
+    const first = items[0]
+    const parts = [
+      first.thickness ? `${first.thickness}mm` : '',
+      first.width ? `${first.width}mm` : '',
+      first.texture ?? '',
+    ].filter(Boolean)
+    groups.push({
+      key: `${first.thickness}__${first.width}__${first.texture}`,
+      label: parts.join(' · '),
+      items,
+    })
+  }
+
+  return { groups, ungrouped }
+}
+
 function itemSpecs(item: Item) {
   const size =
     item.length && item.width
@@ -39,13 +81,108 @@ function itemSpecs(item: Item) {
     item.texture ? item.texture : '',
   ].filter(Boolean)
 
-  return specs.join(' • ')
+  return specs.join(' · ')
 }
 
 function getVerificationLevel(status: VerificationStatus) {
   if (status === 'manufacturer_verified') return 3
   if (status === 'buildquote_checked') return 2
   return 1
+}
+
+function LengthChip({
+  item,
+  onQtyChange,
+}: {
+  item: Item
+  onQtyChange: (qty: number) => void
+}) {
+  const isSelected = item.qty > 0
+  const chipLabel = item.length ? `${item.length}mm` : item.name
+
+  return (
+    <div
+      className={`inline-flex items-center rounded-lg border text-sm transition-all ${
+        isSelected
+          ? 'border-brand bg-brand/10'
+          : 'border-border bg-ui text-text-secondary hover:border-brand/40'
+      }`}
+    >
+      <button
+        type="button"
+        onClick={() => onQtyChange(isSelected ? 0 : 1)}
+        className={`px-3 py-2 font-medium leading-none ${
+          isSelected ? 'text-brand' : 'text-text-primary'
+        }`}
+      >
+        {chipLabel}
+      </button>
+
+      {isSelected && (
+        <>
+          <span className="text-border-subtle select-none">│</span>
+          <button
+            type="button"
+            onClick={() => onQtyChange(Math.max(0, item.qty - 1))}
+            className="px-2 py-2 text-text-faint hover:text-text-primary leading-none"
+          >
+            −
+          </button>
+          <span className="min-w-[1.25rem] text-center font-semibold text-text-primary">
+            {item.qty}
+          </span>
+          <button
+            type="button"
+            onClick={() => onQtyChange(item.qty + 1)}
+            className="px-2 py-2 text-text-faint hover:text-text-primary leading-none"
+          >
+            +
+          </button>
+        </>
+      )}
+    </div>
+  )
+}
+
+function PanelGroupRow({
+  group,
+  onQtyChange,
+}: {
+  group: PanelGroup
+  onQtyChange: (code: string, qty: number) => void
+}) {
+  const selectedCount = group.items.filter((i) => i.qty > 0).length
+
+  return (
+    <div
+      className={`rounded-xl border p-3 transition-colors ${
+        selectedCount > 0
+          ? 'border-brand/40 bg-brand/5'
+          : 'border-border bg-surface'
+      }`}
+    >
+      <div className="mb-2.5 flex items-center justify-between gap-2">
+        <div>
+          <p className="text-sm font-semibold text-text-primary">{group.label}</p>
+          <p className="mt-0.5 text-xs text-text-faint">{group.items[0].code}</p>
+        </div>
+        {selectedCount > 0 && (
+          <span className="text-xs font-medium text-brand">
+            {selectedCount} selected
+          </span>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {group.items.map((item) => (
+          <LengthChip
+            key={item.code}
+            item={item}
+            onQtyChange={(qty) => onQtyChange(item.code, qty)}
+          />
+        ))}
+      </div>
+    </div>
+  )
 }
 
 function ItemRow({
@@ -93,10 +230,7 @@ function ItemRow({
             placeholder="Qty"
             onChange={(e) => {
               const raw = e.target.value
-              if (raw === '') {
-                onQtyChange(1)
-                return
-              }
+              if (raw === '') { onQtyChange(1); return }
               const next = parseInt(raw, 10)
               onQtyChange(Number.isNaN(next) ? 1 : Math.max(0, next))
             }}
@@ -128,6 +262,7 @@ export default function SystemCard({
 }) {
   const verificationLevel = getVerificationLevel(verificationStatus)
   const [accessoriesOpen, setAccessoriesOpen] = useState(false)
+  const { groups, ungrouped } = groupPanels(panels)
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-4 md:p-5">
@@ -146,18 +281,25 @@ export default function SystemCard({
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-faint">
           💡 BQ Tip
         </p>
-        <p className="mt-1">Tick items to include in your RFQ.</p>
-        <p>Add quantities here or edit later in BuildQuote.</p>
+        <p className="mt-1">Tap a size to select it. Use + / − to set quantities.</p>
+        <p>Edit quantities later in BuildQuote.</p>
       </div>
 
       <div className="mt-4 space-y-5">
         <section>
           <div className="mb-3 flex items-center justify-between gap-3">
             <h3 className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: 'var(--brand-bright)' }}>Panels</h3>
-            <span className="text-xs text-text-faint">{panels.length} items</span>
+            <span className="text-xs text-text-faint">{panels.length} variants</span>
           </div>
           <div className="space-y-2">
-            {panels.map((item) => (
+            {groups.map((group) => (
+              <PanelGroupRow
+                key={group.key}
+                group={group}
+                onQtyChange={onQtyChange}
+              />
+            ))}
+            {ungrouped.map((item) => (
               <ItemRow
                 key={item.code}
                 item={item}

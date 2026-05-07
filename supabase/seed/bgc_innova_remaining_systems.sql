@@ -328,48 +328,48 @@ FROM mf, src;
 WITH sys AS (SELECT id FROM systems WHERE product_code = 'DURASCAPE'
   AND manufacturer_id = '65ee9f06-05d2-4d36-9877-223cd1cf96a6')
 INSERT INTO system_profiles (system_id, product_code, name, dimensions, length_m, sort_order)
-SELECT sys.id, '4092626', '9mm · 900 × 2450mm',  '9mm × 900mm',  NULL, 0  FROM sys UNION ALL
-SELECT sys.id, '4092628', '9mm · 900 × 3000mm',  '9mm × 900mm',  NULL, 1  FROM sys UNION ALL
-SELECT sys.id, '4092625', '9mm · 1200 × 2450mm', '9mm × 1200mm', NULL, 10 FROM sys UNION ALL
-SELECT sys.id, '4092627', '9mm · 1200 × 3000mm', '9mm × 1200mm', NULL, 11 FROM sys;
+SELECT sys.id, '4092626', '9mm · 900 × 2450mm',  '9mm × 900mm',  NULL::NUMERIC, 0  FROM sys UNION ALL
+SELECT sys.id, '4092628', '9mm · 900 × 3000mm',  '9mm × 900mm',  NULL::NUMERIC, 1  FROM sys UNION ALL
+SELECT sys.id, '4092625', '9mm · 1200 × 2450mm', '9mm × 1200mm', NULL::NUMERIC, 10 FROM sys UNION ALL
+SELECT sys.id, '4092627', '9mm · 1200 × 3000mm', '9mm × 1200mm', NULL::NUMERIC, 11 FROM sys;
 
 -- Duragrid — 4 SKUs (3 panel widths × available lengths)
 WITH sys AS (SELECT id FROM systems WHERE product_code = 'DURAGRID'
   AND manufacturer_id = '65ee9f06-05d2-4d36-9877-223cd1cf96a6')
 INSERT INTO system_profiles (system_id, product_code, name, dimensions, length_m, sort_order)
-SELECT sys.id, '4092588', '9mm · 590 × 1190mm',  '9mm × 590mm',  NULL, 0  FROM sys UNION ALL
-SELECT sys.id, '4092586', '9mm · 890 × 1190mm',  '9mm × 890mm',  NULL, 10 FROM sys UNION ALL
-SELECT sys.id, '4092585', '9mm · 1190 × 1190mm', '9mm × 1190mm', NULL, 20 FROM sys UNION ALL
-SELECT sys.id, '4092589', '9mm · 1190 × 2390mm', '9mm × 1190mm', NULL, 21 FROM sys;
+SELECT sys.id, '4092588', '9mm · 590 × 1190mm',  '9mm × 590mm',  NULL::NUMERIC, 0  FROM sys UNION ALL
+SELECT sys.id, '4092586', '9mm · 890 × 1190mm',  '9mm × 890mm',  NULL::NUMERIC, 10 FROM sys UNION ALL
+SELECT sys.id, '4092585', '9mm · 1190 × 1190mm', '9mm × 1190mm', NULL::NUMERIC, 20 FROM sys UNION ALL
+SELECT sys.id, '4092589', '9mm · 1190 × 2390mm', '9mm × 1190mm', NULL::NUMERIC, 21 FROM sys;
 
 -- Duracom — 9 SKUs (2 thicknesses × 2 widths × available lengths)
 WITH sys AS (SELECT id FROM systems WHERE product_code = 'DURACOM'
   AND manufacturer_id = '65ee9f06-05d2-4d36-9877-223cd1cf96a6')
 INSERT INTO system_profiles (system_id, product_code, name, dimensions, length_m, sort_order)
 -- 9mm × 900mm wide (3 lengths: 1800, 2400, 3000)
-SELECT sys.id, '4092551', '9mm · 900 × 1800mm',  '9mm × 900mm',  NULL, 0  FROM sys UNION ALL
-SELECT sys.id, '4092553', '9mm · 900 × 2400mm',  '9mm × 900mm',  NULL, 1  FROM sys UNION ALL
-SELECT sys.id, '4092556', '9mm · 900 × 3000mm',  '9mm × 900mm',  NULL, 2  FROM sys UNION ALL
+SELECT sys.id, '4092551', '9mm · 900 × 1800mm',  '9mm × 900mm',  NULL::NUMERIC, 0  FROM sys UNION ALL
+SELECT sys.id, '4092553', '9mm · 900 × 2400mm',  '9mm × 900mm',  NULL::NUMERIC, 1  FROM sys UNION ALL
+SELECT sys.id, '4092556', '9mm · 900 × 3000mm',  '9mm × 900mm',  NULL::NUMERIC, 2  FROM sys UNION ALL
 -- 9mm × 1200mm wide (4 lengths: 1800, 2400, 2700, 3000)
-SELECT sys.id, '4092550', '9mm · 1200 × 1800mm', '9mm × 1200mm', NULL, 10 FROM sys UNION ALL
-SELECT sys.id, '4092552', '9mm · 1200 × 2400mm', '9mm × 1200mm', NULL, 11 FROM sys UNION ALL
-SELECT sys.id, '4092554', '9mm · 1200 × 2700mm', '9mm × 1200mm', NULL, 12 FROM sys UNION ALL
-SELECT sys.id, '4092555', '9mm · 1200 × 3000mm', '9mm × 1200mm', NULL, 13 FROM sys UNION ALL
+SELECT sys.id, '4092550', '9mm · 1200 × 1800mm', '9mm × 1200mm', NULL::NUMERIC, 10 FROM sys UNION ALL
+SELECT sys.id, '4092552', '9mm · 1200 × 2400mm', '9mm × 1200mm', NULL::NUMERIC, 11 FROM sys UNION ALL
+SELECT sys.id, '4092554', '9mm · 1200 × 2700mm', '9mm × 1200mm', NULL::NUMERIC, 12 FROM sys UNION ALL
+SELECT sys.id, '4092555', '9mm · 1200 × 3000mm', '9mm × 1200mm', NULL::NUMERIC, 13 FROM sys UNION ALL
 -- 12mm × 1200mm wide (2 lengths: 2400, 2700)
-SELECT sys.id, '4093682', '12mm · 1200 × 2400mm','12mm × 1200mm',NULL, 20 FROM sys UNION ALL
-SELECT sys.id, '4092546', '12mm · 1200 × 2700mm','12mm × 1200mm',NULL, 21 FROM sys;
+SELECT sys.id, '4093682', '12mm · 1200 × 2400mm','12mm × 1200mm', NULL::NUMERIC, 20 FROM sys UNION ALL
+SELECT sys.id, '4092546', '12mm · 1200 × 2700mm','12mm × 1200mm', NULL::NUMERIC, 21 FROM sys;
 
 -- Duratex — 5 SKUs (2 thicknesses × available lengths)
 WITH sys AS (SELECT id FROM systems WHERE product_code = 'DURATEX'
   AND manufacturer_id = '65ee9f06-05d2-4d36-9877-223cd1cf96a6')
 INSERT INTO system_profiles (system_id, product_code, name, dimensions, length_m, sort_order)
 -- 7.5mm × 1200mm (3 lengths: 2400, 2440, 2725)
-SELECT sys.id, '4092630', '7.5mm · 1200 × 2400mm', '7.5mm thick', NULL, 0 FROM sys UNION ALL
-SELECT sys.id, '4092631', '7.5mm · 1200 × 2440mm', '7.5mm thick', NULL, 1 FROM sys UNION ALL
-SELECT sys.id, '4092632', '7.5mm · 1200 × 2725mm', '7.5mm thick', NULL, 2 FROM sys UNION ALL
+SELECT sys.id, '4092630', '7.5mm · 1200 × 2400mm', '7.5mm thick', NULL::NUMERIC, 0 FROM sys UNION ALL
+SELECT sys.id, '4092631', '7.5mm · 1200 × 2440mm', '7.5mm thick', NULL::NUMERIC, 1 FROM sys UNION ALL
+SELECT sys.id, '4092632', '7.5mm · 1200 × 2725mm', '7.5mm thick', NULL::NUMERIC, 2 FROM sys UNION ALL
 -- 9mm × 1200mm (2 lengths: 2400, 2440)
-SELECT sys.id, '4092633', '9mm · 1200 × 2400mm',   '9mm thick',   NULL, 10 FROM sys UNION ALL
-SELECT sys.id, '4092634', '9mm · 1200 × 2440mm',   '9mm thick',   NULL, 11 FROM sys;
+SELECT sys.id, '4092633', '9mm · 1200 × 2400mm',   '9mm thick', NULL::NUMERIC, 10 FROM sys UNION ALL
+SELECT sys.id, '4092634', '9mm · 1200 × 2440mm',   '9mm thick', NULL::NUMERIC, 11 FROM sys;
 
 -- Stonesheet — single SKU on systems row; no profiles needed.
 
@@ -387,29 +387,29 @@ WITH sys AS (SELECT id FROM systems WHERE product_code = 'DURALINER'
   AND manufacturer_id = '65ee9f06-05d2-4d36-9877-223cd1cf96a6')
 INSERT INTO system_profiles (system_id, product_code, name, dimensions, length_m, sort_order)
 -- 6mm × 900mm
-SELECT sys.id, '4092610', '6mm · 900 × 1800mm',  '6mm thick', NULL, 0  FROM sys UNION ALL
+SELECT sys.id, '4092610', '6mm · 900 × 1800mm',  '6mm thick', NULL::NUMERIC, 0  FROM sys UNION ALL
 -- 6mm × 1200mm (6 lengths)
-SELECT sys.id, '4092607', '6mm · 1200 × 1800mm', '6mm thick', NULL, 10 FROM sys UNION ALL
-SELECT sys.id, '4092608', '6mm · 1200 × 2400mm', '6mm thick', NULL, 11 FROM sys UNION ALL
-SELECT sys.id, '4092611', '6mm · 1200 × 2700mm', '6mm thick', NULL, 12 FROM sys UNION ALL
-SELECT sys.id, '4092612', '6mm · 1200 × 3000mm', '6mm thick', NULL, 13 FROM sys UNION ALL
-SELECT sys.id, '4092615', '6mm · 1200 × 3600mm', '6mm thick', NULL, 14 FROM sys UNION ALL
-SELECT sys.id, '4092617', '6mm · 1200 × 4200mm', '6mm thick', NULL, 15 FROM sys UNION ALL
+SELECT sys.id, '4092607', '6mm · 1200 × 1800mm', '6mm thick', NULL::NUMERIC, 10 FROM sys UNION ALL
+SELECT sys.id, '4092608', '6mm · 1200 × 2400mm', '6mm thick', NULL::NUMERIC, 11 FROM sys UNION ALL
+SELECT sys.id, '4092611', '6mm · 1200 × 2700mm', '6mm thick', NULL::NUMERIC, 12 FROM sys UNION ALL
+SELECT sys.id, '4092612', '6mm · 1200 × 3000mm', '6mm thick', NULL::NUMERIC, 13 FROM sys UNION ALL
+SELECT sys.id, '4092615', '6mm · 1200 × 3600mm', '6mm thick', NULL::NUMERIC, 14 FROM sys UNION ALL
+SELECT sys.id, '4092617', '6mm · 1200 × 4200mm', '6mm thick', NULL::NUMERIC, 15 FROM sys UNION ALL
 -- 6mm × 1350mm (4 lengths)
-SELECT sys.id, '4092609', '6mm · 1350 × 1800mm', '6mm thick', NULL, 20 FROM sys UNION ALL
-SELECT sys.id, '4092613', '6mm · 1350 × 2700mm', '6mm thick', NULL, 21 FROM sys UNION ALL
-SELECT sys.id, '4092616', '6mm · 1350 × 3600mm', '6mm thick', NULL, 22 FROM sys UNION ALL
-SELECT sys.id, '4092618', '6mm · 1350 × 4200mm', '6mm thick', NULL, 23 FROM sys UNION ALL
+SELECT sys.id, '4092609', '6mm · 1350 × 1800mm', '6mm thick', NULL::NUMERIC, 20 FROM sys UNION ALL
+SELECT sys.id, '4092613', '6mm · 1350 × 2700mm', '6mm thick', NULL::NUMERIC, 21 FROM sys UNION ALL
+SELECT sys.id, '4092616', '6mm · 1350 × 3600mm', '6mm thick', NULL::NUMERIC, 22 FROM sys UNION ALL
+SELECT sys.id, '4092618', '6mm · 1350 × 4200mm', '6mm thick', NULL::NUMERIC, 23 FROM sys UNION ALL
 -- 9mm × 1200mm (4 lengths)
-SELECT sys.id, '4092619', '9mm · 1200 × 1800mm', '9mm thick', NULL, 30 FROM sys UNION ALL
-SELECT sys.id, '4092620', '9mm · 1200 × 2400mm', '9mm thick', NULL, 31 FROM sys UNION ALL
-SELECT sys.id, '4092621', '9mm · 1200 × 2700mm', '9mm thick', NULL, 32 FROM sys UNION ALL
-SELECT sys.id, '4092623', '9mm · 1200 × 3000mm', '9mm thick', NULL, 33 FROM sys UNION ALL
+SELECT sys.id, '4092619', '9mm · 1200 × 1800mm', '9mm thick', NULL::NUMERIC, 30 FROM sys UNION ALL
+SELECT sys.id, '4092620', '9mm · 1200 × 2400mm', '9mm thick', NULL::NUMERIC, 31 FROM sys UNION ALL
+SELECT sys.id, '4092621', '9mm · 1200 × 2700mm', '9mm thick', NULL::NUMERIC, 32 FROM sys UNION ALL
+SELECT sys.id, '4092623', '9mm · 1200 × 3000mm', '9mm thick', NULL::NUMERIC, 33 FROM sys UNION ALL
 -- 9mm × 1350mm (2 lengths)
-SELECT sys.id, '4092622', '9mm · 1350 × 2400mm', '9mm thick', NULL, 40 FROM sys UNION ALL
-SELECT sys.id, '4092624', '9mm · 1350 × 3600mm', '9mm thick', NULL, 41 FROM sys UNION ALL
+SELECT sys.id, '4092622', '9mm · 1350 × 2400mm', '9mm thick', NULL::NUMERIC, 40 FROM sys UNION ALL
+SELECT sys.id, '4092624', '9mm · 1350 × 3600mm', '9mm thick', NULL::NUMERIC, 41 FROM sys UNION ALL
 -- 12mm × 1200mm (1 length)
-SELECT sys.id, '4092606', '12mm · 1200 × 2400mm','12mm thick', NULL, 50 FROM sys;
+SELECT sys.id, '4092606', '12mm · 1200 × 2400mm','12mm thick', NULL::NUMERIC, 50 FROM sys;
 
 -- Intergroove — single SKU on systems row; no profiles needed.
 
@@ -418,36 +418,36 @@ WITH sys AS (SELECT id FROM systems WHERE product_code = 'DURASHEET'
   AND manufacturer_id = '65ee9f06-05d2-4d36-9877-223cd1cf96a6')
 INSERT INTO system_profiles (system_id, product_code, name, dimensions, length_m, sort_order)
 -- 4.5mm
-SELECT sys.id, '4092559', '4.5mm · 450 × 1800mm',  '4.5mm thick', NULL, 0  FROM sys UNION ALL
-SELECT sys.id, '4092560', '4.5mm · 600 × 1800mm',  '4.5mm thick', NULL, 1  FROM sys UNION ALL
-SELECT sys.id, '4092561', '4.5mm · 750 × 1800mm',  '4.5mm thick', NULL, 2  FROM sys UNION ALL
-SELECT sys.id, '4092562', '4.5mm · 900 × 1800mm',  '4.5mm thick', NULL, 3  FROM sys UNION ALL
-SELECT sys.id, '4092565', '4.5mm · 900 × 2400mm',  '4.5mm thick', NULL, 4  FROM sys UNION ALL
-SELECT sys.id, '4092557', '4.5mm · 1200 × 1800mm', '4.5mm thick', NULL, 5  FROM sys UNION ALL
-SELECT sys.id, '4092558', '4.5mm · 1200 × 2400mm', '4.5mm thick', NULL, 6  FROM sys UNION ALL
-SELECT sys.id, '4092563', '4.5mm · 1200 × 2700mm', '4.5mm thick', NULL, 7  FROM sys UNION ALL
-SELECT sys.id, '4092564', '4.5mm · 1200 × 3000mm', '4.5mm thick', NULL, 8  FROM sys UNION ALL
+SELECT sys.id, '4092559', '4.5mm · 450 × 1800mm',  '4.5mm thick', NULL::NUMERIC, 0  FROM sys UNION ALL
+SELECT sys.id, '4092560', '4.5mm · 600 × 1800mm',  '4.5mm thick', NULL::NUMERIC, 1  FROM sys UNION ALL
+SELECT sys.id, '4092561', '4.5mm · 750 × 1800mm',  '4.5mm thick', NULL::NUMERIC, 2  FROM sys UNION ALL
+SELECT sys.id, '4092562', '4.5mm · 900 × 1800mm',  '4.5mm thick', NULL::NUMERIC, 3  FROM sys UNION ALL
+SELECT sys.id, '4092565', '4.5mm · 900 × 2400mm',  '4.5mm thick', NULL::NUMERIC, 4  FROM sys UNION ALL
+SELECT sys.id, '4092557', '4.5mm · 1200 × 1800mm', '4.5mm thick', NULL::NUMERIC, 5  FROM sys UNION ALL
+SELECT sys.id, '4092558', '4.5mm · 1200 × 2400mm', '4.5mm thick', NULL::NUMERIC, 6  FROM sys UNION ALL
+SELECT sys.id, '4092563', '4.5mm · 1200 × 2700mm', '4.5mm thick', NULL::NUMERIC, 7  FROM sys UNION ALL
+SELECT sys.id, '4092564', '4.5mm · 1200 × 3000mm', '4.5mm thick', NULL::NUMERIC, 8  FROM sys UNION ALL
 -- 6.0mm
-SELECT sys.id, '4092569', '6mm · 900 × 2400mm',    '6mm thick',   NULL, 10 FROM sys UNION ALL
-SELECT sys.id, '4092572', '6mm · 900 × 3000mm',    '6mm thick',   NULL, 11 FROM sys UNION ALL
-SELECT sys.id, '4092566', '6mm · 1200 × 1800mm',   '6mm thick',   NULL, 12 FROM sys UNION ALL
-SELECT sys.id, '4092568', '6mm · 1200 × 2400mm',   '6mm thick',   NULL, 13 FROM sys UNION ALL
-SELECT sys.id, '4092570', '6mm · 1200 × 2700mm',   '6mm thick',   NULL, 14 FROM sys UNION ALL
-SELECT sys.id, '4092571', '6mm · 1200 × 3000mm',   '6mm thick',   NULL, 15 FROM sys;
+SELECT sys.id, '4092569', '6mm · 900 × 2400mm',    '6mm thick', NULL::NUMERIC, 10 FROM sys UNION ALL
+SELECT sys.id, '4092572', '6mm · 900 × 3000mm',    '6mm thick', NULL::NUMERIC, 11 FROM sys UNION ALL
+SELECT sys.id, '4092566', '6mm · 1200 × 1800mm',   '6mm thick', NULL::NUMERIC, 12 FROM sys UNION ALL
+SELECT sys.id, '4092568', '6mm · 1200 × 2400mm',   '6mm thick', NULL::NUMERIC, 13 FROM sys UNION ALL
+SELECT sys.id, '4092570', '6mm · 1200 × 2700mm',   '6mm thick', NULL::NUMERIC, 14 FROM sys UNION ALL
+SELECT sys.id, '4092571', '6mm · 1200 × 3000mm',   '6mm thick', NULL::NUMERIC, 15 FROM sys;
 
 -- Duralux — 7 SKUs (2 thicknesses, all 1200mm wide)
 WITH sys AS (SELECT id FROM systems WHERE product_code = 'DURALUX'
   AND manufacturer_id = '65ee9f06-05d2-4d36-9877-223cd1cf96a6')
 INSERT INTO system_profiles (system_id, product_code, name, dimensions, length_m, sort_order)
 -- 6mm
-SELECT sys.id, '4092635', '6mm · 1200 × 2400mm', '6mm thick', NULL, 0 FROM sys UNION ALL
-SELECT sys.id, '4092637', '6mm · 1200 × 2700mm', '6mm thick', NULL, 1 FROM sys UNION ALL
-SELECT sys.id, '4092638', '6mm · 1200 × 3000mm', '6mm thick', NULL, 2 FROM sys UNION ALL
-SELECT sys.id, '4092639', '6mm · 1200 × 3600mm', '6mm thick', NULL, 3 FROM sys UNION ALL
+SELECT sys.id, '4092635', '6mm · 1200 × 2400mm', '6mm thick', NULL::NUMERIC, 0 FROM sys UNION ALL
+SELECT sys.id, '4092637', '6mm · 1200 × 2700mm', '6mm thick', NULL::NUMERIC, 1 FROM sys UNION ALL
+SELECT sys.id, '4092638', '6mm · 1200 × 3000mm', '6mm thick', NULL::NUMERIC, 2 FROM sys UNION ALL
+SELECT sys.id, '4092639', '6mm · 1200 × 3600mm', '6mm thick', NULL::NUMERIC, 3 FROM sys UNION ALL
 -- 9mm
-SELECT sys.id, '4092640', '9mm · 1200 × 2400mm', '9mm thick', NULL, 10 FROM sys UNION ALL
-SELECT sys.id, '4092642', '9mm · 1200 × 2700mm', '9mm thick', NULL, 11 FROM sys UNION ALL
-SELECT sys.id, '4092644', '9mm · 1200 × 3000mm', '9mm thick', NULL, 12 FROM sys;
+SELECT sys.id, '4092640', '9mm · 1200 × 2400mm', '9mm thick', NULL::NUMERIC, 10 FROM sys UNION ALL
+SELECT sys.id, '4092642', '9mm · 1200 × 2700mm', '9mm thick', NULL::NUMERIC, 11 FROM sys UNION ALL
+SELECT sys.id, '4092644', '9mm · 1200 × 3000mm', '9mm thick', NULL::NUMERIC, 12 FROM sys;
 
 -- Durafloor — 3 SKUs (2 thicknesses)
 WITH sys AS (SELECT id FROM systems WHERE product_code = 'DURAFLOOR'
@@ -462,19 +462,19 @@ WITH sys AS (SELECT id FROM systems WHERE product_code = 'COMPRESS-FLOOR'
   AND manufacturer_id = '65ee9f06-05d2-4d36-9877-223cd1cf96a6')
 INSERT INTO system_profiles (system_id, product_code, name, dimensions, length_m, sort_order)
 -- 15mm × 1200mm
-SELECT sys.id, '4092533', '15mm · 1200 × 1800mm', '15mm × 1200mm', NULL, 0  FROM sys UNION ALL
-SELECT sys.id, '4092535', '15mm · 1200 × 2400mm', '15mm × 1200mm', NULL, 1  FROM sys UNION ALL
-SELECT sys.id, '4092536', '15mm · 1200 × 2700mm', '15mm × 1200mm', NULL, 2  FROM sys UNION ALL
-SELECT sys.id, '4092538', '15mm · 1200 × 3000mm', '15mm × 1200mm', NULL, 3  FROM sys UNION ALL
+SELECT sys.id, '4092533', '15mm · 1200 × 1800mm', '15mm × 1200mm', NULL::NUMERIC, 0  FROM sys UNION ALL
+SELECT sys.id, '4092535', '15mm · 1200 × 2400mm', '15mm × 1200mm', NULL::NUMERIC, 1  FROM sys UNION ALL
+SELECT sys.id, '4092536', '15mm · 1200 × 2700mm', '15mm × 1200mm', NULL::NUMERIC, 2  FROM sys UNION ALL
+SELECT sys.id, '4092538', '15mm · 1200 × 3000mm', '15mm × 1200mm', NULL::NUMERIC, 3  FROM sys UNION ALL
 -- 18mm × 900mm
-SELECT sys.id, '4092541', '18mm · 900 × 2400mm',  '18mm × 900mm',  NULL, 10 FROM sys UNION ALL
-SELECT sys.id, '4092543', '18mm · 900 × 2700mm',  '18mm × 900mm',  NULL, 11 FROM sys UNION ALL
+SELECT sys.id, '4092541', '18mm · 900 × 2400mm',  '18mm × 900mm',  NULL::NUMERIC, 10 FROM sys UNION ALL
+SELECT sys.id, '4092543', '18mm · 900 × 2700mm',  '18mm × 900mm',  NULL::NUMERIC, 11 FROM sys UNION ALL
 -- 18mm × 1200mm
-SELECT sys.id, '4092539', '18mm · 1200 × 1800mm', '18mm × 1200mm', NULL, 20 FROM sys UNION ALL
-SELECT sys.id, '4092540', '18mm · 1200 × 2400mm', '18mm × 1200mm', NULL, 21 FROM sys UNION ALL
-SELECT sys.id, '4092542', '18mm · 1200 × 2700mm', '18mm × 1200mm', NULL, 22 FROM sys UNION ALL
+SELECT sys.id, '4092539', '18mm · 1200 × 1800mm', '18mm × 1200mm', NULL::NUMERIC, 20 FROM sys UNION ALL
+SELECT sys.id, '4092540', '18mm · 1200 × 2400mm', '18mm × 1200mm', NULL::NUMERIC, 21 FROM sys UNION ALL
+SELECT sys.id, '4092542', '18mm · 1200 × 2700mm', '18mm × 1200mm', NULL::NUMERIC, 22 FROM sys UNION ALL
 -- 24mm × 1200mm
-SELECT sys.id, '4092544', '24mm · 1200 × 2400mm', '24mm × 1200mm', NULL, 30 FROM sys;
+SELECT sys.id, '4092544', '24mm · 1200 × 2400mm', '24mm × 1200mm', NULL::NUMERIC, 30 FROM sys;
 
 -- Ceramic Tile Underlay — single SKU on systems row; no profiles needed.
 
