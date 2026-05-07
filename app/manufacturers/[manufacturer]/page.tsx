@@ -386,21 +386,21 @@ function PublicSystemCard({
             <button
               type="button"
               onClick={() => setAccessoriesOpen((o) => !o)}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', background: accessoriesOpen ? '#f3f4f6' : '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '8px 12px', cursor: 'pointer', marginBottom: accessoriesOpen ? '10px' : '0' }}
             >
-              <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#374151' }}>
+              <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#111827' }}>
                 Accessories
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <span style={{ fontSize: '10px', color: '#9ca3af' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280' }}>
                   {required.length + recommended.length} items
                 </span>
                 <svg
-                  style={{ width: '12px', height: '12px', color: '#9ca3af', transition: 'transform 0.2s', transform: accessoriesOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                  style={{ width: '16px', height: '16px', color: '#374151', transition: 'transform 0.2s', transform: accessoriesOpen ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="2"
+                  strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 >
