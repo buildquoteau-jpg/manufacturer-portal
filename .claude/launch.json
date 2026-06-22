@@ -1,0 +1,20 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "manufacturer-portal",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3001,
+      "autoPort": true
+    },
+    {
+      "name": "buildquote",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "3000"],
+      "cwd": "../buildquote-v6-live/buildquote",
+      "port": 3000,
+      "autoPort": true
+    }
+  ]
+}

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to Import a Manufacturer Catalogue — BuildQuote Guide</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 28px 60px; color: #1f2937; line-height: 1.65; background: #fff; }
+
+  /* Header */
+  .header { border-bottom: 3px solid #2d5a42; padding-bottom: 20px; margin-bottom: 36px; }
+  .logo { font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; }
+  .logo span { color: #2d5a42; }
+  h1 { font-size: 26px; color: #111827; margin-bottom: 6px; }
+  .subtitle { color: #6b7280; font-size: 15px; }
+
+  /* Sections */
+  h2 { font-size: 19px; color: #111827; margin-top: 44px; margin-bottom: 6px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; }
+  h3 { font-size: 15px; color: #374151; margin-top: 22px; margin-bottom: 6px; }
+  p { margin-top: 10px; font-size: 14.5px; color: #374151; }
+
+  /* Steps */
+  .steps { counter-reset: step; margin-top: 12px; }
+  .step { counter-increment: step; position: relative; padding: 16px 18px 16px 56px; margin: 10px 0; background: #f9fafb; border-left: 4px solid #2d5a42; border-radius: 0 8px 8px 0; }
+  .step::before { content: counter(step); position: absolute; left: 14px; top: 14px; width: 28px; height: 28px; background: #2d5a42; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; line-height: 28px; text-align: center; }
+  .step p { margin-top: 4px; }
+  .step strong { color: #111827; }
+
+  /* Code / command */
+  code { background: #1e1e1e; color: #7dd3a8; font-family: 'Courier New', monospace; font-size: 13px; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+  .code-block { background: #1e1e1e; color: #d4d4d4; font-family: 'Courier New', monospace; font-size: 13px; padding: 16px 18px; border-radius: 8px; margin: 12px 0; line-height: 1.7; overflow-x: auto; }
+  .code-block .comment { color: #6a9955; }
+  .code-block .cmd { color: #7dd3a8; }
+
+  /* Callouts */
+  .tip { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 13px 16px; font-size: 13.5px; margin: 14px 0; }
+  .tip strong { color: #92400e; }
+  .warning { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 13px 16px; font-size: 13.5px; margin: 14px 0; }
+  .warning strong { color: #991b1b; }
+  .success { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 13px 16px; font-size: 13.5px; margin: 14px 0; }
+  .success strong { color: #166534; }
+
+  /* Checklist */
+  .checklist { list-style: none; margin: 12px 0; }
+  .checklist li { padding: 5px 0 5px 28px; position: relative; font-size: 14px; color: #374151; border-bottom: 1px solid #f3f4f6; }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist li::before { content: '☐'; position: absolute; left: 0; color: #2d5a42; font-size: 16px; line-height: 1.2; }
+
+  /* Q&A table */
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13.5px; }
+  th { background: #f3f4f6; color: #374151; text-align: left; padding: 9px 12px; font-weight: 600; border: 1px solid #e5e7eb; }
+  td { padding: 9px 12px; border: 1px solid #e5e7eb; vertical-align: top; color: #374151; }
+  tr:nth-child(even) td { background: #f9fafb; }
+
+  /* Badge */
+  .badge { display: inline-block; background: #2d5a42; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; letter-spacing: 0.5px; vertical-align: middle; margin-left: 6px; }
+  .badge-orange { background: #c2410c; }
+
+  /* Footer */
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #9ca3af; font-size: 12px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+  @media print {
+    body { margin: 20px; }
+    .step { break-inside: avoid; }
+    h2 { break-before: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">BUILD<span>QUOTE</span> · Manufacturer Portal</div>
+  <h1>How to Import a New Manufacturer Catalogue</h1>
+  <p class="subtitle">Using the <strong>/extract-catalogue</strong> Claude Code skill to turn a PDF into database-ready product data</p>
+</div>
+
+<!-- ─── WHAT THIS DOES ─────────────────────────────────────────────────────── -->
+<h2>What this does</h2>
+<p>
+  The <code>/extract-catalogue</code> skill is a reusable workflow built into Claude Code. You give it a manufacturer's PDF catalogue, and it reads through the document and produces a SQL file ready to paste into Supabase — complete with product profiles, colour options, fixings, and component relationships.
+</p>
+<p>
+  The whole process usually takes 5–15 minutes depending on catalogue size.
+</p>
+
+<div class="tip">
+  <strong>Before you start</strong> — have these ready:<br><br>
+  <ul style="margin-left:18px;margin-top:6px;font-size:13.5px;">
+    <li>The manufacturer's PDF catalogue saved to your computer (e.g. <code>Downloads/ntw-2025.pdf</code>)</li>
+    <li>The manufacturer's website URL</li>
+    <li>Access to the Supabase SQL Editor for the BuildQuote project</li>
+    <li>Claude Code open on your computer</li>
+  </ul>
+</div>
+
+<!-- ─── STEP BY STEP ──────────────────────────────────────────────────────── -->
+<h2>Step-by-step instructions</h2>
+
+<div class="steps">
+
+  <div class="step">
+    <strong>Open Claude Code and navigate to the manufacturer portal project</strong>
+    <p>Open Claude Code (the terminal application). At the bottom of the screen you'll see a file path — make sure it shows the manufacturer portal folder:</p>
+    <div class="code-block"><span class="cmd">C:\Users\melia\OneDrive\Desktop\manufacturer-portal</span></div>
+    <p>If it shows a different folder, type <code>cd</code> followed by the correct path and press Enter.</p>
+  </div>
+
+  <div class="step">
+    <strong>Start a fresh chat</strong>
+    <p>Press <code>Ctrl + R</code> (or click <strong>New Chat</strong>) to start a clean conversation. This stops the old context from interfering with the new extraction.</p>
+  </div>
+
+  <div class="step">
+    <strong>Note the full path to your PDF</strong>
+    <p>You need to give Claude the exact file path. The easiest way:</p>
+    <ul style="margin-left:18px;margin-top:6px;font-size:14px;">
+      <li><strong>Windows:</strong> Hold Shift and right-click the PDF → <em>Copy as path</em></li>
+      <li><strong>Mac:</strong> Right-click the PDF → hold Option → <em>Copy as Pathname</em></li>
+    </ul>
+    <p>The path will look something like:</p>
+    <div class="code-block"><span class="cmd">C:\Users\melia\Downloads\manufacturer-catalogue-2025.pdf</span></div>
+  </div>
+
+  <div class="step">
+    <strong>Run the skill</strong>
+    <p>In the Claude Code chat, type the following command and press Enter:</p>
+    <div class="code-block"><span class="cmd">/extract-catalogue C:\Users\melia\Downloads\manufacturer-catalogue-2025.pdf</span></div>
+    <p>Replace the file path with your actual PDF path from Step 3.</p>
+    <div class="tip" style="margin-top:10px;"><strong>Tip:</strong> You can drag the PDF file directly into the Claude Code chat window — it will insert the path for you automatically.</div>
+  </div>
+
+  <div class="step">
+    <strong>Answer Claude's questions</strong>
+    <p>Claude will pause and ask you a few things before it starts extracting. Common questions include:</p>
+    <table>
+      <tr><th>Claude asks</th><th>What to answer</th></tr>
+      <tr><td>Does this manufacturer already exist in the database?</td><td>Yes or No. If Yes, log into Supabase → Table Editor → manufacturers → copy the UUID of that row and paste it in.</td></tr>
+      <tr><td>This product doesn't fit a standard category — which should it be?</td><td>Choose: <strong>Decking</strong>, <strong>Cladding</strong>, or <strong>Screening &amp; Fencing</strong></td></tr>
+      <tr><td>This component has no SKU — should I generate one or leave it blank?</td><td>Usually say "generate one" — Claude will create a sensible code like <code>MFG-CLIP-01</code></td></tr>
+    </table>
+  </div>
+
+  <div class="step">
+    <strong>Review the extracted data</strong>
+    <p>Claude will present a summary of everything it found before producing the SQL. Check:</p>
+    <ul class="checklist">
+      <li>Product names and codes look correct</li>
+      <li>Each product is in the right category (Decking / Cladding / Screening &amp; Fencing)</li>
+      <li>Dimensions are in mm (e.g. "138mm x 29mm"), not inches or feet</li>
+      <li>Lengths are in metres (e.g. 4.88m), not feet</li>
+      <li>Colours look complete — no obvious ones missing</li>
+      <li>Components and fixings are all listed</li>
+    </ul>
+    <p>If anything looks wrong, tell Claude — e.g. <em>"The colour 'Sandstone' is missing from the Avenue Range"</em> — and it will fix it before generating the SQL.</p>
+  </div>
+
+  <div class="step">
+    <strong>Copy the SQL output</strong>
+    <p>Once you're happy with the data, Claude will output a SQL script. It will look like this:</p>
+    <div class="code-block">
+<span class="comment">-- ============================================================</span><br>
+<span class="comment">-- NewTech Wood — Catalogue Import</span><br>
+<span class="comment">-- ============================================================</span><br><br>
+<span class="cmd">INSERT INTO manufacturers ...</span><br>
+<span class="cmd">INSERT INTO systems ...</span><br>
+<span class="cmd">INSERT INTO system_colours ...</span><br>
+<span class="cmd">INSERT INTO components ...</span><br>
+<span class="cmd">INSERT INTO system_components ...</span>
+    </div>
+    <p>Select all of the SQL and copy it (<code>Ctrl + A</code> then <code>Ctrl + C</code>, or click the copy button if visible).</p>
+  </div>
+
+  <div class="step">
+    <strong>Run the SQL in Supabase</strong>
+    <p>Log in to <a href="https://supabase.com" target="_blank">supabase.com</a> → open the BuildQuote project → click <strong>SQL Editor</strong> in the left sidebar.</p>
+    <p>Click <strong>New query</strong>, paste your SQL, and click <strong>Run</strong> (or press <code>Ctrl + Enter</code>).</p>
+    <div class="success"><strong>Success</strong> — you'll see a green confirmation and row counts for each table that was populated.</div>
+    <div class="warning"><strong>If you get an error</strong> — copy the error message, go back to Claude Code, and paste it in. Claude will diagnose and fix the SQL for you.</div>
+  </div>
+
+  <div class="step">
+    <strong>Check the live portal</strong>
+    <p>Go to <a href="https://mfp.buildquote.com.au" target="_blank">mfp.buildquote.com.au</a> and log into the admin area. The new manufacturer and their products should now appear in the <strong>Add new supplier</strong> wizard under Step 2 (Choose manufacturer).</p>
+    <p>You can also go to <strong>Admin → suppliers</strong> and create a test widget to verify everything loaded correctly.</p>
+  </div>
+
+</div>
+
+<!-- ─── TIPS ───────────────────────────────────────────────────────────────── -->
+<h2>Tips &amp; common issues</h2>
+
+<h3>The PDF is scanned / image-only</h3>
+<p>If the PDF is a scanned document (no selectable text), Claude will still try to read it using visual analysis — but accuracy is lower. For best results, ask the manufacturer for a digital PDF, or use Adobe Acrobat's OCR feature first to make the text selectable.</p>
+
+<h3>The catalogue is very large (100+ pages)</h3>
+<p>Tell Claude upfront: <em>"This is a 120-page catalogue — focus on pages 10–80 which contain the product profiles."</em> You can always run the skill again for accessories/components on a second pass.</p>
+
+<h3>Colours are only shown as swatches with no names</h3>
+<p>Take a photo of the swatch page and mention the visible names to Claude, or check the manufacturer's website colour selector. Claude will flag this and ask.</p>
+
+<h3>A manufacturer has multiple catalogues (decking + cladding separately)</h3>
+<p>Run the skill once per PDF. On the second run, when Claude asks if the manufacturer already exists, say Yes and provide the UUID — it will add to the existing data rather than duplicating the manufacturer row.</p>
+
+<h3>Products are in the wrong category after import</h3>
+<p>You can fix this directly in Supabase: Table Editor → systems → find the row → edit the <code>category</code> field. Only three values are valid: <code>Decking</code>, <code>Cladding</code>, <code>Screening &amp; Fencing</code> (exact spelling including the ampersand).</p>
+
+<!-- ─── WHAT GETS IMPORTED ─────────────────────────────────────────────────── -->
+<h2>What gets imported into the database</h2>
+<table>
+  <tr><th>Data</th><th>Where it goes</th><th>Example</th></tr>
+  <tr><td>Brand name &amp; details</td><td><code>manufacturers</code></td><td>NewTech Wood, newtechwood.com</td></tr>
+  <tr><td>Product profiles</td><td><code>systems</code></td><td>Avenue Range, US92, 138×29mm, 4.88m</td></tr>
+  <tr><td>Colour options</td><td><code>system_colours</code></td><td>Antique, Teak, Blackbutt, Charcoal</td></tr>
+  <tr><td>Fixings &amp; accessories</td><td><code>components</code></td><td>Hidden Clip, Composite Screw, Starter Profile</td></tr>
+  <tr><td>Which fixings suit which profiles</td><td><code>system_components</code></td><td>US92 → Hidden Clip (required)</td></tr>
+</table>
+
+<p style="margin-top:14px;">Product images and colour swatch photos are <strong>not</strong> imported from the PDF — these are added separately by uploading images and pasting the URL into the <code>hero_image_url</code> or <code>image_url</code> fields in the Supabase Table Editor.</p>
+
+<!-- ─── QUICK REFERENCE ───────────────────────────────────────────────────── -->
+<h2>Quick reference</h2>
+<table>
+  <tr><th>Task</th><th>How</th></tr>
+  <tr><td>Start the skill</td><td><code>/extract-catalogue path/to/file.pdf</code></td></tr>
+  <tr><td>Find the Supabase SQL Editor</td><td>supabase.com → your project → SQL Editor (left sidebar)</td></tr>
+  <tr><td>Find a manufacturer's UUID</td><td>Supabase → Table Editor → manufacturers → copy the <code>id</code> value</td></tr>
+  <tr><td>Fix a wrong category after import</td><td>Supabase → Table Editor → systems → edit the row</td></tr>
+  <tr><td>Re-run for a second catalogue (same brand)</td><td>Run <code>/extract-catalogue</code> again, tell Claude the manufacturer already exists</td></tr>
+  <tr><td>Check new products are visible</td><td>mfp.buildquote.com.au → Admin → Add new supplier → Step 2</td></tr>
+</table>
+
+<footer>
+  <span>BuildQuote Manufacturer Portal · mfp.buildquote.com.au</span>
+  <span>hello@buildquote.com.au · buildquote.com.au</span>
+</footer>
+
+</body>
+</html>
