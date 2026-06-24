@@ -38,7 +38,7 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      url: `https://mfp.buildquote.com.au/manufacturers/${slug}`,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://search.buildquote.com.au'}/manufacturers/${slug}`,
       siteName: 'BuildQuote',
       locale: 'en_AU',
       type: 'website',
@@ -76,7 +76,7 @@ export default async function ManufacturerPage({
     name: manufacturer.name,
     url:
       manufacturer.website_url ||
-      `https://mfp.buildquote.com.au/manufacturers/${slug}`,
+      `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://search.buildquote.com.au'}/manufacturers/${slug}`,
     description:
       manufacturer.description ||
       `Building products and systems by ${manufacturer.name}, available through the BuildQuote South West Product Directory.`,

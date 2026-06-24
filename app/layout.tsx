@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "BuildQuote South West Product Directory",
     description: "Browse building product systems and manufacturers across the South West of Western Australia.",
-    url: "https://mfp.buildquote.com.au",
+    url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://search.buildquote.com.au",
     siteName: "BuildQuote",
     locale: "en_AU",
     type: "website",

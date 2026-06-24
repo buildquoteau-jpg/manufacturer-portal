@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
           <!-- Footer -->
           <tr>
             <td style="padding:20px 0 0;text-align:center;font-size:11px;color:#9ca3af;">
-              Sent via BuildQuote · <a href="https://mfp.buildquote.com.au/supplier/${supplier.name?.toLowerCase().replace(/\s+/g, '-')}" style="color:#9ca3af;">View your portal</a>
+              Sent via BuildQuote · <a href="${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://search.buildquote.com.au'}/supplier/${supplier.name?.toLowerCase().replace(/\s+/g, '-')}" style="color:#9ca3af;">View your portal</a>
             </td>
           </tr>
 

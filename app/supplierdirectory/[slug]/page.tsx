@@ -134,7 +134,7 @@ function JsonLd({ supplier }: { supplier: NonNullable<Awaited<ReturnType<typeof 
     '@type': 'HardwareStore',
     name: supplier.name,
     description: supplier.bio ?? undefined,
-    url: supplier.website_url ?? `https://mfp.buildquote.com.au/supplierdirectory/${supplier.slug}`,
+    url: supplier.website_url ?? `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://search.buildquote.com.au'}/supplierdirectory/${supplier.slug}`,
     telephone: supplier.phone ?? undefined,
     address: supplier.address ? {
       '@type': 'PostalAddress',
