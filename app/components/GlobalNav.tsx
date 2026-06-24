@@ -5,13 +5,14 @@ import { usePathname } from 'next/navigation'
 
 const BQ = 'https://buildquote.com.au'
 
-// Customer-facing links — same five as buildquote.com.au nav
+// Customer-facing links — mirrors buildquote.com.au nav
 const NAV_LINKS = [
-  { label: 'Home',                           href: `${BQ}/`,             external: true  },
-  { label: '1  Builder Portal',              href: `${BQ}/dashboard`,    external: true  },
-  { label: '2  Start a Quote Request',       href: `${BQ}/rfq`,          external: true  },
-  { label: '3  Browse Products & Suppliers', href: '/manufacturers',     external: false },
-  { label: '4  Supplier Directory',          href: '/supplierdirectory', external: false },
+  { label: 'Home',                  href: `${BQ}/`,             external: true  },
+  { label: '1  Builder Portal',     href: `${BQ}/dashboard`,    external: true  },
+  { label: '2  Start a Quote',      href: `${BQ}/rfq`,          external: true  },
+  { label: '3  Search Products',    href: '/manufacturers',     external: false },
+  { label: '4  Supplier Directory', href: '/supplierdirectory', external: false },
+  { label: '5  Supplier Login',     href: '/supplier/login',    external: false },
 ]
 
 const LEGAL_LINKS = [

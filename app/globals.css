@@ -1,28 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  --page-bg: #0F1E26;
-  --surface: #1E3A4A;
-  --surface-hover: #24495C;
-  --ui: #2A4A5E;
+  --page-bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-hover: #f0f9ff;
+  --ui: #e5e7eb;
 
-  --brand: #4A8FA0;
-  --brand-hover: #6BA7B5;
-  --brand-bright: #6FCFE8;
-  --brand-subtle: rgba(74, 143, 160, 0.14);
+  --brand: #185D7A;
+  --brand-hover: #1a6d8e;
+  --brand-bright: #4A8FA0;
+  --brand-subtle: rgba(24, 93, 122, 0.08);
 
-  --text-primary: #F5F2ED;
-  --text-secondary: rgba(245, 242, 237, 0.92);
-  --text-muted: rgba(245, 242, 237, 0.84);
-  --text-faint: rgba(245, 242, 237, 0.74);
+  --text-primary: #0f172a;
+  --text-secondary: #1e293b;
+  --text-muted: #6b7280;
+  --text-faint: #9ca3af;
 
-  --border: rgba(74, 143, 160, 0.22);
-  --border-subtle: rgba(74, 143, 160, 0.12);
+  --border: #e5e7eb;
+  --border-subtle: #f1f5f9;
 
-  --sand: #B8A98A;
-  --warning: #D6B37A;
-  --success: #7FA98B;
-  --error: #D97C6C;
+  --sand: #92400e;
+  --warning: #d97706;
+  --success: #065f46;
+  --error: #991b1b;
 
   --background: var(--page-bg);
   --foreground: var(--text-primary);
@@ -55,8 +55,8 @@
   --color-success: var(--success);
   --color-error: var(--error);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-barlow);
+  --font-mono: monospace;
 }
 
 *,
@@ -73,7 +73,7 @@ body {
   margin: 0;
   background: var(--page-bg);
   color: var(--text-primary);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-barlow), Arial, Helvetica, sans-serif;
   min-height: 100vh;
 }
 

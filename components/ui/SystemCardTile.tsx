@@ -42,33 +42,32 @@ export function SystemCardTile({
   manufacturer,
   addedCount = 0,
   onClick,
+  onAddToList,
 }: {
   system: SystemCardTileData
   manufacturer?: ManufacturerRef | null
   addedCount?: number
   onClick: () => void
+  onAddToList?: () => void
 }) {
   const [hovered, setHovered] = useState(false)
   const catStyle = CATEGORY_COLOURS[system.category] ?? { bg: '#f3f4f6', color: '#374151' }
   const profileCount   = system.system_profiles.length
   const componentCount = system.system_components.filter(c => c.components != null).length
 
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex', flexDirection: 'column', textAlign: 'left', width: '100%',
-        background: '#ffffff',
-        border: hovered ? '1.5px solid #185D7A' : '1px solid #d1d5db',
-        borderRadius: '14px', overflow: 'hidden', cursor: 'pointer',
-        boxShadow: hovered ? '0 8px 28px rgba(24,93,122,0.18)' : '0 2px 10px rgba(0,0,0,0.07)',
-        transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
-        transition: 'transform 0.15s, box-shadow 0.15s, border-color 0.15s',
-      }}
-    >
+  const cardStyle: React.CSSProperties = {
+    display: 'flex', flexDirection: 'column', textAlign: 'left', width: '100%',
+    background: '#ffffff',
+    border: hovered ? '1.5px solid #185D7A' : '1px solid #d1d5db',
+    borderRadius: '14px', overflow: 'hidden',
+    cursor: 'pointer',
+    boxShadow: hovered ? '0 8px 28px rgba(24,93,122,0.18)' : '0 2px 10px rgba(0,0,0,0.07)',
+    transform: hovered ? 'translateY(-2px)' : 'translateY(0)',
+    transition: 'transform 0.15s, box-shadow 0.15s, border-color 0.15s',
+  }
+
+  const cardInner = (
+    <>
       {/* Hero image — gradient overlay with text on image */}
       <div style={{ height: '220px', flexShrink: 0, position: 'relative', overflow: 'hidden', background: system.hero_image_url ? undefined : 'linear-gradient(135deg, #185D7A 0%, #0f3d52 100%)' }}>
         {system.hero_image_url && (
@@ -102,20 +101,59 @@ export function SystemCardTile({
             {system.description}
           </p>
         )}
-        <div style={{ marginTop: 'auto', paddingTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ marginTop: 'auto', paddingTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
           <span style={{ fontSize: '12px', color: '#9ca3af' }}>
             {profileCount > 0 ? `${profileCount} profile${profileCount !== 1 ? 's' : ''}` : ''}
             {profileCount > 0 && componentCount > 0 ? ' · ' : ''}
             {componentCount > 0 ? `${componentCount} component${componentCount !== 1 ? 's' : ''}` : ''}
           </span>
-          <span style={{ fontSize: '12px', fontWeight: 700, color: '#185D7A', display: 'flex', alignItems: 'center', gap: '3px' }}>
-            View details
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-              <path d="M4.5 2.5L8 6L4.5 9.5" stroke="#185D7A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {onAddToList && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onAddToList() }}
+                style={{ fontSize: '11px', fontWeight: 700, color: '#185D7A', background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', whiteSpace: 'nowrap', lineHeight: 1.4 }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#e0f2fe' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#f0f9ff' }}
+              >
+                ＋ Add to list
+              </button>
+            )}
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#185D7A', display: 'flex', alignItems: 'center', gap: '3px', whiteSpace: 'nowrap' }}>
+              View details
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M4.5 2.5L8 6L4.5 9.5" stroke="#185D7A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+          </div>
         </div>
       </div>
+    </>
+  )
+
+  // When onAddToList is present, render a div (two separate interactive elements inside)
+  if (onAddToList) {
+    return (
+      <div
+        onClick={onClick}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={cardStyle}
+      >
+        {cardInner}
+      </div>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={cardStyle}
+    >
+      {cardInner}
     </button>
   )
 }
