@@ -100,6 +100,8 @@ export async function getSupplierBrandWidget(
       hero_wide_image_position_y: mf.hero_wide_image_position_y ?? null,
       website_url: mf.website_url,
       description: mf.description,
+      seo_title: mf.seo_title ?? null,
+      seo_description: mf.seo_description ?? null,
     },
     supplier: { name: supplier.name, website_url: supplier.website_url },
     systems: sortedSystems,
