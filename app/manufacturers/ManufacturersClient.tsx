@@ -45,15 +45,44 @@ function detectIntent(query: string): 'search' | 'question' | 'list' {
   return 'search'
 }
 
+// Common words that add no search value — stripped before matching
+const STOP_WORDS = new Set([
+  'a','an','the','and','or','but','in','on','at','to','for','of','with','by',
+  'from','is','are','was','were','be','been','have','has','do','does','did',
+  'will','would','could','should','may','might','can','its','it','this','that',
+  'options','option','types','type','kind','kinds','best','good','great',
+  'available','products','product','systems','system','materials','material',
+  'what','which','how','when','where','who','why','some','any','all','other',
+  'show','me','find','get','looking','need','want','please','like','near',
+  'here','there','my','our','your','we','i','us','about','suitable',
+  'use','using','different','various','range','ranges',
+])
+
 function fuzzySearch(items: SystemResult[], query: string): SystemResult[] {
   const q = query.trim()
   if (q.length < 2) return []
-  const terms = q.toLowerCase().split(/\s+/).filter(Boolean)
-  return items.filter(item => {
+
+  const allTerms = q.toLowerCase().split(/\s+/).filter(t => t.length > 1)
+  // Strip stop words; fall back to all terms if nothing meaningful remains
+  const meaningful = allTerms.filter(t => !STOP_WORDS.has(t))
+  const terms = meaningful.length > 0 ? meaningful : allTerms
+
+  const score = (item: SystemResult) => {
     const mfr = item.manufacturers as any
     const hay = [item.name, item.product_code, item.category, item.subcategory ?? '', mfr?.name ?? '', item.description ?? '', item.dimensions ?? '', item.notes ?? ''].join(' ').toLowerCase()
-    return terms.every(t => hay.includes(t))
-  })
+    return terms.filter(t => hay.includes(t)).length
+  }
+
+  // Prefer full matches; fall back to ≥50% if nothing found
+  const full = items.filter(item => score(item) === terms.length)
+  if (full.length > 0) return full
+
+  const threshold = Math.max(1, Math.ceil(terms.length * 0.5))
+  return items
+    .map(item => ({ item, s: score(item) }))
+    .filter(({ s }) => s >= threshold)
+    .sort((a, b) => b.s - a.s)
+    .map(({ item }) => item)
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
