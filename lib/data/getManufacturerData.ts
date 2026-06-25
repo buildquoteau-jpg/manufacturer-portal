@@ -37,7 +37,10 @@ export async function getManufacturerData(slug: string): Promise<ManufacturerPag
     .eq('slug', slug)
     .maybeSingle()
 
-  if (error || !data) return null
+  if (error || !data) {
+    console.error('[getManufacturerData] slug:', slug, 'error:', JSON.stringify(error))
+    return null
+  }
 
   const m = data as any
 
