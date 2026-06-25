@@ -135,6 +135,7 @@ export function ManufacturersClient({ manufacturers, draft }: { manufacturers: M
   const [convertingRFQ, setConvertingRFQ]   = useState(false)
   const [newItemName, setNewItemName]       = useState('')
   const [sharing, setSharing]               = useState(false)
+  const [dragOver, setDragOver]             = useState(false)
 
   const [listening, setListening]           = useState(false)
   const [listListening, setListListening]   = useState(false)
@@ -517,7 +518,18 @@ export function ManufacturersClient({ manufacturers, draft }: { manufacturers: M
           )}
 
           {/* Quick List panel */}
-          <div style={{ marginTop: '4px', background: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: '14px', padding: '16px 18px', textAlign: 'left' }}>
+          <div
+            onDragOver={e => { e.preventDefault(); e.stopPropagation(); setDragOver(true) }}
+            onDragEnter={e => { e.preventDefault(); e.stopPropagation(); setDragOver(true) }}
+            onDragLeave={e => { e.stopPropagation(); if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOver(false) }}
+            onDrop={e => {
+              e.preventDefault(); e.stopPropagation(); setDragOver(false)
+              const file = e.dataTransfer.files?.[0]
+              if (file) { handleFileUpload(file); return }
+              const text = e.dataTransfer.getData('text')
+              if (text) { setListInput(prev => prev ? prev + '\n' + text : text); setListError(''); setListErrorSuggestions([]) }
+            }}
+            style={{ marginTop: '4px', background: dragOver ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.18)', border: dragOver ? '2px dashed rgba(255,255,255,0.6)' : '1px solid rgba(255,255,255,0.18)', borderRadius: '14px', padding: dragOver ? '15px 17px' : '16px 18px', textAlign: 'left', transition: 'background 0.15s, border 0.15s' }}>
             <p style={{ margin: '0 0 3px', fontSize: '15px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.01em', lineHeight: 1.3 }}>
               Already know what you need?
             </p>
@@ -525,6 +537,11 @@ export function ManufacturersClient({ manufacturers, draft }: { manufacturers: M
               Type, upload or speak your building materials list. BuildQuote will convert it into a clear shopping list or RFQ.
             </p>
 
+            {dragOver && !listBusy && (
+              <div style={{ pointerEvents: 'none', textAlign: 'center', padding: '10px 0 6px', fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>
+                Drop photo or text here
+              </div>
+            )}
             {listBusy ? (
               /* Loading panel with jokes */
               <div style={{ padding: '28px 8px 20px', textAlign: 'center' }}>
@@ -546,6 +563,10 @@ export function ManufacturersClient({ manufacturers, draft }: { manufacturers: M
                   value={listInput}
                   onChange={e => { setListInput(e.target.value); setListError(''); setListErrorSuggestions([]) }}
                   onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleReadListText(listInput) }}
+                  onPaste={e => {
+                    const imageFile = Array.from(e.clipboardData.items).find(item => item.type.startsWith('image/'))?.getAsFile()
+                    if (imageFile) { e.preventDefault(); handleFileUpload(imageFile) }
+                  }}
                   placeholder="Paste or type a list — e.g. 25 bags post set, 13 stirrups, 15 lengths 70×35 …"
                   rows={3}
                   style={{ width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', padding: '10px 13px', fontSize: '14px', color: '#ffffff', outline: 'none', resize: 'vertical', lineHeight: 1.5 }}
