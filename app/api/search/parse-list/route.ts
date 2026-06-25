@@ -17,7 +17,14 @@ export async function POST(req: Request) {
       messages: [{
         role: 'user',
         content: `Parse this building materials list into a JSON array.
-Each item must have: qty (number), name (string), uom (string — infer if not stated, e.g. EA, LM, BAG, SHEET, M2).
+Each item must have:
+- qty: number (the count — e.g. for "6 @ 2.7M", qty is 6; for "x 10 sheets", qty is 10)
+- name: string (include all specs, grade, dimensions and length — e.g. "H2 190x35 @ 3.6m", "H4 100x100 F7 Pine Post @ 2.7m")
+- uom: string (infer if not stated: EA, LM, BAG, SHEET, M2, TUBE, ROLL — use LM for timber lengths)
+Rules:
+- For "N @ Xm" entries: qty = N, include "@ Xm" in the name
+- If two lengths are offered (e.g. "2.7m or 3.0m"), include both in the name
+- Always include dimension specs and grade in the name
 Return ONLY a valid JSON array, no markdown, no explanation.
 
 List:

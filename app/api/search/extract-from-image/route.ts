@@ -29,7 +29,14 @@ export async function POST(req: Request) {
           {
             type: 'text',
             text: `Extract all items from this building materials list or handwritten note.
-Return a JSON array where each item has: qty (number), name (string), uom (string — infer if not stated: EA, LM, BAG, SHEET, M2).
+Return a JSON array where each item has:
+- qty: number (the count — e.g. for "6 @ 2.7M", qty is 6; for "x 10 sheets", qty is 10)
+- name: string (include all specs, grade, dimensions and length — e.g. "H2 190x35 @ 3.6m", "H4 100x100 F7 Pine Post @ 2.7m")
+- uom: string (infer: EA, LM, BAG, SHEET, M2, TUBE, ROLL — LM for timber lengths)
+Rules:
+- For "N @ Xm" entries: qty = N, include "@ Xm" in the name
+- If two lengths are offered (e.g. "2.7m or 3.0m"), include both in the name
+- Always include dimension specs and grade in the name (e.g. "100mm x 100mm F7")
 Return ONLY a valid JSON array, no markdown, no explanation.`,
           },
         ],
