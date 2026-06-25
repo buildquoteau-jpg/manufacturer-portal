@@ -680,7 +680,7 @@ export function ManufacturersClient({ manufacturers, draft }: { manufacturers: M
                     {results.map(system => {
                       const mfr = system.manufacturers as any
                       const href = mfr?.slug ? `/manufacturers/${mfr.slug}${draftParam}` : null
-                      return <SystemCardTile key={system.id} system={system} manufacturer={mfr} onClick={() => { if (href) window.location.href = href }} onAddToList={() => addToShoppingList(system)} />
+                      return <SystemCardTile key={system.id} system={system} manufacturer={mfr} onClick={() => { if (href) window.location.href = href }} />
                     })}
                   </div>
                 </>
