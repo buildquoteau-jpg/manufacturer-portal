@@ -168,17 +168,22 @@ CREATE TABLE IF NOT EXISTS community_signups (
 -- ── MANUFACTURER / CATALOGUE TABLES (MFP + buildquote) ───────────────────────
 
 CREATE TABLE IF NOT EXISTS manufacturers (
-  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name          text NOT NULL,
-  slug          text NOT NULL UNIQUE,
-  logo_url      text,
-  website_url   text,
-  hero_image_url text,
-  description   text,
-  abn           text,
-  phone         text,
-  auth_user_id  uuid,                       -- links to auth.users if manufacturer has portal login
-  created_at    timestamptz DEFAULT now()
+  id                          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name                        text NOT NULL,
+  slug                        text NOT NULL UNIQUE,
+  logo_url                    text,
+  website_url                 text,
+  hero_image_url              text,
+  hero_image_position_y       numeric DEFAULT 50,
+  hero_wide_image_url         text,
+  hero_wide_image_position_y  numeric DEFAULT 50,
+  description                 text,
+  seo_title                   text,
+  seo_description             text,
+  abn                         text,
+  phone                       text,
+  auth_user_id                uuid,           -- links to auth.users if manufacturer has portal login
+  created_at                  timestamptz DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS systems (
@@ -194,7 +199,9 @@ CREATE TABLE IF NOT EXISTS systems (
   length_m            numeric,
   sheet_format        text,
   double_sided        boolean DEFAULT false,
-  hero_image_url      text,
+  hero_image_url          text,
+  hero_image_position_x   smallint DEFAULT 50,
+  hero_image_position_y   smallint DEFAULT 50,
   notes               text,
   website_url         text,
   fire_rating         text,
