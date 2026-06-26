@@ -18,7 +18,7 @@ export async function getManufacturerData(slug: string): Promise<ManufacturerPag
         id, name, product_code, slug, category, subcategory,
         description, dimensions, length_m, double_sided,
         hero_image_url, hero_image_position_x, hero_image_position_y,
-        australian_made, website_url, install_guide_urls, notes,
+        australian_made, website_url, install_guide_urls, design_guide_url, tech_data_url, notes,
         fire_rating, acoustic_rating, moisture_resistant,
         structural_grade, bal_rating,
         sort_order,
