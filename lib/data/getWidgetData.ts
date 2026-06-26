@@ -68,6 +68,8 @@ export type WidgetSystem = {
   hero_image_position_y: number | null
   website_url: string | null
   install_guide_urls: { label: string; url: string }[] | null
+  design_guide_url: string | null
+  tech_data_url: string | null
   notes: string | null
   fire_rating: string | null
   acoustic_rating: string | null
@@ -119,6 +121,8 @@ export async function getWidgetData(token: string): Promise<WidgetData | null> {
           hero_image_position_y,
           website_url,
           install_guide_urls,
+          design_guide_url,
+          tech_data_url,
           notes,
           fire_rating,
           acoustic_rating,

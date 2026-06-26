@@ -1095,6 +1095,38 @@ function SystemDetailModal({
                 </svg>
               </a>
             ))}
+            {system.design_guide_url && (
+              <a
+                href={system.design_guide_url} target="_blank" rel="noopener noreferrer"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                  padding: '13px 16px', fontSize: '14px', fontWeight: 600,
+                  color: '#185D7A', background: '#eef6fa', border: '1.5px solid #b6dcea',
+                  borderRadius: '10px', textDecoration: 'none', boxSizing: 'border-box' as const,
+                }}
+              >
+                Design Guide
+                <svg width="13" height="13" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 10L10 2M10 2H4M10 2V8" stroke="#185D7A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </a>
+            )}
+            {system.tech_data_url && (
+              <a
+                href={system.tech_data_url} target="_blank" rel="noopener noreferrer"
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                  padding: '13px 16px', fontSize: '14px', fontWeight: 600,
+                  color: '#185D7A', background: '#eef6fa', border: '1.5px solid #b6dcea',
+                  borderRadius: '10px', textDecoration: 'none', boxSizing: 'border-box' as const,
+                }}
+              >
+                Technical Data Sheet
+                <svg width="13" height="13" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 10L10 2M10 2H4M10 2V8" stroke="#185D7A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </a>
+            )}
             {system.website_url && (
               <a
                 href={system.website_url} target="_blank" rel="noopener noreferrer"
