@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getManufacturerData } from '@/lib/data/getManufacturerData'
 import { ManufacturerHero } from '@/app/widget/[token]/ManufacturerHero'
-import { WidgetClient } from '@/app/widget/[token]/WidgetClient'
+import { ManufacturerPageClient } from '@/app/manufacturers/ManufacturerPageClient'
 
 export const dynamic = 'force-dynamic'
 
@@ -168,14 +168,11 @@ export default async function ManufacturerPage({
             No products listed for this manufacturer yet.
           </p>
         ) : (
-          <WidgetClient
+          <ManufacturerPageClient
             systems={systems}
-            widgetId=""
-            supplierName={undefined}
-            mode='rfq'
+            manufacturerName={manufacturer.name}
             draftId={draft}
             returnHref={returnHref}
-            manufacturerName={manufacturer.name}
           />
         )}
 

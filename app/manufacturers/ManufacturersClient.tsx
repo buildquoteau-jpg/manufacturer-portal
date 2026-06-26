@@ -4,6 +4,8 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import type { ManufacturerListItem } from '@/lib/data/getManufacturers'
 import { SystemCardTile } from '@/components/ui/SystemCardTile'
+import { SystemDetailModal, type ShoppingListItem } from '@/app/widget/[token]/WidgetClient'
+import type { WidgetSystem } from '@/lib/data/getWidgetData'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -32,9 +34,6 @@ type SystemResult = {
   system_components: { components: unknown | null }[]
 }
 
-interface ShoppingListItem {
-  id: string; name: string; sku: string; desc: string; uom: string; qty: number
-}
 
 // ── Intent detection ──────────────────────────────────────────────────────────
 
@@ -141,6 +140,10 @@ export function ManufacturersClient({ manufacturers, draft }: { manufacturers: M
   const [listListening, setListListening]   = useState(false)
   const [speechAvailable, setSpeechAvailable] = useState(false)
   const [voiceError, setVoiceError]         = useState('')
+
+  const [openSystem, setOpenSystem]           = useState<WidgetSystem | null>(null)
+  const [openSystemMfrName, setOpenSystemMfrName] = useState<string | undefined>(undefined)
+  const [openSystemLoading, setOpenSystemLoading] = useState<string | null>(null)
 
   const inputRef      = useRef<HTMLInputElement>(null)
   const fileInputRef  = useRef<HTMLInputElement>(null)
@@ -433,6 +436,61 @@ export function ManufacturersClient({ manufacturers, draft }: { manufacturers: M
     } catch { setConvertingRFQ(false) }
   }
 
+  // ── Open system card modal directly from search results ─────────────────
+  async function fetchAndOpenSystem(systemId: string, manufacturerName?: string) {
+    if (openSystemLoading) return
+    setOpenSystemMfrName(manufacturerName)
+    setOpenSystemLoading(systemId)
+    try {
+      const { data } = await supabase
+        .from('systems')
+        .select(`
+          id, name, product_code, slug, category, subcategory,
+          description, dimensions, length_m, double_sided,
+          hero_image_url, hero_image_position_x, hero_image_position_y,
+          website_url, install_guide_urls, design_guide_url, tech_data_url, notes,
+          fire_rating, acoustic_rating, moisture_resistant,
+          structural_grade, bal_rating, sort_order, australian_made,
+          system_colours ( colour_name, image_url, sort_order, is_stocked ),
+          system_components (
+            id, role, notes, sort_order,
+            components ( name, sku, description, category, uom, procurement_route )
+          ),
+          system_profiles (
+            id, profile_name, name, product_code, dimensions,
+            length_mm, width_mm, height_mm, thickness_mm,
+            uom, supplier_pack_qty, supplier_pack_uom, sort_order
+          )
+        `)
+        .eq('id', systemId)
+        .maybeSingle()
+
+      if (data) {
+        const sys = data as any
+        setOpenSystem({
+          ...sys,
+          system_colours: (sys.system_colours || []).sort((a: any, b: any) => a.sort_order - b.sort_order),
+          system_components: (sys.system_components || []).sort((a: any, b: any) => a.sort_order - b.sort_order),
+          system_profiles: (sys.system_profiles || []).sort((a: any, b: any) => a.sort_order - b.sort_order),
+        } as WidgetSystem)
+      }
+    } finally {
+      setOpenSystemLoading(null)
+    }
+  }
+
+  function addToShoppingListFromModal(items: ShoppingListItem[]) {
+    setShoppingList(prev => {
+      const updated = [...prev]
+      for (const item of items) {
+        const existing = updated.find(i => i.name === item.name && i.sku === item.sku)
+        if (existing) { existing.qty += item.qty } else { updated.push(item) }
+      }
+      return updated
+    })
+    setListDrawerOpen(true)
+  }
+
   // ── Computed ──────────────────────────────────────────────────────────────
   const intent = query.trim().length >= 2 ? detectIntent(query) : 'search'
   const intentLabel = intent === 'question' ? 'Press Enter to ask AI ↵' : intent === 'list' ? 'Press Enter to read list ↵' : null
@@ -700,8 +758,21 @@ export function ManufacturersClient({ manufacturers, draft }: { manufacturers: M
                   <div className="search-results-grid">
                     {results.map(system => {
                       const mfr = system.manufacturers as any
-                      const href = mfr?.slug ? `/manufacturers/${mfr.slug}${draftParam}` : null
-                      return <SystemCardTile key={system.id} system={system} manufacturer={mfr} onClick={() => { if (href) window.location.href = href }} />
+                      const isLoading = openSystemLoading === system.id
+                      return (
+                        <div key={system.id} style={{ position: 'relative' }}>
+                          <SystemCardTile
+                            system={system}
+                            manufacturer={mfr}
+                            onClick={() => fetchAndOpenSystem(system.id, mfr?.name)}
+                          />
+                          {isLoading && (
+                            <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '14px' }}>
+                              <span style={{ fontSize: '13px', fontWeight: 600, color: '#185D7A' }}>Loading…</span>
+                            </div>
+                          )}
+                        </div>
+                      )
                     })}
                   </div>
                 </>
@@ -776,6 +847,17 @@ export function ManufacturersClient({ manufacturers, draft }: { manufacturers: M
           )}
         </div>
       </div>
+
+      {/* ── System detail modal (opened from search results) ──────────── */}
+      {openSystem && (
+        <SystemDetailModal
+          system={openSystem}
+          onClose={() => setOpenSystem(null)}
+          mode='rfq'
+          manufacturerName={openSystemMfrName}
+          onAddToShoppingList={addToShoppingListFromModal}
+        />
+      )}
 
       {/* ── Shopping list bottom bar ───────────────────────────────────── */}
       {shoppingList.length > 0 && (

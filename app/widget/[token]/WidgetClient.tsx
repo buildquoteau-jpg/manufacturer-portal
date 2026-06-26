@@ -711,9 +711,15 @@ function RfqEnquiryModal({
   )
 }
 
+// ── Shopping list item type ────────────────────────────────────────────────
+
+export type ShoppingListItem = {
+  id: string; name: string; sku: string; desc: string; uom: string; qty: number
+}
+
 // ── System Detail Modal (full product sheet) ───────────────────────────────
 
-function SystemDetailModal({
+export function SystemDetailModal({
   system,
   onClose,
   onEnquire,
@@ -721,6 +727,7 @@ function SystemDetailModal({
   draftId,
   onAdded,
   manufacturerName,
+  onAddToShoppingList,
 }: {
   system: WidgetSystem
   onClose: () => void
@@ -729,6 +736,7 @@ function SystemDetailModal({
   draftId?: string
   onAdded?: (systemId: string, count: number) => void
   manufacturerName?: string
+  onAddToShoppingList?: (items: ShoppingListItem[]) => void
 }) {
   const [selectedProfiles,   setSelectedProfiles]   = useState<Set<string>>(new Set())
   const [selectedComponents, setSelectedComponents] = useState<Set<string>>(new Set())
@@ -864,6 +872,63 @@ function SystemDetailModal({
       }
     } finally {
       setAdding(false)
+    }
+  }
+
+  function handleAddToShoppingList() {
+    if (selCount === 0 || !onAddToShoppingList) return
+    const items: ShoppingListItem[] = []
+    const colourStr = selectedColour ? `Colour: ${selectedColour}` : null
+    const mfPrefix  = [manufacturerName, system.name].filter(Boolean).join(' — ')
+
+    for (const pid of selectedProfiles) {
+      const p = system.system_profiles.find(p => p.id === pid)
+      if (!p) continue
+      const profileLabel = p.profile_name || p.name || ''
+      const dims = fmtDims(p)
+      const descParts = [dims || system.description?.slice(0, 80), colourStr].filter(Boolean)
+      items.push({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        name: [mfPrefix, profileLabel].filter(Boolean).join(' — '),
+        sku: p.product_code || '',
+        desc: descParts.join(' · '),
+        uom: p.uom || 'ea',
+        qty: 1,
+      })
+    }
+    for (const cid of selectedComponents) {
+      const sc = system.system_components.find(c => c.id === cid)
+      if (!sc?.components) continue
+      const comp = sc.components
+      const descParts = [comp.description?.slice(0, 80), colourStr].filter(Boolean)
+      items.push({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        name: [mfPrefix, comp.name].filter(Boolean).join(' — '),
+        sku: comp.sku || '',
+        desc: descParts.join(' · '),
+        uom: comp.uom || 'ea',
+        qty: 1,
+      })
+    }
+    if (selectedBase) {
+      const descParts = [system.description?.slice(0, 80), colourStr].filter(Boolean)
+      items.push({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        name: mfPrefix,
+        sku: system.product_code || '',
+        desc: descParts.join(' · '),
+        uom: 'ea',
+        qty: 1,
+      })
+    }
+
+    if (items.length > 0) {
+      onAddToShoppingList(items)
+      setAdded(true)
+      setSelectedProfiles(new Set())
+      setSelectedComponents(new Set())
+      setSelectedBase(false)
+      onAdded?.(system.id, items.length)
     }
   }
 
@@ -1015,17 +1080,51 @@ function SystemDetailModal({
           <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {mode === 'rfq' ? (
               !draftId ? (
-                <div style={{
-                  padding: '14px 16px', fontSize: '14px', fontWeight: 600,
-                  color: '#6b7280', background: '#f9fafb', border: '1.5px solid #e5e7eb',
-                  borderRadius: '10px', textAlign: 'center', lineHeight: 1.4,
-                }}>
-                  Open from{' '}
-                  <a href="https://buildquote.com.au/rfq" style={{ color: '#185D7A', textDecoration: 'underline' }}>
-                    BuildQuote
-                  </a>
-                  {' '}to add items to your RFQ
-                </div>
+                onAddToShoppingList ? (
+                  added ? (
+                    <button
+                      onClick={onClose}
+                      style={{
+                        padding: '14px 16px', fontSize: '14px', fontWeight: 700,
+                        color: '#166534', background: '#dcfce7', border: '1.5px solid #bbf7d0',
+                        borderRadius: '10px', textAlign: 'center', cursor: 'pointer',
+                        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        gap: '10px',
+                      }}
+                    >
+                      <span>✓ Added to your list</span>
+                      <span style={{ opacity: 0.6, fontSize: '13px', fontWeight: 600 }}>— Done ×</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleAddToShoppingList}
+                      disabled={selCount === 0}
+                      style={{
+                        width: '100%', padding: '15px 16px', fontSize: '15px', fontWeight: 700,
+                        color: selCount > 0 ? '#ffffff' : '#9ca3af',
+                        background: selCount > 0 ? '#185D7A' : '#f3f4f6',
+                        border: 'none', borderRadius: '10px',
+                        cursor: selCount > 0 ? 'pointer' : 'default',
+                        letterSpacing: '0.01em',
+                        boxSizing: 'border-box' as const,
+                      }}
+                    >
+                      {selCount > 0 ? `Add ${selCount} item${selCount !== 1 ? 's' : ''} to list →` : 'Select items above'}
+                    </button>
+                  )
+                ) : (
+                  <div style={{
+                    padding: '14px 16px', fontSize: '14px', fontWeight: 600,
+                    color: '#6b7280', background: '#f9fafb', border: '1.5px solid #e5e7eb',
+                    borderRadius: '10px', textAlign: 'center', lineHeight: 1.4,
+                  }}>
+                    Open from{' '}
+                    <a href="https://buildquote.com.au/rfq" style={{ color: '#185D7A', textDecoration: 'underline' }}>
+                      BuildQuote
+                    </a>
+                    {' '}to add items to your RFQ
+                  </div>
+                )
               ) : added ? (
                 <button
                   onClick={onClose}
@@ -1263,7 +1362,7 @@ function SystemDetailModal({
 // ── Main export ────────────────────────────────────────────────────────────
 
 export function WidgetClient({
-  systems, widgetId, supplierName, mode, draftId, returnHref, manufacturerName,
+  systems, widgetId, supplierName, mode, draftId, returnHref, manufacturerName, onAddToShoppingList,
 }: {
   systems: WidgetSystem[]
   widgetId: string
@@ -1272,6 +1371,7 @@ export function WidgetClient({
   draftId?: string
   returnHref?: string
   manufacturerName?: string
+  onAddToShoppingList?: (items: ShoppingListItem[]) => void
 }) {
   // Which product detail modal is open
   const [openSystem,    setOpenSystem]    = useState<WidgetSystem | null>(null)
@@ -1329,6 +1429,7 @@ export function WidgetClient({
           draftId={draftId}
           onAdded={handleAdded}
           manufacturerName={manufacturerName}
+          onAddToShoppingList={onAddToShoppingList}
         />
       )}
 
