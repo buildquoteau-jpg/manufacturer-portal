@@ -742,7 +742,6 @@ export function SystemDetailModal({
   const [selectedComponents, setSelectedComponents] = useState<Set<string>>(new Set())
   const [selectedBase,       setSelectedBase]       = useState(false)
   const [selectedColour,     setSelectedColour]     = useState<string | null>(null)
-  const [adding,  setAdding]  = useState(false)
   const [added,   setAdded]   = useState(false)
 
   // Stockists (rfq mode only)
@@ -808,72 +807,6 @@ export function SystemDetailModal({
   }
 
   const selCount = selectedProfiles.size + selectedComponents.size + (selectedBase ? 1 : 0)
-
-  async function handleAddToRFQ() {
-    if (!draftId || selCount === 0) return
-    setAdding(true)
-    const items: { name: string; sku: string; desc: string; uom: string; qty: string; procurement_route?: string }[] = []
-    const colourStr = selectedColour ? `Colour: ${selectedColour}` : null
-    const mfPrefix  = [manufacturerName, system.name].filter(Boolean).join(' — ')
-
-    for (const pid of selectedProfiles) {
-      const p = system.system_profiles.find(p => p.id === pid)
-      if (!p) continue
-      const profileLabel = p.profile_name || p.name || ''
-      const dims = fmtDims(p)
-      const descParts = [dims || system.description?.slice(0, 80), colourStr].filter(Boolean)
-      items.push({
-        name: [mfPrefix, profileLabel].filter(Boolean).join(' — '),
-        sku: p.product_code || '',
-        desc: descParts.join(' · '),
-        uom: p.uom || 'ea',
-        qty: '1',
-        procurement_route: 'specialist_supplier',
-      })
-    }
-    for (const cid of selectedComponents) {
-      const sc = system.system_components.find(c => c.id === cid)
-      if (!sc?.components) continue
-      const comp = sc.components
-      const descParts = [comp.description?.slice(0, 80), colourStr].filter(Boolean)
-      items.push({
-        name: [mfPrefix, comp.name].filter(Boolean).join(' — '),
-        sku: comp.sku || '',
-        desc: descParts.join(' · '),
-        uom: comp.uom || 'ea',
-        qty: '1',
-        procurement_route: comp.procurement_route ?? undefined,
-      })
-    }
-    if (selectedBase) {
-      const descParts = [system.description?.slice(0, 80), colourStr].filter(Boolean)
-      items.push({
-        name: mfPrefix,
-        sku: system.product_code || '',
-        desc: descParts.join(' · '),
-        uom: 'ea',
-        qty: '1',
-        procurement_route: 'specialist_supplier',
-      })
-    }
-
-    try {
-      const res = await fetch('/api/add-to-draft', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ draftId, items }),
-      })
-      if (res.ok) {
-        setAdded(true)
-        setSelectedProfiles(new Set())
-        setSelectedComponents(new Set())
-        setSelectedBase(false)
-        onAdded?.(system.id, items.length)
-      }
-    } finally {
-      setAdding(false)
-    }
-  }
 
   function handleAddToShoppingList() {
     if (selCount === 0 || !onAddToShoppingList) return
@@ -1079,88 +1012,50 @@ export function SystemDetailModal({
           {/* Actions */}
           <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {mode === 'rfq' ? (
-              !draftId ? (
-                onAddToShoppingList ? (
-                  added ? (
-                    <button
-                      onClick={onClose}
-                      style={{
-                        padding: '14px 16px', fontSize: '14px', fontWeight: 700,
-                        color: '#166534', background: '#dcfce7', border: '1.5px solid #bbf7d0',
-                        borderRadius: '10px', textAlign: 'center', cursor: 'pointer',
-                        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        gap: '10px',
-                      }}
-                    >
-                      <span>✓ Added to your list</span>
-                      <span style={{ opacity: 0.6, fontSize: '13px', fontWeight: 600 }}>— Done ×</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleAddToShoppingList}
-                      disabled={selCount === 0}
-                      style={{
-                        width: '100%', padding: '15px 16px', fontSize: '15px', fontWeight: 700,
-                        color: selCount > 0 ? '#ffffff' : '#9ca3af',
-                        background: selCount > 0 ? '#185D7A' : '#f3f4f6',
-                        border: 'none', borderRadius: '10px',
-                        cursor: selCount > 0 ? 'pointer' : 'default',
-                        letterSpacing: '0.01em',
-                        boxSizing: 'border-box' as const,
-                      }}
-                    >
-                      {selCount > 0 ? `Add ${selCount} item${selCount !== 1 ? 's' : ''} to list →` : 'Select items above'}
-                    </button>
-                  )
+              onAddToShoppingList ? (
+                added ? (
+                  <button
+                    onClick={onClose}
+                    style={{
+                      padding: '14px 16px', fontSize: '14px', fontWeight: 700,
+                      color: '#166534', background: '#dcfce7', border: '1.5px solid #bbf7d0',
+                      borderRadius: '10px', textAlign: 'center', cursor: 'pointer',
+                      width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      gap: '10px',
+                    }}
+                  >
+                    <span>✓ Added to your list</span>
+                    <span style={{ opacity: 0.6, fontSize: '13px', fontWeight: 600 }}>— Done ×</span>
+                  </button>
                 ) : (
-                  <div style={{
-                    padding: '14px 16px', fontSize: '14px', fontWeight: 600,
-                    color: '#6b7280', background: '#f9fafb', border: '1.5px solid #e5e7eb',
-                    borderRadius: '10px', textAlign: 'center', lineHeight: 1.4,
-                  }}>
-                    Open from{' '}
-                    <a href="https://buildquote.com.au/rfq" style={{ color: '#185D7A', textDecoration: 'underline' }}>
-                      BuildQuote
-                    </a>
-                    {' '}to add items to your RFQ
-                  </div>
+                  <button
+                    onClick={handleAddToShoppingList}
+                    disabled={selCount === 0}
+                    style={{
+                      width: '100%', padding: '15px 16px', fontSize: '15px', fontWeight: 700,
+                      color: selCount > 0 ? '#ffffff' : '#9ca3af',
+                      background: selCount > 0 ? '#185D7A' : '#f3f4f6',
+                      border: 'none', borderRadius: '10px',
+                      cursor: selCount > 0 ? 'pointer' : 'default',
+                      letterSpacing: '0.01em',
+                      boxSizing: 'border-box' as const,
+                    }}
+                  >
+                    {selCount > 0 ? `Add ${selCount} item${selCount !== 1 ? 's' : ''} to list →` : 'Select items above'}
+                  </button>
                 )
-              ) : added ? (
-                <button
-                  onClick={onClose}
-                  style={{
-                    padding: '14px 16px', fontSize: '14px', fontWeight: 700,
-                    color: '#166534', background: '#dcfce7', border: '1.5px solid #bbf7d0',
-                    borderRadius: '10px', textAlign: 'center', cursor: 'pointer',
-                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    gap: '10px', transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#bbf7d0')}
-                  onMouseLeave={e => (e.currentTarget.style.background = '#dcfce7')}
-                >
-                  <span>✓ Added to your RFQ</span>
-                  <span style={{ opacity: 0.6, fontSize: '13px', fontWeight: 600 }}>— Done ×</span>
-                </button>
               ) : (
-                <button
-                  onClick={handleAddToRFQ}
-                  disabled={selCount === 0 || adding}
-                  style={{
-                    width: '100%', padding: '15px 16px', fontSize: '15px', fontWeight: 700,
-                    color: selCount > 0 ? '#ffffff' : '#9ca3af',
-                    background: selCount > 0 ? '#185D7A' : '#f3f4f6',
-                    border: 'none', borderRadius: '10px',
-                    cursor: selCount > 0 ? 'pointer' : 'default',
-                    letterSpacing: '0.01em', transition: 'background 0.15s',
-                    boxSizing: 'border-box' as const,
-                  }}
-                >
-                  {adding
-                    ? 'Adding…'
-                    : selCount > 0
-                      ? `Add ${selCount} selected to RFQ →`
-                      : 'Select profiles or components above'}
-                </button>
+                <div style={{
+                  padding: '14px 16px', fontSize: '14px', fontWeight: 600,
+                  color: '#6b7280', background: '#f9fafb', border: '1.5px solid #e5e7eb',
+                  borderRadius: '10px', textAlign: 'center', lineHeight: 1.4,
+                }}>
+                  Open from{' '}
+                  <a href="https://buildquote.com.au/rfq" style={{ color: '#185D7A', textDecoration: 'underline' }}>
+                    BuildQuote
+                  </a>
+                  {' '}to add items to your RFQ
+                </div>
               )
             ) : (
               // Enquire mode
