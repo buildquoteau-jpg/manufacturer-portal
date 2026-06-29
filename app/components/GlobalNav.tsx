@@ -10,7 +10,7 @@ const NAV_LINKS = [
   { label: 'Home',                  href: `${BQ}/`,             external: true  },
   { label: '1  Builder Portal',     href: `${BQ}/dashboard`,    external: true  },
   { label: '2  Start a Quote',      href: `${BQ}/rfq`,          external: true  },
-  { label: '3  Search Products',    href: '/manufacturers',     external: false },
+  { label: '3  Product Library',    href: `${BQ}/library`,      external: true  },
   { label: '4  Supplier Directory', href: '/supplierdirectory', external: false },
   { label: '5  Supplier Login',     href: '/supplier/login',    external: false },
 ]
@@ -62,8 +62,8 @@ export function GlobalNav() {
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  // Don't render on embedded widget, embed, or showroom pages
-  if (pathname.startsWith('/widget/') || pathname.startsWith('/embed/') || pathname.startsWith('/showroom')) return null
+  // Don't render on embedded widget or embed pages
+  if (pathname.startsWith('/widget/') || pathname.startsWith('/embed/')) return null
 
   // Close on outside click
   useEffect(() => {
