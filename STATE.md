@@ -1,10 +1,15 @@
 # Manufacturer Portal (MFP) — Session State
-_Last updated: 2026-06-29 (session 10) — merged to `main`_
+_Last updated: 2026-06-29 (session 11) — merged to `main`_
 
 ## Branch
 `main` — all work committed and merged.
-**Next session:** confirm whether buildquote.com.au/library still consumes
-`/api/manufacturers` (cross-origin); if not, retire it and `getManufacturers.ts`.
+
+## Session 11 — retired /api/manufacturers (2026-06-29)
+buildquote's only consumer (the SEO page `south-west-building-materials-directory`)
+was rewritten to read manufacturers from Supabase directly and deployed to prod, so:
+- Deleted `app/api/manufacturers/` and `lib/data/getManufacturers.ts`.
+- Verified beforehand that prod buildquote no longer calls the endpoint
+  (`/products` → `/library`, SEO page has no MFP `/manufacturers` links).
 
 ## Session 10 — Half 2 removal (2026-06-29)
 Customer-facing product search was fully ported to buildquote.com.au/library, so

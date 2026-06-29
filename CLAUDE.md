@@ -14,7 +14,9 @@ created/managed elsewhere.
 > **fully ported to buildquote.com.au/library and deleted on 2026-06-29.** See
 > [STATE.md](STATE.md) for session history. If you find references to
 > `/manufacturers`, `/browse`, `/showroom`, `/api/search/*`, `/api/create-draft`,
-> or `/api/add-to-draft`, they are stale — those routes no longer exist here.
+> `/api/add-to-draft`, or `/api/manufacturers`, they are stale — those routes no
+> longer exist here. (`/api/manufacturers` was retired on 2026-06-29 once
+> buildquote's SEO directory page switched to reading Supabase directly.)
 
 ## Stack
 
@@ -53,7 +55,6 @@ created/managed elsewhere.
 ### API
 | Route | Purpose |
 |---|---|
-| `/api/manufacturers` | GET manufacturer list. **CORS-open to buildquote.com.au** — buildquote may consume this cross-origin, so the route and its data layer (`lib/data/getManufacturers.ts`) are kept. |
 | `/api/request-system` | Request a missing system/product |
 | `/api/add-components` | Add components to a system |
 | `/api/rfq-notify` | RFQ notification email (Resend) |
@@ -70,7 +71,6 @@ rule table in [STATE.md](STATE.md). `GlobalNav` hides itself on `/widget/*` and
 ## Data layer (`lib/data/`)
 | File | Used by | Keep? |
 |---|---|---|
-| `getManufacturers.ts` | `/api/manufacturers` (cross-origin to buildquote) | **Keep** |
 | `getWidgetData.ts` | `/widget/[token]` | **Keep** |
 | `getPublicSuppliers.ts` | `/supplierdirectory`, `/embed/[slug]` | **Keep** |
 | `getSupplierBrandWidget.ts` | `/embed/[slug]` | **Keep** |
