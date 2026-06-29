@@ -1,9 +1,24 @@
 # Manufacturer Portal (MFP) — Session State
-_Last updated: 2026-05-26 (session 9) — merged to `main`_
+_Last updated: 2026-06-29 (session 10) — merged to `main`_
 
 ## Branch
-`main` — all session 9 work committed and merged.
-**Next session:** ui/ux tweaks, end-to-end testing of full flow.
+`main` — all work committed and merged.
+**Next session:** confirm whether buildquote.com.au/library still consumes
+`/api/manufacturers` (cross-origin); if not, retire it and `getManufacturers.ts`.
+
+## Session 10 — Half 2 removal (2026-06-29)
+Customer-facing product search was fully ported to buildquote.com.au/library, so
+"Half 2" was deleted from this repo:
+- Deleted `app/manufacturers/`, `app/api/search/` (ask, parse-list,
+  extract-from-image), `app/api/create-draft`, `app/api/add-to-draft`,
+  `lib/data/getManufacturerData.ts`.
+- Deleted stale routes `app/browse/` and `app/showroom/`.
+- Root `/` now redirects to `https://buildquote.com.au/library`; GlobalNav item 3
+  points there (external) and no longer excludes `/showroom`.
+- **Kept** `/api/manufacturers` + `lib/data/getManufacturers.ts` (CORS-open to
+  buildquote — may still be consumed cross-origin; unconfirmed).
+- **Kept** `/embed/[slug]` (distinct multi-brand supplier embed, may be live).
+- Rewrote CLAUDE.md to reflect the supplier/admin-only scope.
 
 ---
 
