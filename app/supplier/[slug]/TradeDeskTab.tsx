@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { SupplierData, Manufacturer } from './shared'
+import { fuzzyIncludes } from '@/lib/fuzzyMatch'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -32,23 +33,53 @@ type QuotePrepItem = {
 }
 
 // ── Search ────────────────────────────────────────────────────────────────────
+// Weighted, fuzzy, ranked — a typed word landing in the product name counts
+// for far more than one only found in the description, and a single typo
+// ("claddng") still matches via fuzzyIncludes' bounded edit distance.
+
+const FIELD_WEIGHT = {
+  name: 10,
+  productCode: 8,
+  category: 6,
+  manufacturer: 4,
+  dimensions: 3,
+  description: 2,
+} as const
 
 function searchItems(items: StockedItem[], query: string): StockedItem[] {
   const q = query.trim()
   if (!q) return []
   const terms = q.toLowerCase().split(/\s+/).filter(Boolean)
-  return items.filter(item => {
-    const hay = [
-      item.systemName,
-      item.productCode,
-      item.category,
-      item.subcategory ?? '',
-      item.manufacturerName,
-      item.description ?? '',
-      item.dimensions ?? '',
-    ].join(' ').toLowerCase()
-    return terms.every(t => hay.includes(t))
-  })
+  if (terms.length === 0) return []
+
+  const fieldsOf = (item: StockedItem) => [
+    { text: item.systemName, weight: FIELD_WEIGHT.name },
+    { text: item.productCode, weight: FIELD_WEIGHT.productCode },
+    { text: [item.category, item.subcategory ?? ''].join(' '), weight: FIELD_WEIGHT.category },
+    { text: item.manufacturerName, weight: FIELD_WEIGHT.manufacturer },
+    { text: item.dimensions ?? '', weight: FIELD_WEIGHT.dimensions },
+    { text: item.description ?? '', weight: FIELD_WEIGHT.description },
+  ]
+
+  const scored = items
+    .map(item => {
+      const fields = fieldsOf(item)
+      let score = 0
+      for (const term of terms) {
+        let matched = false
+        for (const f of fields) {
+          if (fuzzyIncludes(f.text, term)) { score += f.weight; matched = true }
+        }
+        // Every typed word must match somewhere (AND across terms), same
+        // behaviour as the old substring filter — just fuzzy per-term now.
+        if (!matched) return { item, score: -1 }
+      }
+      return { item, score }
+    })
+    .filter(r => r.score >= 0)
+    .sort((a, b) => b.score - a.score)
+
+  return scored.map(r => r.item)
 }
 
 // ── Result card ───────────────────────────────────────────────────────────────
