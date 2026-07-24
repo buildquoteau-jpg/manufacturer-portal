@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase/client'
 import { SupplierData, RfqEnquiry, Manufacturer } from './shared'
 import { ProfileTab } from './ProfileTab'
 import { ProductsTab } from './ProductsTab'
+import { MyProductsTab } from './MyProductsTab'
 import { EnquiriesTab } from './EnquiriesTab'
 import { AccountTab } from './AccountTab'
 import { TradeDeskTab, CrossSellRule } from './TradeDeskTab'
@@ -15,7 +16,7 @@ import { TradeDeskTab, CrossSellRule } from './TradeDeskTab'
 // but move to a server action before go-live if you want it out of the bundle.
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || ''
 
-type Tab = 'profile' | 'products' | 'trade-desk' | 'enquiries' | 'account'
+type Tab = 'profile' | 'my-products' | 'trade-desk' | 'products' | 'enquiries' | 'account'
 
 // ── First login modal ─────────────────────────────────────────────────────────
 
@@ -276,11 +277,12 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
   if (!supplier) return null
 
   const TABS: { id: Tab; label: string; count?: number }[] = [
-    { id: 'profile',    label: 'Profile' },
-    { id: 'products',   label: 'Products',   count: supplier.embed_widgets.length },
-    { id: 'trade-desk', label: 'Trade Desk' },
-    { id: 'enquiries',  label: 'Enquiries',  count: enquiries.length },
-    { id: 'account',    label: 'Account' },
+    { id: 'profile',      label: 'Profile' },
+    { id: 'my-products',  label: 'My Products' },
+    { id: 'trade-desk',   label: 'Trade Desk' },
+    { id: 'products',     label: 'Website Widgets', count: supplier.embed_widgets.length },
+    { id: 'enquiries',    label: 'Enquiries',        count: enquiries.length },
+    { id: 'account',      label: 'Account' },
   ]
 
   return (
@@ -348,9 +350,18 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
       </div>
 
       {/* Tab content */}
-      <div className={`mx-auto px-6 py-8 ${activeTab === 'products' || activeTab === 'trade-desk' ? 'max-w-6xl xl:max-w-7xl 2xl:max-w-[1480px]' : 'max-w-3xl xl:max-w-5xl 2xl:max-w-6xl'}`}>
+      <div className={`mx-auto px-6 py-8 ${activeTab === 'products' || activeTab === 'my-products' || activeTab === 'trade-desk' ? 'max-w-6xl xl:max-w-7xl 2xl:max-w-[1480px]' : 'max-w-3xl xl:max-w-5xl 2xl:max-w-6xl'}`}>
         {activeTab === 'profile' && (
           <ProfileTab supplier={supplier} accessToken={accessToken} slug={slug} onReload={loadSupplier} />
+        )}
+        {activeTab === 'my-products' && (
+          <MyProductsTab
+            supplier={supplier}
+            manufacturers={manufacturers}
+            accessToken={accessToken}
+            slug={slug}
+            onReload={loadSupplier}
+          />
         )}
         {activeTab === 'products' && (
           <ProductsTab
