@@ -116,7 +116,7 @@ export function MyProductsTab({
       {error && <p className="text-error text-sm">{error}</p>}
 
       {!openManufacturer ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
           {manufacturers.map(mf => {
             const total = mf.systems.length
             const stocked = mf.systems.filter(s => localStockedIds.has(s.id)).length
@@ -145,7 +145,7 @@ export function MyProductsTab({
           >
             ← All manufacturers
           </button>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
             {openManufacturer.systems.map(sys => {
               const system = adaptProductionSystem(sys, {
                 name: openManufacturer.name, slug: openManufacturer.slug, logo_url: openManufacturer.logo_url,

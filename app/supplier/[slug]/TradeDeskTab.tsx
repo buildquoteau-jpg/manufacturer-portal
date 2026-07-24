@@ -720,7 +720,7 @@ function TradeDeskInner({
         )}
 
         {showManufacturerGrid ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
             {manufacturerGroups.map(group => {
               const mf = manufacturersBySlug.get(group.manufacturerSlug)
               return (
@@ -741,7 +741,7 @@ function TradeDeskInner({
         ) : (
           <>
             {displayedItems.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
                 {displayedItems.map(item => (
                   <SelectableTile
                     key={item.id}
