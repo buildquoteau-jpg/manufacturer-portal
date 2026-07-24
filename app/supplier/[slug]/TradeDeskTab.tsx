@@ -9,6 +9,7 @@ import { SystemCardRenderer } from '@/components/system-card/SystemCardRenderer'
 import { ShoppingListProvider, useShoppingList } from '@/components/system-card/ShoppingListProvider'
 import { ShoppingListDrawer } from '@/components/system-card/ShoppingListDrawer'
 import { adaptProductionSystem } from '@/components/system-card/adaptProductionSystem'
+import { ManufacturerCardTile } from '@/components/system-card/ManufacturerCardTile'
 import type { SystemCardSystem } from '@/components/system-card/types'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -114,39 +115,6 @@ function groupByManufacturer(
   )
 }
 
-// ── Manufacturer group card ──────────────────────────────────────────────────
-
-function ManufacturerGroupCard({
-  group,
-  onDrillDown,
-}: {
-  group: ManufacturerGroup
-  onDrillDown: (manufacturerSlug: string) => void
-}) {
-  return (
-    <button
-      onClick={() => onDrillDown(group.manufacturerSlug)}
-      className="bg-surface border border-border hover:border-brand rounded-xl p-4 flex flex-col gap-2.5 text-left shadow-sm hover:shadow-md transition-all"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <p className="font-semibold text-text-primary text-sm leading-snug">{group.manufacturerName}</p>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-brand-subtle text-brand font-medium flex-shrink-0">
-          {group.items.length} match{group.items.length !== 1 ? 'es' : ''}
-        </span>
-      </div>
-      <div className="space-y-0.5">
-        {group.items.slice(0, 3).map(item => (
-          <p key={item.id} className="text-xs text-text-secondary truncate">{item.name}</p>
-        ))}
-        {group.items.length > 3 && (
-          <p className="text-xs text-text-muted">+{group.items.length - 3} more</p>
-        )}
-      </div>
-      <span className="text-xs text-brand font-semibold mt-1">View products →</span>
-    </button>
-  )
-}
-
 // ── Cross-sell strip ─────────────────────────────────────────────────────────
 
 function CrossSellStrip({
@@ -233,24 +201,52 @@ function SystemDetailModal({
 }) {
   const { addItems } = useShoppingList()
 
+  // Gallery images (multiple hero photos) only exist for systems published
+  // through the newer hybrid-publish pipeline — fetched lazily so opening
+  // the card stays instant; most systems simply won't have one yet, and the
+  // card already falls back to the single hero_image_url cleanly either way.
+  const [galleryImages, setGalleryImages] = useState<SystemCardSystem['gallery_images']>(null)
+
+  // Opening a different system should drop the previous one's gallery
+  // immediately, adjusted during render (same pattern as the search-reset
+  // above) rather than an effect, since resetting state synchronously in an
+  // effect body trips this host's lint config.
+  const systemKey = `${system.manufacturer?.slug ?? ''}/${system.slug}`
+  const [loadedForKey, setLoadedForKey] = useState(systemKey)
+  if (systemKey !== loadedForKey) {
+    setLoadedForKey(systemKey)
+    setGalleryImages(null)
+  }
+
+  useEffect(() => {
+    const mfrSlug = system.manufacturer?.slug
+    if (!mfrSlug || !system.slug) return
+    let cancelled = false
+    fetch(`/api/supplier/system-gallery?mfrSlug=${encodeURIComponent(mfrSlug)}&systemSlug=${encodeURIComponent(system.slug)}`)
+      .then(r => r.json())
+      .then(json => { if (!cancelled) setGalleryImages(json.gallery_images ?? null) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [system.manufacturer?.slug, system.slug])
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto"
       style={{ background: 'rgba(0,0,0,0.65)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div className="w-full max-w-xl my-8">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-3 sticky top-0 z-10">
           <button
             onClick={onSendReviewLink}
-            className="px-4 py-2 bg-surface hover:bg-surface-hover border border-border text-text-secondary text-xs font-semibold rounded-lg transition-colors"
+            className="px-4 py-2 bg-surface hover:bg-surface-hover border border-border text-text-secondary text-xs font-semibold rounded-lg shadow-md transition-colors"
           >
             Send review link for this product
           </button>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-surface border border-border text-text-secondary hover:text-text-primary flex items-center justify-center text-xl leading-none">×</button>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-surface border border-border text-text-secondary hover:text-text-primary flex items-center justify-center text-xl leading-none shadow-md">×</button>
         </div>
         <SystemCardRenderer
-          system={system}
+          system={galleryImages ? { ...system, gallery_images: galleryImages } : system}
           showStockists={false}
           onAddToList={addItems}
         />
@@ -529,6 +525,14 @@ function TradeDeskInner({
     )
   }, [supplier, manufacturers])
 
+  // Manufacturer-level fields (hero image, description) the Manufacturer view
+  // card needs but SystemCardSystem.manufacturer doesn't carry — looked up by
+  // slug against the full manufacturers prop.
+  const manufacturersBySlug = useMemo(
+    () => new Map(manufacturers.map(mf => [mf.slug, mf])),
+    [manufacturers]
+  )
+
   const scoredResults = useMemo(() => searchItemsScored(stockedSystems, query), [stockedSystems, query])
   const results = useMemo(() => scoredResults.map(r => r.item), [scoredResults])
 
@@ -716,10 +720,23 @@ function TradeDeskInner({
         )}
 
         {showManufacturerGrid ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {manufacturerGroups.map(group => (
-              <ManufacturerGroupCard key={group.manufacturerSlug} group={group} onDrillDown={drillIntoManufacturer} />
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            {manufacturerGroups.map(group => {
+              const mf = manufacturersBySlug.get(group.manufacturerSlug)
+              return (
+                <ManufacturerCardTile
+                  key={group.manufacturerSlug}
+                  manufacturer={{
+                    name: group.manufacturerName,
+                    hero_image_url: mf?.hero_image_url ?? null,
+                    hero_image_position_y: mf?.hero_image_position_y ?? null,
+                    description: mf?.description ?? null,
+                  }}
+                  countLabel={`${group.items.length} match${group.items.length !== 1 ? 'es' : ''}`}
+                  onClick={() => drillIntoManufacturer(group.manufacturerSlug)}
+                />
+              )
+            })}
           </div>
         ) : (
           <>

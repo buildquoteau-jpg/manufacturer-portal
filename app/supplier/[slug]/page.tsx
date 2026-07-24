@@ -211,6 +211,7 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
       .from('manufacturers')
       .select(`
         id, name, slug, description, logo_url, website_url,
+        hero_image_url, hero_image_position_y,
         systems (
           id, name, product_code, slug, category, subcategory, sort_order,
           description, hero_image_url, hero_image_position_x, hero_image_position_y,

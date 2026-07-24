@@ -35,6 +35,8 @@ export type Manufacturer = {
   description: string | null
   logo_url: string | null
   website_url: string | null
+  hero_image_url: string | null
+  hero_image_position_y: number | null
   systems: (ProductionSystem & { sort_order: number })[]
 }
 
