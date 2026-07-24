@@ -153,15 +153,26 @@ export function MyProductsTab({
               const stocked = localStockedIds.has(sys.id)
               const saving = savingIds.has(sys.id)
               return (
-                <div key={sys.id} className="relative">
-                  <SystemCardTile system={system} onClick={() => !saving && toggleStocked(openManufacturer, sys.id)} />
-                  <div
-                    className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      stocked ? 'bg-success border-success' : 'bg-white/90 border-white'
-                    } ${saving ? 'opacity-60' : ''}`}
+                <div key={sys.id} className={`relative rounded-2xl ${stocked ? 'ring-2 ring-success' : ''}`}>
+                  <SystemCardTile system={system} onClick={() => {}} />
+                  {/* Card's own "View details →" isn't accurate here (this tab
+                      only ticks/unticks stocking) — an explicit checkbox row
+                      overlaid at the bottom is the actual, unambiguous control. */}
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => toggleStocked(openManufacturer, sys.id)}
+                    className={`absolute inset-x-0 bottom-0 flex items-center justify-center gap-2 py-3 rounded-b-2xl font-semibold text-sm transition-colors ${
+                      stocked ? 'bg-success text-white hover:bg-success/90' : 'bg-brand text-white hover:bg-brand-hover'
+                    } ${saving ? 'opacity-60 cursor-wait' : 'cursor-pointer'}`}
                   >
-                    {stocked && <span className="text-white text-base font-bold leading-none">✓</span>}
-                  </div>
+                    <span className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
+                      stocked ? 'bg-white border-white' : 'border-white/70'
+                    }`}>
+                      {stocked && <span className="text-success text-sm font-bold leading-none">✓</span>}
+                    </span>
+                    {saving ? 'Saving…' : stocked ? 'Stocked — click to remove' : 'Click to mark as stocked'}
+                  </button>
                 </div>
               )
             })}
