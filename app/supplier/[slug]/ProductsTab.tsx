@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import {
-  SupplierData, Manufacturer, WidgetRecord, CATEGORIES,
-  buildEmbedCode, slugify, formatDate,
+  SupplierData, Manufacturer, WidgetRecord,
+  buildEmbedCode, slugify,
 } from './shared'
 
 function downloadInstructions(supplierName: string, embedCode: string, previewUrl: string) {
@@ -71,18 +71,17 @@ type EditSystem = {
 function MfLogo({ manufacturer, size = 52 }: { manufacturer: Manufacturer | undefined; size?: number }) {
   const initial = manufacturer?.name?.[0]?.toUpperCase() ?? '?'
   return (
-    <div style={{
-      width: `${size}px`, height: `${size}px`, borderRadius: '10px', flexShrink: 0,
-      background: manufacturer?.logo_url ? 'rgba(255,255,255,0.08)' : '#185D7A',
-      border: '1.5px solid rgba(255,255,255,0.1)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      overflow: 'hidden',
-    }}>
+    <div
+      className={`flex-shrink-0 rounded-[10px] border overflow-hidden flex items-center justify-center ${
+        manufacturer?.logo_url ? 'bg-ui border-border' : 'bg-brand border-brand'
+      }`}
+      style={{ width: `${size}px`, height: `${size}px` }}
+    >
       {manufacturer?.logo_url ? (
         <img src={manufacturer.logo_url} alt={manufacturer.name}
           style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '7px' }} />
       ) : (
-        <span style={{ fontSize: `${Math.round(size * 0.38)}px`, fontWeight: 800, color: '#fff' }}>
+        <span className="font-extrabold text-white" style={{ fontSize: `${Math.round(size * 0.38)}px` }}>
           {initial}
         </span>
       )}
@@ -93,7 +92,7 @@ function MfLogo({ manufacturer, size = 52 }: { manufacturer: Manufacturer | unde
 // ── Widget card ───────────────────────────────────────────────────────────────
 
 function WidgetCard({
-  widget, manufacturer, supplier, origin, onEdit, onDownload,
+  widget, manufacturer, origin, onEdit, onDownload,
 }: {
   widget: WidgetRecord
   manufacturer: Manufacturer | undefined
@@ -117,33 +116,20 @@ function WidgetCard({
   }
 
   return (
-    <div style={{
-      background: 'rgba(255,255,255,0.04)',
-      border: '1px solid rgba(255,255,255,0.1)',
-      borderRadius: '16px', overflow: 'hidden',
-      display: 'flex', flexDirection: 'column',
-    }}>
+    <div className="bg-surface border border-border rounded-2xl overflow-hidden flex flex-col shadow-sm">
 
       {/* ── Brand header ── */}
-      <div style={{ padding: '18px 18px 14px', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+      <div className="flex items-start gap-3" style={{ padding: '18px 18px 14px' }}>
         <MfLogo manufacturer={manufacturer} />
-        <div style={{ flex: 1 }}>
-          <p style={{
-            margin: 0, fontSize: '15px', fontWeight: 700,
-            color: '#e8f4f8', lineHeight: 1.3,
-            wordBreak: 'break-word',
-          }}>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-text-primary leading-snug" style={{ wordBreak: 'break-word' }}>
             {manufacturer?.name ?? 'Unknown manufacturer'}
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '5px', flexWrap: 'wrap' }}>
-            <span style={{
-              fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '20px',
-              background: isActive ? 'rgba(74,222,128,0.15)' : 'rgba(248,113,113,0.15)',
-              color: isActive ? '#4ade80' : '#f87171',
-            }}>
+          <div className="flex items-center gap-2 flex-wrap" style={{ marginTop: '5px' }}>
+            <span className={`text-[11px] font-semibold rounded-full ${isActive ? 'bg-success/15 text-success' : 'bg-error/15 text-error'}`} style={{ padding: '2px 8px' }}>
               ● {widget.status}
             </span>
-            <span style={{ fontSize: '12px', color: '#6b8ea0' }}>
+            <span className="text-xs text-text-secondary">
               {profiles.length} of {manufacturer?.systems.length ?? profiles.length} products selected
             </span>
           </div>
@@ -151,15 +137,14 @@ function WidgetCard({
       </div>
 
       {/* ── Product list ── */}
-      <div style={{ padding: '0 18px 16px', flex: 1 }}>
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: '12px' }}>
+      <div className="flex-1" style={{ padding: '0 18px 16px' }}>
+        <div className="border-t border-border-subtle" style={{ paddingTop: '12px' }}>
           {profiles.map((sys, i) => (
-            <div key={i} style={{
-              padding: '5px 0',
-              borderBottom: i < profiles.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
-              fontSize: '13px', color: '#90b8cc', lineHeight: 1.4,
-              wordBreak: 'break-word',
-            }}>
+            <div
+              key={i}
+              className={`text-sm text-text-secondary leading-snug ${i < profiles.length - 1 ? 'border-b border-border-subtle' : ''}`}
+              style={{ padding: '5px 0', wordBreak: 'break-word' }}
+            >
               {sys.name}
             </div>
           ))}
@@ -170,13 +155,8 @@ function WidgetCard({
       <div style={{ padding: '0 18px 8px' }}>
         <button
           onClick={copyCode}
-          style={{
-            width: '100%', padding: '13px 16px',
-            background: copied ? '#166534' : '#185D7A',
-            color: '#fff', border: 'none', borderRadius: '10px',
-            fontWeight: 700, fontSize: '14px', cursor: 'pointer',
-            transition: 'background 0.2s', letterSpacing: '0.01em',
-          }}
+          className={`w-full font-bold text-sm text-white rounded-[10px] transition-colors ${copied ? 'bg-success hover:bg-success' : 'bg-brand hover:bg-brand-hover'}`}
+          style={{ padding: '13px 16px', letterSpacing: '0.01em' }}
         >
           {copied ? '✓ Copied to clipboard!' : 'Copy embed code'}
         </button>
@@ -186,50 +166,35 @@ function WidgetCard({
       <div style={{ padding: '0 18px 12px' }}>
         <a
           href={previewUrl} target="_blank" rel="noopener noreferrer"
-          style={{
-            display: 'block', width: '100%', padding: '11px 16px',
-            background: 'transparent',
-            border: '1.5px solid rgba(144,184,204,0.35)',
-            color: '#90c8de', textDecoration: 'none',
-            fontWeight: 600, fontSize: '13px',
-            borderRadius: '10px', textAlign: 'center',
-            boxSizing: 'border-box',
-          }}
+          className="block w-full text-center font-semibold text-sm text-brand border-[1.5px] border-brand rounded-[10px] hover:bg-brand-subtle transition-colors"
+          style={{ padding: '11px 16px', boxSizing: 'border-box' }}
         >
           Preview widget ↗
         </a>
       </div>
 
       {/* ── Tertiary actions ── */}
-      <div style={{
-        padding: '10px 18px 14px',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-        display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center',
-      }}>
-        <button onClick={() => onEdit(widget)}
-          style={{ fontSize: '12px', color: '#6b8ea0', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500, padding: 0 }}>
+      <div
+        className="border-t border-border-subtle flex items-center flex-wrap"
+        style={{ padding: '10px 18px 14px', gap: '16px' }}
+      >
+        <button onClick={() => onEdit(widget)} className="text-xs font-medium text-text-secondary hover:text-brand">
           Edit products
         </button>
-        <button onClick={() => onDownload(widget)}
-          style={{ fontSize: '12px', color: '#6b8ea0', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500, padding: 0 }}>
+        <button onClick={() => onDownload(widget)} className="text-xs font-medium text-text-secondary hover:text-brand">
           Setup guide ↓
         </button>
-        <button
-          onClick={() => setShowCode(v => !v)}
-          style={{ fontSize: '12px', color: '#4a6b7a', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginLeft: 'auto' }}>
+        <button onClick={() => setShowCode(v => !v)} className="text-xs text-text-muted hover:text-text-secondary ml-auto">
           {showCode ? 'Hide code ▲' : 'Show code ▼'}
         </button>
       </div>
 
       {/* ── Collapsible embed code ── */}
       {showCode && (
-        <div style={{
-          margin: '0 18px 16px',
-          background: 'rgba(0,0,0,0.3)', borderRadius: '8px',
-          padding: '10px 12px', fontFamily: 'monospace', fontSize: '11px',
-          color: '#6b8899', wordBreak: 'break-all', lineHeight: 1.6,
-          border: '1px solid rgba(255,255,255,0.07)',
-        }}>
+        <div
+          className="bg-ui border border-border-subtle rounded-lg text-xs text-text-secondary font-mono"
+          style={{ margin: '0 18px 16px', padding: '10px 12px', wordBreak: 'break-all', lineHeight: 1.6 }}
+        >
           {code}
         </div>
       )}
@@ -317,12 +282,12 @@ export function ProductsTab({
   return (
     <>
       {/* ── Page header ──────────────────────────────────────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '20px', flexWrap: 'wrap' }}>
+      <div className="flex items-start justify-between flex-wrap" style={{ gap: '16px', marginBottom: '20px' }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#e8f4f8' }}>
+          <h2 className="text-base font-bold text-text-primary">
             Product widgets
           </h2>
-          <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#6b8ea0', lineHeight: 1.5 }}>
+          <p className="text-sm text-text-secondary leading-relaxed" style={{ margin: '4px 0 0' }}>
             {sortedWidgets.length > 0
               ? 'Copy an embed code and paste it on your website — your product range appears automatically.'
               : 'Add the manufacturers you stock. Each gets an embeddable product widget for your website, free.'}
@@ -331,13 +296,10 @@ export function ProductsTab({
         {!addWidgetMode && sortedWidgets.length > 0 && (
           <button
             onClick={() => { setAddWidgetMode(true); setSelectedMf(null); setSelectedSystems([]) }}
-            style={{
-              padding: '10px 18px', background: '#185D7A', color: '#fff',
-              border: 'none', borderRadius: '10px', fontWeight: 600, fontSize: '13px',
-              cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px',
-            }}
+            className="flex items-center flex-shrink-0 font-semibold text-sm text-white bg-brand hover:bg-brand-hover rounded-[10px] transition-colors"
+            style={{ padding: '10px 18px', gap: '6px' }}
           >
-            <span style={{ fontSize: '16px', lineHeight: 1 }}>+</span>
+            <span className="text-base leading-none">+</span>
             Add manufacturer
           </button>
         )}
@@ -345,24 +307,21 @@ export function ProductsTab({
 
       {/* ── How it works — shown only when widgets exist ──────────────────── */}
       {sortedWidgets.length > 0 && !addWidgetMode && (
-        <div style={{
-          display: 'flex', gap: '0', marginBottom: '24px',
-          background: 'rgba(24,93,122,0.12)', border: '1px solid rgba(24,93,122,0.25)',
-          borderRadius: '12px', overflow: 'hidden',
-        }}>
+        <div className="flex bg-brand-subtle border border-brand/25 rounded-xl overflow-hidden" style={{ marginBottom: '24px' }}>
           {[
             { n: '1', text: 'Find the manufacturer card' },
             { n: '2', text: 'Click Copy embed code' },
             { n: '3', text: 'Paste it on your website' },
           ].map((step, i, arr) => (
-            <div key={i} style={{
-              flex: 1, padding: '12px 14px', textAlign: 'center',
-              borderRight: i < arr.length - 1 ? '1px solid rgba(24,93,122,0.25)' : 'none',
-            }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#185D7A', marginBottom: '3px' }}>
+            <div
+              key={i}
+              className={`flex-1 text-center ${i < arr.length - 1 ? 'border-r border-brand/25' : ''}`}
+              style={{ padding: '12px 14px' }}
+            >
+              <div className="text-[11px] font-bold text-brand" style={{ marginBottom: '3px' }}>
                 STEP {step.n}
               </div>
-              <div style={{ fontSize: '12px', color: '#8ab8cc', lineHeight: 1.4 }}>
+              <div className="text-xs text-text-secondary leading-snug">
                 {step.text}
               </div>
             </div>
@@ -377,7 +336,7 @@ export function ProductsTab({
             <>
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-text-primary">Select a manufacturer</p>
-                <button onClick={() => setAddWidgetMode(false)} className="text-xs text-text-faint hover:text-text-primary">Cancel</button>
+                <button onClick={() => setAddWidgetMode(false)} className="text-xs font-medium text-text-secondary hover:text-text-primary">Cancel</button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {manufacturers.map(mf => {
@@ -390,7 +349,7 @@ export function ProductsTab({
                       <MfLogo manufacturer={mf} size={40} />
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-text-primary text-sm" style={{ wordBreak: 'break-word' }}>{mf.name}</p>
-                        {mf.description && <p className="text-text-faint text-xs mt-0.5 line-clamp-1">{mf.description}</p>}
+                        {mf.description && <p className="text-text-muted text-xs mt-0.5 line-clamp-1">{mf.description}</p>}
                         {hasWidget
                           ? <span className="text-xs text-brand-bright mt-1 block">✓ Widget active</span>
                           : <span className="text-xs text-brand mt-1 block">{mf.systems.length} products →</span>
@@ -406,11 +365,11 @@ export function ProductsTab({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-semibold text-text-primary">{selectedMf.name}</p>
-                  <p className="text-text-faint text-xs mt-0.5">Select the products your business stocks</p>
+                  <p className="text-text-secondary text-xs mt-0.5">Select the products your business stocks</p>
                 </div>
                 <div className="flex gap-3 items-center">
                   {selectedSystems.length > 0 && <span className="text-brand text-sm font-medium">{selectedSystems.length} selected</span>}
-                  <button onClick={() => setSelectedMf(null)} className="text-xs text-text-faint hover:text-text-primary">← Back</button>
+                  <button onClick={() => setSelectedMf(null)} className="text-xs font-medium text-text-secondary hover:text-text-primary">← Back</button>
                 </div>
               </div>
 
@@ -419,37 +378,26 @@ export function ProductsTab({
                 if (catSystems.length === 0) return null
                 return (
                   <div key={cat}>
-                    <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-2">{cat}</p>
+                    <p className="text-xs font-semibold text-text-muted uppercase tracking-widest mb-2">{cat}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {catSystems.map(sys => {
                         const sel = selectedSystems.includes(sys.id)
                         return (
                           <button key={sys.id} type="button"
                             onClick={() => setSelectedSystems(prev => prev.includes(sys.id) ? prev.filter(id => id !== sys.id) : [...prev, sys.id])}
-                            style={{
-                              position: 'relative',
-                              textAlign: 'left', padding: '10px 12px',
-                              borderRadius: '10px',
-                              border: sel ? '2px solid #185D7A' : '2px solid rgba(255,255,255,0.1)',
-                              background: sel ? 'rgba(24,93,122,0.28)' : 'rgba(255,255,255,0.04)',
-                              cursor: 'pointer', transition: 'all 0.15s',
-                              boxShadow: sel ? '0 0 0 1px rgba(24,93,122,0.4) inset' : 'none',
-                            }}>
+                            className={`relative text-left rounded-[10px] border-2 transition-all ${
+                              sel ? 'border-brand bg-brand-subtle shadow-[0_0_0_1px_rgba(24,93,122,0.15)_inset]' : 'border-border bg-ui hover:border-brand/40'
+                            }`}
+                            style={{ padding: '10px 12px' }}>
                             {/* Tick badge */}
-                            <span style={{
-                              position: 'absolute', top: '8px', right: '8px',
-                              width: '20px', height: '20px', borderRadius: '50%',
-                              background: sel ? '#185D7A' : 'rgba(255,255,255,0.08)',
-                              border: sel ? '2px solid #2596be' : '2px solid rgba(255,255,255,0.15)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: '11px', color: '#fff', fontWeight: 800,
-                              transition: 'all 0.15s', flexShrink: 0,
-                            }}>
+                            <span className={`absolute flex items-center justify-center rounded-full text-[11px] font-extrabold transition-all ${
+                              sel ? 'bg-brand border-2 border-brand-bright text-white' : 'bg-surface border-2 border-border text-transparent'
+                            }`} style={{ top: '8px', right: '8px', width: '20px', height: '20px', flexShrink: 0 }}>
                               {sel ? '✓' : ''}
                             </span>
-                            <span style={{ fontFamily: 'monospace', fontSize: '11px', color: sel ? '#7dd3ee' : '#6b8ea0', display: 'block', marginBottom: '2px' }}>{sys.product_code}</span>
-                            <span style={{ fontWeight: 600, fontSize: '13px', color: sel ? '#e8f4f8' : '#8ab8cc', wordBreak: 'break-word', display: 'block', paddingRight: '24px' }}>{sys.name}</span>
-                            {sys.subcategory && <span style={{ fontSize: '11px', color: sel ? '#90c8de' : '#4a6b7a', display: 'block', marginTop: '2px' }}>{sys.subcategory}</span>}
+                            <span className={`block font-mono text-[11px] ${sel ? 'text-brand-bright' : 'text-text-muted'}`} style={{ marginBottom: '2px' }}>{sys.product_code}</span>
+                            <span className={`block font-semibold text-sm ${sel ? 'text-text-primary' : 'text-text-secondary'}`} style={{ wordBreak: 'break-word', paddingRight: '24px' }}>{sys.name}</span>
+                            {sys.subcategory && <span className="block text-[11px] text-text-muted" style={{ marginTop: '2px' }}>{sys.subcategory}</span>}
                           </button>
                         )
                       })}
@@ -466,7 +414,7 @@ export function ProductsTab({
                   className="px-5 py-2.5 bg-brand hover:bg-brand-hover disabled:opacity-50 text-white rounded-lg font-semibold text-sm transition-colors">
                   {creatingWidget ? 'Creating widget…' : `Create widget — ${selectedSystems.length || 0} product${selectedSystems.length !== 1 ? 's' : ''} →`}
                 </button>
-                <button onClick={() => setAddWidgetMode(false)} className="text-sm text-text-faint hover:text-text-primary">Cancel</button>
+                <button onClick={() => setAddWidgetMode(false)} className="text-sm font-medium text-text-secondary hover:text-text-primary">Cancel</button>
               </div>
             </>
           )}
@@ -475,31 +423,23 @@ export function ProductsTab({
 
       {/* ── Empty state ───────────────────────────────────────────────────── */}
       {sortedWidgets.length === 0 && !addWidgetMode && (
-        <div style={{
-          border: '2px dashed rgba(255,255,255,0.1)',
-          borderRadius: '20px', padding: '52px 24px', textAlign: 'center',
-        }}>
-          <div style={{
-            width: '64px', height: '64px', borderRadius: '16px',
-            background: 'rgba(24,93,122,0.2)', margin: '0 auto 20px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '28px',
-          }}>
+        <div className="border-2 border-dashed border-border rounded-[20px] text-center" style={{ padding: '52px 24px' }}>
+          <div
+            className="bg-brand-subtle rounded-2xl flex items-center justify-center"
+            style={{ width: '64px', height: '64px', margin: '0 auto 20px', fontSize: '28px' }}
+          >
             🏗️
           </div>
-          <p style={{ fontWeight: 700, color: '#e8f4f8', fontSize: '16px', margin: '0 0 8px' }}>
+          <p className="font-bold text-text-primary text-base" style={{ margin: '0 0 8px' }}>
             Add your first product widget
           </p>
-          <p style={{ color: '#6b8ea0', fontSize: '13px', maxWidth: '340px', margin: '0 auto 24px', lineHeight: 1.6 }}>
+          <p className="text-text-secondary text-sm leading-relaxed" style={{ maxWidth: '340px', margin: '0 auto 24px' }}>
             Pick the manufacturers you stock. Each gets a beautiful, embeddable product catalogue for your website — completely free.
           </p>
           <button
             onClick={() => { setAddWidgetMode(true); setSelectedMf(null); setSelectedSystems([]) }}
-            style={{
-              padding: '13px 24px', background: '#185D7A', color: '#fff',
-              border: 'none', borderRadius: '12px', fontWeight: 700, fontSize: '14px',
-              cursor: 'pointer',
-            }}
+            className="font-bold text-sm text-white bg-brand hover:bg-brand-hover rounded-xl transition-colors"
+            style={{ padding: '13px 24px' }}
           >
             Browse manufacturers & product lines →
           </button>
@@ -508,11 +448,10 @@ export function ProductsTab({
 
       {/* ── Widget grid ───────────────────────────────────────────────────── */}
       {sortedWidgets.length > 0 && (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: '16px',
-        }}>
+        <div
+          className="grid"
+          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}
+        >
           {sortedWidgets.map(widget => {
             const mfId = widget.embed_widget_systems[0]?.systems?.manufacturer_id
             const manufacturer = manufacturers.find(m => m.id === mfId)
@@ -540,9 +479,9 @@ export function ProductsTab({
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div>
                 <h3 className="font-bold text-text-primary">Edit products</h3>
-                <p className="text-xs text-text-faint mt-0.5">Toggle the products your business stocks</p>
+                <p className="text-xs text-text-secondary mt-0.5">Toggle the products your business stocks</p>
               </div>
-              <button onClick={() => setEditState(null)} className="text-text-faint hover:text-text-primary text-xl leading-none px-1">×</button>
+              <button onClick={() => setEditState(null)} className="text-text-secondary hover:text-text-primary text-xl leading-none px-1">×</button>
             </div>
             <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
               {editSelectedIds.length > 0 && (
@@ -553,37 +492,26 @@ export function ProductsTab({
                 if (catSystems.length === 0) return null
                 return (
                   <div key={cat}>
-                    <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-2">{cat}</p>
+                    <p className="text-xs font-semibold text-text-muted uppercase tracking-widest mb-2">{cat}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {catSystems.map(sys => {
                         const isSelected = editSelectedIds.includes(sys.id)
                         return (
                           <button key={sys.id} type="button"
                             onClick={() => setEditSelectedIds(prev => prev.includes(sys.id) ? prev.filter(id => id !== sys.id) : [...prev, sys.id])}
-                            style={{
-                              position: 'relative',
-                              textAlign: 'left', padding: '10px 12px',
-                              borderRadius: '10px',
-                              border: isSelected ? '2px solid #185D7A' : '2px solid rgba(255,255,255,0.1)',
-                              background: isSelected ? 'rgba(24,93,122,0.28)' : 'rgba(255,255,255,0.04)',
-                              cursor: 'pointer', transition: 'all 0.15s',
-                              boxShadow: isSelected ? '0 0 0 1px rgba(24,93,122,0.4) inset' : 'none',
-                            }}>
+                            className={`relative text-left rounded-[10px] border-2 transition-all ${
+                              isSelected ? 'border-brand bg-brand-subtle shadow-[0_0_0_1px_rgba(24,93,122,0.15)_inset]' : 'border-border bg-ui hover:border-brand/40'
+                            }`}
+                            style={{ padding: '10px 12px' }}>
                             {/* Tick badge */}
-                            <span style={{
-                              position: 'absolute', top: '8px', right: '8px',
-                              width: '20px', height: '20px', borderRadius: '50%',
-                              background: isSelected ? '#185D7A' : 'rgba(255,255,255,0.08)',
-                              border: isSelected ? '2px solid #2596be' : '2px solid rgba(255,255,255,0.15)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: '11px', color: '#fff', fontWeight: 800,
-                              transition: 'all 0.15s', flexShrink: 0,
-                            }}>
+                            <span className={`absolute flex items-center justify-center rounded-full text-[11px] font-extrabold transition-all ${
+                              isSelected ? 'bg-brand border-2 border-brand-bright text-white' : 'bg-surface border-2 border-border text-transparent'
+                            }`} style={{ top: '8px', right: '8px', width: '20px', height: '20px', flexShrink: 0 }}>
                               {isSelected ? '✓' : ''}
                             </span>
-                            <span style={{ fontFamily: 'monospace', fontSize: '11px', color: isSelected ? '#7dd3ee' : '#6b8ea0', display: 'block', marginBottom: '2px' }}>{sys.product_code}</span>
-                            <span style={{ fontWeight: 600, fontSize: '13px', color: isSelected ? '#e8f4f8' : '#8ab8cc', wordBreak: 'break-word', display: 'block', paddingRight: '24px' }}>{sys.name}</span>
-                            {sys.subcategory && <span style={{ fontSize: '11px', color: isSelected ? '#90c8de' : '#4a6b7a', display: 'block', marginTop: '2px' }}>{sys.subcategory}</span>}
+                            <span className={`block font-mono text-[11px] ${isSelected ? 'text-brand-bright' : 'text-text-muted'}`} style={{ marginBottom: '2px' }}>{sys.product_code}</span>
+                            <span className={`block font-semibold text-sm ${isSelected ? 'text-text-primary' : 'text-text-secondary'}`} style={{ wordBreak: 'break-word', paddingRight: '24px' }}>{sys.name}</span>
+                            {sys.subcategory && <span className="block text-[11px] text-text-muted" style={{ marginTop: '2px' }}>{sys.subcategory}</span>}
                           </button>
                         )
                       })}
@@ -594,7 +522,7 @@ export function ProductsTab({
               {editError && <p className="text-error text-sm">{editError}</p>}
             </div>
             <div className="px-6 py-4 border-t border-border flex items-center justify-between gap-3">
-              <button onClick={() => setEditState(null)} className="text-sm text-text-faint hover:text-text-primary transition-colors">Cancel</button>
+              <button onClick={() => setEditState(null)} className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors">Cancel</button>
               <button onClick={saveEdit} disabled={editSaving || editSelectedIds.length === 0}
                 className="px-6 py-2.5 bg-brand hover:bg-brand-hover disabled:opacity-50 text-white rounded-lg font-semibold text-sm transition-colors">
                 {editSaving ? 'Saving…' : `Save ${editSelectedIds.length} product${editSelectedIds.length !== 1 ? 's' : ''}`}

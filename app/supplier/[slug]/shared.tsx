@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import type { ProductionSystem } from '@/components/system-card/adaptProductionSystem'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -34,17 +35,7 @@ export type Manufacturer = {
   description: string | null
   logo_url: string | null
   website_url: string | null
-  systems: {
-    id: string
-    name: string
-    product_code: string
-    category: string
-    subcategory: string | null
-    sort_order: number
-    description: string | null
-    dimensions: string | null
-    website_url: string | null
-  }[]
+  systems: (ProductionSystem & { sort_order: number })[]
 }
 
 export type SupplierData = {

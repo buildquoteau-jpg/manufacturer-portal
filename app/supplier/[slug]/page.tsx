@@ -204,9 +204,31 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
   }
 
   async function loadManufacturers() {
+    // Full System Card shape (matches lib/data/getWidgetData.ts's query) so
+    // Trade Desk can render the same master System Card as the widget/library
+    // — see components/system-card/.
     const { data } = await supabase
       .from('manufacturers')
-      .select('id, name, slug, description, logo_url, website_url, systems ( id, name, product_code, category, subcategory, sort_order, description, dimensions, website_url )')
+      .select(`
+        id, name, slug, description, logo_url, website_url,
+        systems (
+          id, name, product_code, slug, category, subcategory, sort_order,
+          description, hero_image_url, hero_image_position_x, hero_image_position_y,
+          website_url, install_guide_urls, design_guide_url, tech_data_url,
+          notes, fire_rating, acoustic_rating, moisture_resistant,
+          structural_grade, bal_rating, australian_made,
+          system_colours ( colour_name, image_url, sort_order, is_stocked ),
+          system_components (
+            id, role, notes, sort_order,
+            components ( name, sku, description, category, uom, procurement_route )
+          ),
+          system_profiles (
+            id, profile_name, name, product_code, dimensions,
+            length_mm, width_mm, height_mm, thickness_mm, uom,
+            supplier_pack_qty, supplier_pack_uom, sort_order
+          )
+        )
+      `)
       .order('name')
     if (data) setManufacturers(data as unknown as Manufacturer[])
   }
