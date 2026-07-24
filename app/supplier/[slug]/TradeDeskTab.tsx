@@ -158,13 +158,13 @@ function ResultCard({
   const catStyle = categoryStyle(item.category)
 
   return (
-    <div className={`bg-surface border rounded-xl p-4 flex flex-col gap-3 transition-colors ${selected ? 'border-brand' : 'border-border'}`}>
+    <div className={`bg-surface border rounded-xl p-4 flex flex-col gap-3 shadow-sm hover:shadow-md transition-all ${selected ? 'border-brand' : 'border-border hover:border-brand/50'}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-text-primary text-sm leading-snug" style={{ wordBreak: 'break-word' }}>
             {item.systemName}
           </p>
-          <p className="text-text-faint text-xs mt-0.5">{item.manufacturerName}</p>
+          <p className="text-text-secondary text-xs mt-0.5 font-medium">{item.manufacturerName}</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className="text-xs px-2 py-0.5 rounded-full bg-brand-subtle text-brand font-medium">
@@ -185,7 +185,7 @@ function ResultCard({
 
       <div className="space-y-1">
         {item.productCode && (
-          <p className="font-mono text-xs text-text-faint">
+          <p className="font-mono text-xs text-text-secondary">
             <span className="text-text-muted">SKU</span> {item.productCode}
           </p>
         )}
@@ -196,13 +196,13 @@ function ResultCard({
           >
             {item.category}
           </span>
-          {item.subcategory && <span className="text-xs text-text-faint">{item.subcategory}</span>}
+          {item.subcategory && <span className="text-xs text-text-secondary">{item.subcategory}</span>}
         </div>
         {item.dimensions && (
-          <p className="text-xs text-text-faint">{item.dimensions}</p>
+          <p className="text-xs text-text-secondary">{item.dimensions}</p>
         )}
         {item.description && (
-          <p className="text-xs text-text-faint line-clamp-2 mt-1">{item.description}</p>
+          <p className="text-xs text-text-muted line-clamp-2 mt-1">{item.description}</p>
         )}
       </div>
 
@@ -216,14 +216,14 @@ function ResultCard({
         </button>
         <button
           onClick={() => onSendReviewLink(item)}
-          className="flex-1 min-w-[130px] py-2 bg-ui hover:bg-surface-hover border border-border text-text-secondary text-xs font-medium rounded-lg transition-colors"
+          className="flex-1 min-w-[130px] py-2 bg-ui hover:bg-surface-hover border border-border text-text-secondary text-xs font-semibold rounded-lg transition-colors"
         >
           Send review link
         </button>
         {website && (
           <a
             href={website} target="_blank" rel="noopener noreferrer"
-            className="w-full py-1.5 text-center text-xs text-text-faint hover:text-brand transition-colors"
+            className="w-full py-1.5 text-center text-xs text-brand hover:underline font-semibold transition-colors"
           >
             View manufacturer website ↗
           </a>
@@ -245,7 +245,7 @@ function ManufacturerGroupCard({
   return (
     <button
       onClick={() => onDrillDown(group.manufacturerId)}
-      className="bg-surface border border-border hover:border-brand rounded-xl p-4 flex flex-col gap-2.5 text-left transition-colors"
+      className="bg-surface border border-border hover:border-brand rounded-xl p-4 flex flex-col gap-2.5 text-left shadow-sm hover:shadow-md transition-all"
     >
       <div className="flex items-start justify-between gap-3">
         <p className="font-semibold text-text-primary text-sm leading-snug">{group.manufacturerName}</p>
@@ -255,13 +255,13 @@ function ManufacturerGroupCard({
       </div>
       <div className="space-y-0.5">
         {group.items.slice(0, 3).map(item => (
-          <p key={item.systemId} className="text-xs text-text-faint truncate">{item.systemName}</p>
+          <p key={item.systemId} className="text-xs text-text-secondary truncate">{item.systemName}</p>
         ))}
         {group.items.length > 3 && (
-          <p className="text-xs text-text-faint">+{group.items.length - 3} more</p>
+          <p className="text-xs text-text-muted">+{group.items.length - 3} more</p>
         )}
       </div>
-      <span className="text-xs text-brand font-medium mt-1">View products →</span>
+      <span className="text-xs text-brand font-semibold mt-1">View products →</span>
     </button>
   )
 }
@@ -285,7 +285,7 @@ function CrossSellStrip({
 
   return (
     <div className="bg-ui border border-border rounded-xl p-4">
-      <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-2.5">
+      <p className="text-xs font-semibold text-text-muted uppercase tracking-widest mb-2.5">
         You may also be interested in
       </p>
       <div className="flex flex-wrap gap-2">
@@ -348,7 +348,7 @@ function QuotePrepPanel({
     return (
       <div className="bg-surface border border-border rounded-xl p-5 text-center">
         <p className="text-text-secondary text-sm font-semibold">Quote prep</p>
-        <p className="text-text-faint text-xs mt-1.5 leading-relaxed">
+        <p className="text-text-muted text-xs mt-1.5 leading-relaxed">
           Add confirmed items here, then copy lines into your POS.
         </p>
       </div>
@@ -361,7 +361,7 @@ function QuotePrepPanel({
         <p className="font-semibold text-text-primary text-sm">
           Quote prep <span className="text-brand ml-1.5">{items.length}</span>
         </p>
-        <button onClick={onClear} className="text-xs text-text-faint hover:text-error transition-colors">
+        <button onClick={onClear} className="text-xs text-text-muted hover:text-error font-medium transition-colors">
           Clear all
         </button>
       </div>
@@ -374,7 +374,7 @@ function QuotePrepPanel({
                 <p className="text-sm font-medium text-text-primary leading-snug" style={{ wordBreak: 'break-word' }}>
                   {item.systemName}
                 </p>
-                <p className="text-xs text-text-faint mt-0.5">
+                <p className="text-xs text-text-secondary mt-0.5">
                   {item.manufacturer}
                   {item.productCode && (
                     <span className="font-mono ml-2 text-text-muted">{item.productCode}</span>
@@ -383,7 +383,7 @@ function QuotePrepPanel({
               </div>
               <button
                 onClick={() => onRemove(item.localId)}
-                className="text-text-faint hover:text-error text-lg leading-none mt-0.5 flex-shrink-0 transition-colors"
+                className="text-text-muted hover:text-error text-lg leading-none mt-0.5 flex-shrink-0 transition-colors"
               >
                 ×
               </button>
@@ -428,7 +428,7 @@ function QuotePrepPanel({
         </button>
         <button
           onClick={onSendReviewLink}
-          className="w-full py-2 bg-ui hover:bg-surface-hover border border-border text-text-secondary text-xs font-medium rounded-lg transition-colors"
+          className="w-full py-2 bg-ui hover:bg-surface-hover border border-border text-text-secondary text-xs font-semibold rounded-lg transition-colors"
         >
           Send review link for these items
         </button>
@@ -523,11 +523,11 @@ function SendReviewLinkModal({
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div>
             <h3 className="font-bold text-text-primary">Send review link</h3>
-            <p className="text-xs text-text-faint mt-0.5">
+            <p className="text-xs text-text-secondary mt-0.5">
               {items.length} product{items.length !== 1 ? 's' : ''} selected
             </p>
           </div>
-          <button onClick={onClose} className="text-text-faint hover:text-text-primary text-xl px-1 leading-none">×</button>
+          <button onClick={onClose} className="text-text-secondary hover:text-text-primary text-xl px-1 leading-none">×</button>
         </div>
 
         {!reviewLink ? (
@@ -535,12 +535,12 @@ function SendReviewLinkModal({
             <div className="bg-ui rounded-lg px-3 py-2.5 space-y-1">
               {items.map(item => (
                 <p key={item.systemId} className="text-xs text-text-secondary">
-                  <span className="text-text-faint">{item.manufacturerName}</span> · {item.systemName}
+                  <span className="text-text-muted">{item.manufacturerName}</span> · {item.systemName}
                 </p>
               ))}
             </div>
 
-            <p className="text-xs font-semibold text-text-faint uppercase tracking-widest">Customer details</p>
+            <p className="text-xs font-semibold text-text-muted uppercase tracking-widest">Customer details</p>
             <div className="space-y-3">
               <input value={customerName} onChange={e => setCustomerName(e.target.value)}
                 placeholder="Customer name" className={inputCls} />
@@ -554,7 +554,7 @@ function SendReviewLinkModal({
             </div>
 
             <div>
-              <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-2">Send via</p>
+              <p className="text-xs font-semibold text-text-muted uppercase tracking-widest mb-2">Send via</p>
               <div className="grid grid-cols-3 gap-2">
                 {channelOptions.map(opt => (
                   <button
@@ -587,7 +587,7 @@ function SendReviewLinkModal({
               >
                 {creating ? 'Sending…' : `Send via ${channelLabel(channel)}`}
               </button>
-              <button onClick={onClose} className="text-sm text-text-faint hover:text-text-primary transition-colors px-2">
+              <button onClick={onClose} className="text-sm text-text-secondary hover:text-text-primary font-medium transition-colors px-2">
                 Cancel
               </button>
             </div>
@@ -600,7 +600,7 @@ function SendReviewLinkModal({
                 <p className="text-xs text-success font-medium">✓ Sent via {channelLabel(sentChannel)}</p>
               )}
               {delivery && !delivery.sent && delivery.reason === 'not_configured' && (
-                <p className="text-xs text-text-faint">
+                <p className="text-xs text-text-muted">
                   {channelLabel(sentChannel)} isn&apos;t set up yet — link copied below, share it manually.
                 </p>
               )}
@@ -620,7 +620,7 @@ function SendReviewLinkModal({
             <p className="text-center text-xs text-text-faint">
               Or copy the link above and share it another way.
             </p>
-            <button onClick={onClose} className="w-full text-sm text-text-faint hover:text-text-primary transition-colors py-1">
+            <button onClick={onClose} className="w-full text-sm text-text-secondary hover:text-text-primary font-medium transition-colors py-1">
               Done
             </button>
           </div>
@@ -796,8 +796,8 @@ export function TradeDeskTab({
 
       {/* ── Header ── */}
       <div>
-        <h2 className="text-lg font-bold text-text-primary">Trade Desk Search</h2>
-        <p className="text-text-faint text-sm mt-1">
+        <h2 className="text-xl font-bold text-brand">Trade Desk Search</h2>
+        <p className="text-text-secondary text-sm mt-1">
           Search your stocked ranges, add confirmed items to quote prep, or send a customer review link.
         </p>
       </div>
@@ -810,12 +810,12 @@ export function TradeDeskTab({
           onChange={e => setQuery(e.target.value)}
           placeholder="Search stocked products…"
           autoFocus
-          className="w-full bg-ui border border-border rounded-xl px-5 py-4 text-text-primary placeholder-text-faint text-base focus:outline-none focus:border-brand transition-colors pr-12"
+          className="w-full bg-ui border border-border rounded-xl px-5 py-4 text-text-primary placeholder-text-muted text-base focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/10 transition-colors pr-12"
         />
         {query && (
           <button
             onClick={() => setQuery('')}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-text-faint hover:text-text-primary text-xl leading-none"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary text-xl leading-none"
           >
             ×
           </button>
@@ -830,7 +830,7 @@ export function TradeDeskTab({
             <button
               key={ex}
               onClick={() => setQuery(ex)}
-              className="text-xs px-3 py-1.5 bg-ui hover:bg-surface-hover border border-border rounded-full text-text-secondary transition-colors"
+              className="text-xs px-3 py-1.5 bg-ui hover:bg-surface-hover border border-border hover:border-brand rounded-full text-text-secondary font-medium transition-colors"
             >
               {ex}
             </button>
@@ -845,8 +845,8 @@ export function TradeDeskTab({
         <div className="space-y-3">
           {categoryBrowse ? (
             <div className="flex items-center justify-between gap-3 flex-wrap">
-              <p className="text-xs text-text-faint">
-                Showing <span className="text-text-secondary font-medium">{categoryBrowse}</span> — adjacent to your search
+              <p className="text-xs text-text-secondary">
+                Showing <span className="text-text-primary font-semibold">{categoryBrowse}</span> — adjacent to your search
               </p>
               <div className="flex items-center gap-3">
                 {selectedForReview.size > 0 && (
@@ -857,7 +857,7 @@ export function TradeDeskTab({
                     Send review link — {selectedForReview.size} selected
                   </button>
                 )}
-                <button onClick={() => setCategoryBrowse(null)} className="text-xs text-text-faint hover:text-text-primary transition-colors">
+                <button onClick={() => setCategoryBrowse(null)} className="text-xs text-brand hover:underline font-semibold transition-colors">
                   × Clear
                 </button>
               </div>
@@ -865,7 +865,7 @@ export function TradeDeskTab({
           ) : query && (
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div className="flex items-center gap-3 flex-wrap">
-                <p className="text-xs text-text-faint">
+                <p className="text-xs text-text-primary font-semibold">
                   {results.length > 0
                     ? `${results.length} suggested stocked match${results.length !== 1 ? 'es' : ''} — confirm with customer before adding`
                     : `No matches in your stocked ranges for "${query}"`}
@@ -874,13 +874,13 @@ export function TradeDeskTab({
                   <div className="flex items-center rounded-lg border border-border overflow-hidden flex-shrink-0">
                     <button
                       onClick={() => setView('product')}
-                      className={`px-3 py-1 text-xs font-medium transition-colors ${view === 'product' ? 'bg-brand text-white' : 'bg-ui text-text-faint hover:text-text-secondary'}`}
+                      className={`px-3 py-1 text-xs font-semibold transition-colors ${view === 'product' ? 'bg-brand text-white' : 'bg-ui text-text-secondary hover:text-brand'}`}
                     >
                       Products
                     </button>
                     <button
                       onClick={() => setView('manufacturer')}
-                      className={`px-3 py-1 text-xs font-medium transition-colors ${view === 'manufacturer' ? 'bg-brand text-white' : 'bg-ui text-text-faint hover:text-text-secondary'}`}
+                      className={`px-3 py-1 text-xs font-semibold transition-colors ${view === 'manufacturer' ? 'bg-brand text-white' : 'bg-ui text-text-secondary hover:text-brand'}`}
                     >
                       Manufacturers
                     </button>
@@ -908,12 +908,12 @@ export function TradeDeskTab({
 
           {!categoryBrowse && manufacturerFilter && !showManufacturerGrid && (
             <div className="flex items-center gap-2">
-              <p className="text-xs text-text-faint">
-                Filtered to <span className="text-text-secondary font-medium">
+              <p className="text-xs text-text-secondary">
+                Filtered to <span className="text-text-primary font-semibold">
                   {stockedItems.find(i => i.manufacturerId === manufacturerFilter)?.manufacturerName}
                 </span>
               </p>
-              <button onClick={() => setManufacturerFilter(null)} className="text-xs text-brand hover:underline">
+              <button onClick={() => setManufacturerFilter(null)} className="text-xs text-brand hover:underline font-semibold">
                 × clear
               </button>
             </div>
@@ -945,8 +945,8 @@ export function TradeDeskTab({
 
               {!categoryBrowse && query && results.length === 0 && (
                 <div className="py-12 text-center border border-border-subtle rounded-xl">
-                  <p className="text-text-faint text-sm">No stocked products match &quot;{query}&quot;</p>
-                  <p className="text-text-faint text-xs mt-1.5">
+                  <p className="text-text-secondary text-sm font-semibold">No stocked products match &quot;{query}&quot;</p>
+                  <p className="text-text-muted text-xs mt-1.5">
                     Try different keywords, or go to the Products tab to add more stocked ranges.
                   </p>
                 </div>
@@ -954,17 +954,17 @@ export function TradeDeskTab({
 
               {!categoryBrowse && !query && stockedItems.length > 0 && (
                 <div className="py-12 text-center border border-border-subtle rounded-xl">
-                  <p className="text-text-secondary text-sm font-medium">
+                  <p className="text-text-secondary text-sm font-semibold">
                     {stockedItems.length} stocked product{stockedItems.length !== 1 ? 's' : ''} ready to search
                   </p>
-                  <p className="text-text-faint text-xs mt-1">Start typing above to find matches.</p>
+                  <p className="text-text-muted text-xs mt-1">Start typing above to find matches.</p>
                 </div>
               )}
 
               {!categoryBrowse && !query && stockedItems.length === 0 && (
                 <div className="py-12 text-center border border-border-subtle rounded-xl">
-                  <p className="text-text-faint text-sm">No stocked products configured yet.</p>
-                  <p className="text-text-faint text-xs mt-1.5">
+                  <p className="text-text-secondary text-sm font-semibold">No stocked products configured yet.</p>
+                  <p className="text-text-muted text-xs mt-1.5">
                     Go to the Products tab and add the manufacturers you stock.
                   </p>
                 </div>
