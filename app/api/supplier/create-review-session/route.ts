@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { sendSms, sendWhatsApp, type MessageSendResult } from '@/lib/messaging/twilio'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -117,8 +118,11 @@ export async function POST(req: Request) {
   const {
     supplierSlug, systemIds,
     customerName, customerMobile, customerEmail, staffNote,
-    origin,
+    origin, channel: rawChannel,
   } = await req.json()
+
+  const channel: 'email' | 'sms' | 'whatsapp' =
+    rawChannel === 'sms' || rawChannel === 'whatsapp' ? rawChannel : 'email'
 
   if (!supplierSlug)
     return NextResponse.json({ error: 'supplierSlug required' }, { status: 400 })
@@ -171,10 +175,10 @@ export async function POST(req: Request) {
   }
 
   const reviewUrl = `${origin || 'https://mfp.buildquote.com.au'}/supplier-review/${session.token}`
-  let emailSent = false
 
-  // Send email if customer email provided
-  if (customerEmail) {
+  let delivery: MessageSendResult = { ok: false, reason: 'not_configured' }
+
+  if (channel === 'email' && customerEmail) {
     const { data: systems } = await supabaseAdmin
       .from('systems')
       .select('name, product_code, manufacturers ( name )')
@@ -197,15 +201,58 @@ export async function POST(req: Request) {
       ? `${customerName}, ${supplier.name} has suggested products for your project`
       : `${supplier.name} has suggested products for your project`
 
-    const { error: emailErr } = await resend.emails.send({
+    const { data: sendData, error: emailErr } = await resend.emails.send({
       from:    `${supplier.name} via BuildQuote <${FROM_EMAIL}>`,
       to:      [customerEmail],
       subject,
       html,
     })
 
-    if (!emailErr) emailSent = true
+    delivery = emailErr
+      ? { ok: false, reason: 'send_failed', error: emailErr.message }
+      : { ok: true, sid: sendData?.id || '' }
+  } else if (channel === 'sms' && customerMobile) {
+    delivery = await sendSms({
+      to: customerMobile,
+      supplierName: supplier.name,
+      customerName: customerName || null,
+      reviewUrl,
+    })
+  } else if (channel === 'whatsapp' && customerMobile) {
+    delivery = await sendWhatsApp({
+      to: customerMobile,
+      supplierName: supplier.name,
+      customerName: customerName || null,
+      reviewUrl,
+    })
   }
 
-  return NextResponse.json({ ok: true, token: session.token, emailSent })
+  // Best-effort delivery tracking. PGRST204 = PostgREST "column not found in
+  // schema cache" (its error when a column doesn't exist yet), 42703 = raw
+  // Postgres "undefined column" as a fallback — either means the
+  // 20260723_cross_sell_and_channel.sql migration hasn't been run yet.
+  // Swallow it: the session/link already exist and still work either way.
+  const { error: trackingErr } = await supabaseAdmin
+    .from('customer_review_sessions')
+    .update({
+      preferred_channel: channel,
+      email_sent:    channel === 'email'    ? delivery.ok : false,
+      sms_sent:      channel === 'sms'      ? delivery.ok : false,
+      whatsapp_sent: channel === 'whatsapp' ? delivery.ok : false,
+      delivery_error: delivery.ok ? null : (delivery.error ?? delivery.reason ?? null),
+    })
+    .eq('id', session.id)
+
+  if (trackingErr && trackingErr.code !== '42703' && trackingErr.code !== 'PGRST204') {
+    console.error('customer_review_sessions delivery tracking update failed:', trackingErr.message)
+  }
+
+  return NextResponse.json({
+    ok: true,
+    token: session.token,
+    channel,
+    delivery: delivery.ok
+      ? { sent: true }
+      : { sent: false, reason: delivery.reason, error: delivery.error },
+  })
 }

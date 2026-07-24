@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react'
 import SuppliersTab from './SuppliersTab'
 import SchemaTab from './SchemaTab'
 import ArchitectureTab from './ArchitectureTab'
+import CrossSellTab from './CrossSellTab'
 
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'buildquote2026'
 const SESSION_KEY = 'bq_admin_auth'
 
-type Tab = 'suppliers' | 'schema' | 'architecture'
+type Tab = 'suppliers' | 'cross-sell' | 'schema' | 'architecture'
 
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false)
@@ -89,6 +90,7 @@ export default function AdminPage() {
           <div className="flex gap-0">
             {([
               { key: 'suppliers',    label: 'Suppliers' },
+              { key: 'cross-sell',   label: 'Cross-sell' },
               { key: 'schema',       label: 'DB Schema' },
               { key: 'architecture', label: 'Architecture' },
             ] as { key: Tab; label: string }[]).map(tab => (
@@ -115,7 +117,7 @@ export default function AdminPage() {
         <ArchitectureTab />
       ) : (
         <div className="max-w-4xl xl:max-w-6xl 2xl:max-w-[1480px] mx-auto px-6 py-10">
-          <SuppliersTab />
+          {activeTab === 'cross-sell' ? <CrossSellTab /> : <SuppliersTab />}
         </div>
       )}
 

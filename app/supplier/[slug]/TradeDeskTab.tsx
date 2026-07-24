@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { SupplierData, Manufacturer } from './shared'
 import { fuzzyIncludes } from '@/lib/fuzzyMatch'
+import { CATEGORY_COLOURS } from '@/components/ui/SystemCardTile'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -32,6 +33,31 @@ type QuotePrepItem = {
   notes: string
 }
 
+export type CrossSellRule = {
+  from_category: string
+  to_category: string
+}
+
+type ManufacturerGroup = {
+  manufacturerId: string
+  manufacturerName: string
+  manufacturerWebsite: string | null
+  items: StockedItem[]
+  bestScore: number
+}
+
+type Channel = 'email' | 'sms' | 'whatsapp'
+type MessagingStatus = { sms: boolean; whatsapp: boolean }
+type DeliveryResult = { sent: boolean; reason?: string; error?: string }
+
+function channelLabel(c: Channel) {
+  return c === 'email' ? 'Email' : c === 'sms' ? 'SMS' : 'WhatsApp'
+}
+
+function categoryStyle(category: string) {
+  return CATEGORY_COLOURS[category] ?? { bg: '#f3f4f6', color: '#374151' }
+}
+
 // ── Search ────────────────────────────────────────────────────────────────────
 // Weighted, fuzzy, ranked — a typed word landing in the product name counts
 // for far more than one only found in the description, and a single typo
@@ -46,7 +72,7 @@ const FIELD_WEIGHT = {
   description: 2,
 } as const
 
-function searchItems(items: StockedItem[], query: string): StockedItem[] {
+function searchItemsScored(items: StockedItem[], query: string): { item: StockedItem; score: number }[] {
   const q = query.trim()
   if (!q) return []
   const terms = q.toLowerCase().split(/\s+/).filter(Boolean)
@@ -79,7 +105,36 @@ function searchItems(items: StockedItem[], query: string): StockedItem[] {
     .filter(r => r.score >= 0)
     .sort((a, b) => b.score - a.score)
 
-  return scored.map(r => r.item)
+  return scored
+}
+
+// A manufacturer's rank = its single best-scoring matching product (ties
+// broken by match count, then name) — one excellent match should outrank a
+// manufacturer with several mediocre ones.
+function groupByManufacturer(
+  items: StockedItem[],
+  scoreOf: (item: StockedItem) => number = () => 0,
+): ManufacturerGroup[] {
+  const map = new Map<string, ManufacturerGroup>()
+  for (const item of items) {
+    const score = scoreOf(item)
+    let g = map.get(item.manufacturerId)
+    if (!g) {
+      g = {
+        manufacturerId: item.manufacturerId,
+        manufacturerName: item.manufacturerName,
+        manufacturerWebsite: item.manufacturerWebsite,
+        items: [],
+        bestScore: score,
+      }
+      map.set(item.manufacturerId, g)
+    }
+    g.items.push(item)
+    if (score > g.bestScore) g.bestScore = score
+  }
+  return [...map.values()].sort((a, b) =>
+    b.bestScore - a.bestScore || b.items.length - a.items.length || a.manufacturerName.localeCompare(b.manufacturerName)
+  )
 }
 
 // ── Result card ───────────────────────────────────────────────────────────────
@@ -100,6 +155,7 @@ function ResultCard({
   selected: boolean
 }) {
   const website = item.systemWebsite || item.manufacturerWebsite
+  const catStyle = categoryStyle(item.category)
 
   return (
     <div className={`bg-surface border rounded-xl p-4 flex flex-col gap-3 transition-colors ${selected ? 'border-brand' : 'border-border'}`}>
@@ -127,15 +183,21 @@ function ResultCard({
         </div>
       </div>
 
-      <div className="space-y-0.5">
+      <div className="space-y-1">
         {item.productCode && (
           <p className="font-mono text-xs text-text-faint">
             <span className="text-text-muted">SKU</span> {item.productCode}
           </p>
         )}
-        <p className="text-xs text-text-secondary">
-          {item.category}{item.subcategory ? ` · ${item.subcategory}` : ''}
-        </p>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span
+            className="text-[11px] px-2 py-0.5 rounded-full font-semibold"
+            style={{ background: catStyle.bg, color: catStyle.color }}
+          >
+            {item.category}
+          </span>
+          {item.subcategory && <span className="text-xs text-text-faint">{item.subcategory}</span>}
+        </div>
         {item.dimensions && (
           <p className="text-xs text-text-faint">{item.dimensions}</p>
         )}
@@ -166,6 +228,80 @@ function ResultCard({
             View manufacturer website ↗
           </a>
         )}
+      </div>
+    </div>
+  )
+}
+
+// ── Manufacturer group card ──────────────────────────────────────────────────
+
+function ManufacturerGroupCard({
+  group,
+  onDrillDown,
+}: {
+  group: ManufacturerGroup
+  onDrillDown: (manufacturerId: string) => void
+}) {
+  return (
+    <button
+      onClick={() => onDrillDown(group.manufacturerId)}
+      className="bg-surface border border-border hover:border-brand rounded-xl p-4 flex flex-col gap-2.5 text-left transition-colors"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <p className="font-semibold text-text-primary text-sm leading-snug">{group.manufacturerName}</p>
+        <span className="text-xs px-2 py-0.5 rounded-full bg-brand-subtle text-brand font-medium flex-shrink-0">
+          {group.items.length} match{group.items.length !== 1 ? 'es' : ''}
+        </span>
+      </div>
+      <div className="space-y-0.5">
+        {group.items.slice(0, 3).map(item => (
+          <p key={item.systemId} className="text-xs text-text-faint truncate">{item.systemName}</p>
+        ))}
+        {group.items.length > 3 && (
+          <p className="text-xs text-text-faint">+{group.items.length - 3} more</p>
+        )}
+      </div>
+      <span className="text-xs text-brand font-medium mt-1">View products →</span>
+    </button>
+  )
+}
+
+// ── Cross-sell strip ─────────────────────────────────────────────────────────
+
+function CrossSellStrip({
+  categories,
+  stockedItems,
+  onSelectCategory,
+}: {
+  categories: string[]
+  stockedItems: StockedItem[]
+  onSelectCategory: (category: string) => void
+}) {
+  const withCounts = categories
+    .map(cat => ({ cat, count: stockedItems.filter(i => i.category === cat).length }))
+    .filter(c => c.count > 0)
+
+  if (withCounts.length === 0) return null
+
+  return (
+    <div className="bg-ui border border-border rounded-xl p-4">
+      <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-2.5">
+        You may also be interested in
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {withCounts.map(({ cat, count }) => {
+          const style = categoryStyle(cat)
+          return (
+            <button
+              key={cat}
+              onClick={() => onSelectCategory(cat)}
+              className="text-xs px-3 py-1.5 rounded-full font-semibold transition-opacity hover:opacity-80"
+              style={{ background: style.bg, color: style.color }}
+            >
+              {cat} <span style={{ opacity: 0.65 }}>({count})</span>
+            </button>
+          )
+        })}
       </div>
     </div>
   )
@@ -307,9 +443,9 @@ function QuotePrepPanel({
 function SendReviewLinkModal({
   items,
   supplierSlug,
-  supplierName,
   accessToken,
   origin,
+  messagingStatus,
   onClose,
 }: {
   items: StockedItem[]
@@ -317,19 +453,34 @@ function SendReviewLinkModal({
   supplierName: string
   accessToken: string
   origin: string
+  messagingStatus: MessagingStatus
   onClose: () => void
 }) {
   const [customerName, setCustomerName] = useState('')
   const [mobile, setMobile]             = useState('')
   const [email, setEmail]               = useState('')
   const [note, setNote]                 = useState('')
+  const [channel, setChannel]           = useState<Channel>('email')
   const [creating, setCreating]         = useState(false)
   const [reviewLink, setReviewLink]     = useState<string | null>(null)
-  const [emailSent, setEmailSent]       = useState(false)
+  const [delivery, setDelivery]         = useState<DeliveryResult | null>(null)
+  const [sentChannel, setSentChannel]   = useState<Channel>('email')
   const [error, setError]               = useState('')
   const [copied, setCopied]             = useState(false)
 
+  const channelOptions: { id: Channel; available: boolean; needsMobile: boolean }[] = [
+    { id: 'email',    available: true,                    needsMobile: false },
+    { id: 'sms',      available: messagingStatus.sms,      needsMobile: true },
+    { id: 'whatsapp', available: messagingStatus.whatsapp, needsMobile: true },
+  ]
+  const selected = channelOptions.find(c => c.id === channel)!
+  const missingField = selected.needsMobile ? !mobile.trim() : !email.trim()
+
   async function handleCreate() {
+    if (missingField) {
+      setError(selected.needsMobile ? 'Enter a mobile number for this channel.' : 'Enter an email address for this channel.')
+      return
+    }
     setCreating(true); setError('')
     const res = await fetch('/api/supplier/create-review-session', {
       method: 'POST',
@@ -342,12 +493,14 @@ function SendReviewLinkModal({
         customerEmail:  email        || null,
         staffNote:      note         || null,
         origin,
+        channel,
       }),
     })
     const json = await res.json()
     if (!res.ok) { setError(json.error || 'Failed to create link'); setCreating(false); return }
     setReviewLink(`${origin}/supplier-review/${json.token}`)
-    setEmailSent(!!json.emailSent)
+    setDelivery(json.delivery ?? null)
+    setSentChannel(json.channel ?? channel)
     setCreating(false)
   }
 
@@ -387,7 +540,7 @@ function SendReviewLinkModal({
               ))}
             </div>
 
-            <p className="text-xs font-semibold text-text-faint uppercase tracking-widest">Customer details (optional)</p>
+            <p className="text-xs font-semibold text-text-faint uppercase tracking-widest">Customer details</p>
             <div className="space-y-3">
               <input value={customerName} onChange={e => setCustomerName(e.target.value)}
                 placeholder="Customer name" className={inputCls} />
@@ -400,6 +553,30 @@ function SendReviewLinkModal({
                 className={inputCls + ' resize-none'} />
             </div>
 
+            <div>
+              <p className="text-xs font-semibold text-text-faint uppercase tracking-widest mb-2">Send via</p>
+              <div className="grid grid-cols-3 gap-2">
+                {channelOptions.map(opt => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => opt.available && setChannel(opt.id)}
+                    disabled={!opt.available}
+                    className={`py-2 rounded-lg text-xs font-semibold border transition-colors ${
+                      channel === opt.id && opt.available
+                        ? 'bg-brand border-brand text-white'
+                        : opt.available
+                          ? 'bg-ui border-border text-text-secondary hover:border-brand'
+                          : 'bg-ui border-border-subtle text-text-faint opacity-50 cursor-not-allowed'
+                    }`}
+                  >
+                    {channelLabel(opt.id)}
+                    {!opt.available && <span className="block text-[10px] font-normal mt-0.5">Not configured</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {error && <p className="text-error text-xs">{error}</p>}
 
             <div className="flex gap-3 pt-1">
@@ -408,7 +585,7 @@ function SendReviewLinkModal({
                 disabled={creating}
                 className="flex-1 py-2.5 bg-brand hover:bg-brand-hover disabled:opacity-50 text-white rounded-lg font-semibold text-sm transition-colors"
               >
-                {creating ? 'Creating link…' : 'Create review link'}
+                {creating ? 'Sending…' : `Send via ${channelLabel(channel)}`}
               </button>
               <button onClick={onClose} className="text-sm text-text-faint hover:text-text-primary transition-colors px-2">
                 Cancel
@@ -419,8 +596,18 @@ function SendReviewLinkModal({
           <div className="px-6 py-5 space-y-4">
             <div className="bg-brand-subtle border border-brand/30 rounded-lg px-4 py-3 space-y-2">
               <p className="text-xs font-semibold text-brand uppercase tracking-widest">Review link ready</p>
-              {emailSent && (
-                <p className="text-xs text-success font-medium">✓ Email sent to {email}</p>
+              {delivery?.sent && (
+                <p className="text-xs text-success font-medium">✓ Sent via {channelLabel(sentChannel)}</p>
+              )}
+              {delivery && !delivery.sent && delivery.reason === 'not_configured' && (
+                <p className="text-xs text-text-faint">
+                  {channelLabel(sentChannel)} isn&apos;t set up yet — link copied below, share it manually.
+                </p>
+              )}
+              {delivery && !delivery.sent && delivery.reason !== 'not_configured' && (
+                <p className="text-xs text-error">
+                  Delivery failed — link copied below, share it manually.
+                </p>
               )}
               <p className="text-xs text-text-secondary break-all">{reviewLink}</p>
             </div>
@@ -431,7 +618,7 @@ function SendReviewLinkModal({
               {copied ? '✓ Copied!' : 'Copy link'}
             </button>
             <p className="text-center text-xs text-text-faint">
-              Share this link with the customer via text or email.
+              Or copy the link above and share it another way.
             </p>
             <button onClick={onClose} className="w-full text-sm text-text-faint hover:text-text-primary transition-colors py-1">
               Done
@@ -451,18 +638,41 @@ export function TradeDeskTab({
   accessToken,
   slug,
   origin,
+  crossSellRules,
 }: {
   supplier: SupplierData
   manufacturers: Manufacturer[]
   accessToken: string
   slug: string
   origin: string
+  crossSellRules: CrossSellRule[]
 }) {
   const [query, setQuery]                       = useState('')
+  const [view, setView]                         = useState<'product' | 'manufacturer'>('product')
+  const [manufacturerFilter, setManufacturerFilter] = useState<string | null>(null)
+  const [categoryBrowse, setCategoryBrowse]     = useState<string | null>(null)
   const [quotePrepItems, setQuotePrepItems]     = useState<QuotePrepItem[]>([])
   const [reviewModalItems, setReviewModalItems] = useState<StockedItem[]>([])
   const [showReviewModal, setShowReviewModal]   = useState(false)
   const [selectedForReview, setSelectedForReview] = useState<Set<string>>(new Set())
+  const [msgStatus, setMsgStatus]               = useState<MessagingStatus>({ sms: false, whatsapp: false })
+
+  useEffect(() => {
+    fetch('/api/supplier/messaging-status')
+      .then(r => r.json())
+      .then(setMsgStatus)
+      .catch(() => {})
+  }, [])
+
+  // A fresh search should drop any drill-down/adjacent-category context from
+  // the previous one. Adjusted during render (React's documented pattern for
+  // resetting state when another value changes) rather than in an effect.
+  const [prevQuery, setPrevQuery] = useState(query)
+  if (query !== prevQuery) {
+    setPrevQuery(query)
+    setManufacturerFilter(null)
+    setCategoryBrowse(null)
+  }
 
   // Build stocked items by cross-referencing selected system IDs with full manufacturer data
   const stockedItems = useMemo<StockedItem[]>(() => {
@@ -494,7 +704,32 @@ export function TradeDeskTab({
     )
   }, [supplier, manufacturers])
 
-  const results = useMemo(() => searchItems(stockedItems, query), [stockedItems, query])
+  const scoredResults = useMemo(() => searchItemsScored(stockedItems, query), [stockedItems, query])
+  const results = useMemo(() => scoredResults.map(r => r.item), [scoredResults])
+
+  const scoreMap = useMemo(
+    () => new Map(scoredResults.map(r => [r.item.systemId, r.score])),
+    [scoredResults]
+  )
+  const manufacturerGroups = useMemo(
+    () => groupByManufacturer(results, item => scoreMap.get(item.systemId) ?? 0),
+    [results, scoreMap]
+  )
+
+  const crossSellCategories = useMemo(() => {
+    const topCategory = scoredResults[0]?.item.category
+    if (!topCategory) return []
+    const targets = crossSellRules
+      .filter(r => r.from_category === topCategory)
+      .map(r => r.to_category)
+    return Array.from(new Set(targets))
+  }, [scoredResults, crossSellRules])
+
+  const displayedItems = useMemo(() => {
+    if (categoryBrowse) return stockedItems.filter(i => i.category === categoryBrowse)
+    if (manufacturerFilter) return results.filter(i => i.manufacturerId === manufacturerFilter)
+    return results
+  }, [categoryBrowse, manufacturerFilter, results, stockedItems])
 
   const addedSystemIds = new Set(quotePrepItems.map(p => p.systemId))
 
@@ -527,7 +762,7 @@ export function TradeDeskTab({
   }
 
   function openReviewModalForSelected() {
-    const items = results.filter(r => selectedForReview.has(r.systemId))
+    const items = (categoryBrowse ? displayedItems : results).filter(r => selectedForReview.has(r.systemId))
     if (items.length === 0) return
     setReviewModalItems(items)
     setShowReviewModal(true)
@@ -542,12 +777,19 @@ export function TradeDeskTab({
     setShowReviewModal(true)
   }
 
+  function drillIntoManufacturer(manufacturerId: string) {
+    setManufacturerFilter(manufacturerId)
+    setView('product')
+  }
+
   const EXAMPLES = [
     '820 flush internal door',
     'vertical fibre cement cladding',
     'blackbutt composite decking',
     'external corner trim',
   ]
+
+  const showManufacturerGrid = view === 'manufacturer' && !!query && !categoryBrowse && results.length > 0
 
   return (
     <div className="space-y-5">
@@ -601,13 +843,50 @@ export function TradeDeskTab({
 
         {/* Results */}
         <div className="space-y-3">
-          {query && (
+          {categoryBrowse ? (
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <p className="text-xs text-text-faint">
-                {results.length > 0
-                  ? `${results.length} suggested stocked match${results.length !== 1 ? 'es' : ''} — confirm with customer before adding`
-                  : `No matches in your stocked ranges for "${query}"`}
+                Showing <span className="text-text-secondary font-medium">{categoryBrowse}</span> — adjacent to your search
               </p>
+              <div className="flex items-center gap-3">
+                {selectedForReview.size > 0 && (
+                  <button
+                    onClick={openReviewModalForSelected}
+                    className="flex items-center gap-2 px-4 py-2 bg-brand hover:bg-brand-hover text-white text-xs font-semibold rounded-lg transition-colors"
+                  >
+                    Send review link — {selectedForReview.size} selected
+                  </button>
+                )}
+                <button onClick={() => setCategoryBrowse(null)} className="text-xs text-text-faint hover:text-text-primary transition-colors">
+                  × Clear
+                </button>
+              </div>
+            </div>
+          ) : query && (
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-3 flex-wrap">
+                <p className="text-xs text-text-faint">
+                  {results.length > 0
+                    ? `${results.length} suggested stocked match${results.length !== 1 ? 'es' : ''} — confirm with customer before adding`
+                    : `No matches in your stocked ranges for "${query}"`}
+                </p>
+                {results.length > 0 && (
+                  <div className="flex items-center rounded-lg border border-border overflow-hidden flex-shrink-0">
+                    <button
+                      onClick={() => setView('product')}
+                      className={`px-3 py-1 text-xs font-medium transition-colors ${view === 'product' ? 'bg-brand text-white' : 'bg-ui text-text-faint hover:text-text-secondary'}`}
+                    >
+                      Products
+                    </button>
+                    <button
+                      onClick={() => setView('manufacturer')}
+                      className={`px-3 py-1 text-xs font-medium transition-colors ${view === 'manufacturer' ? 'bg-brand text-white' : 'bg-ui text-text-faint hover:text-text-secondary'}`}
+                    >
+                      Manufacturers
+                    </button>
+                  </div>
+                )}
+              </div>
               {selectedForReview.size > 0 && (
                 <button
                   onClick={openReviewModalForSelected}
@@ -619,47 +898,78 @@ export function TradeDeskTab({
             </div>
           )}
 
-          {results.length > 0 && (
+          {!categoryBrowse && query && results.length > 0 && (
+            <CrossSellStrip
+              categories={crossSellCategories}
+              stockedItems={stockedItems}
+              onSelectCategory={setCategoryBrowse}
+            />
+          )}
+
+          {!categoryBrowse && manufacturerFilter && !showManufacturerGrid && (
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-text-faint">
+                Filtered to <span className="text-text-secondary font-medium">
+                  {stockedItems.find(i => i.manufacturerId === manufacturerFilter)?.manufacturerName}
+                </span>
+              </p>
+              <button onClick={() => setManufacturerFilter(null)} className="text-xs text-brand hover:underline">
+                × clear
+              </button>
+            </div>
+          )}
+
+          {showManufacturerGrid ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {results.map(item => (
-                <ResultCard
-                  key={item.systemId}
-                  item={item}
-                  onAddToQuotePrep={addToQuotePrep}
-                  onSendReviewLink={openReviewModal}
-                  onToggleSelect={toggleSelectForReview}
-                  alreadyAdded={addedSystemIds.has(item.systemId)}
-                  selected={selectedForReview.has(item.systemId)}
-                />
+              {manufacturerGroups.map(group => (
+                <ManufacturerGroupCard key={group.manufacturerId} group={group} onDrillDown={drillIntoManufacturer} />
               ))}
             </div>
-          )}
+          ) : (
+            <>
+              {displayedItems.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {displayedItems.map(item => (
+                    <ResultCard
+                      key={item.systemId}
+                      item={item}
+                      onAddToQuotePrep={addToQuotePrep}
+                      onSendReviewLink={openReviewModal}
+                      onToggleSelect={toggleSelectForReview}
+                      alreadyAdded={addedSystemIds.has(item.systemId)}
+                      selected={selectedForReview.has(item.systemId)}
+                    />
+                  ))}
+                </div>
+              )}
 
-          {query && results.length === 0 && (
-            <div className="py-12 text-center border border-border-subtle rounded-xl">
-              <p className="text-text-faint text-sm">No stocked products match "{query}"</p>
-              <p className="text-text-faint text-xs mt-1.5">
-                Try different keywords, or go to the Products tab to add more stocked ranges.
-              </p>
-            </div>
-          )}
+              {!categoryBrowse && query && results.length === 0 && (
+                <div className="py-12 text-center border border-border-subtle rounded-xl">
+                  <p className="text-text-faint text-sm">No stocked products match &quot;{query}&quot;</p>
+                  <p className="text-text-faint text-xs mt-1.5">
+                    Try different keywords, or go to the Products tab to add more stocked ranges.
+                  </p>
+                </div>
+              )}
 
-          {!query && stockedItems.length > 0 && (
-            <div className="py-12 text-center border border-border-subtle rounded-xl">
-              <p className="text-text-secondary text-sm font-medium">
-                {stockedItems.length} stocked product{stockedItems.length !== 1 ? 's' : ''} ready to search
-              </p>
-              <p className="text-text-faint text-xs mt-1">Start typing above to find matches.</p>
-            </div>
-          )}
+              {!categoryBrowse && !query && stockedItems.length > 0 && (
+                <div className="py-12 text-center border border-border-subtle rounded-xl">
+                  <p className="text-text-secondary text-sm font-medium">
+                    {stockedItems.length} stocked product{stockedItems.length !== 1 ? 's' : ''} ready to search
+                  </p>
+                  <p className="text-text-faint text-xs mt-1">Start typing above to find matches.</p>
+                </div>
+              )}
 
-          {!query && stockedItems.length === 0 && (
-            <div className="py-12 text-center border border-border-subtle rounded-xl">
-              <p className="text-text-faint text-sm">No stocked products configured yet.</p>
-              <p className="text-text-faint text-xs mt-1.5">
-                Go to the Products tab and add the manufacturers you stock.
-              </p>
-            </div>
+              {!categoryBrowse && !query && stockedItems.length === 0 && (
+                <div className="py-12 text-center border border-border-subtle rounded-xl">
+                  <p className="text-text-faint text-sm">No stocked products configured yet.</p>
+                  <p className="text-text-faint text-xs mt-1.5">
+                    Go to the Products tab and add the manufacturers you stock.
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -691,6 +1001,7 @@ export function TradeDeskTab({
           supplierName={supplier.name}
           accessToken={accessToken}
           origin={origin}
+          messagingStatus={msgStatus}
           onClose={() => setShowReviewModal(false)}
         />
       )}

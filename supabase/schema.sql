@@ -403,3 +403,48 @@ CREATE TABLE IF NOT EXISTS portal_contacts (
   sort_order  integer DEFAULT 0,
   created_at  timestamptz DEFAULT now()
 );
+
+-- ── TRADE DESK: REVIEW SESSIONS & CROSS-SELL ────────────────────────────────
+-- Originally added via supabase/migrations/20260524_trade_desk_search.sql,
+-- never folded into this canonical file until now. Columns below include the
+-- channel/delivery additions from 20260723_cross_sell_and_channel.sql.
+
+-- Session created by supplier staff ("Send review link") in the Trade Desk
+-- tab. Token is a random UUID used in the public URL: /supplier-review/[token]
+CREATE TABLE IF NOT EXISTS customer_review_sessions (
+  id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  token              text NOT NULL UNIQUE DEFAULT gen_random_uuid()::text,
+  supplier_id        uuid NOT NULL REFERENCES suppliers(id) ON DELETE CASCADE,
+  customer_name      text,
+  customer_mobile    text,
+  customer_email     text,
+  staff_note         text,
+  preferred_channel  text DEFAULT 'email'
+    CHECK (preferred_channel IN ('email', 'sms', 'whatsapp')),
+  email_sent         boolean DEFAULT false,
+  sms_sent           boolean DEFAULT false,
+  whatsapp_sent      boolean DEFAULT false,
+  delivery_error     text,
+  created_at         timestamptz DEFAULT now()
+);
+
+-- Which systems (product lines) were selected for this review session.
+CREATE TABLE IF NOT EXISTS customer_review_session_items (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id  uuid NOT NULL REFERENCES customer_review_sessions(id) ON DELETE CASCADE,
+  system_id   uuid NOT NULL REFERENCES systems(id) ON DELETE CASCADE,
+  sort_order  int NOT NULL DEFAULT 0
+);
+
+-- Staff/admin-curated "what pairs with this category" mapping, used by the
+-- Trade Desk's "You may also be interested in" strip. Not AI-generated at
+-- runtime — see /api/admin/suggest-cross-sell for the staff-approval-only
+-- authoring aid.
+CREATE TABLE IF NOT EXISTS category_cross_sell_rules (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  from_category text NOT NULL,
+  to_category   text NOT NULL,
+  note          text,
+  created_at    timestamptz DEFAULT now(),
+  UNIQUE (from_category, to_category)
+);

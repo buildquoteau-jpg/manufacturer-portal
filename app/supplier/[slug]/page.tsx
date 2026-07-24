@@ -8,7 +8,7 @@ import { ProfileTab } from './ProfileTab'
 import { ProductsTab } from './ProductsTab'
 import { EnquiriesTab } from './EnquiriesTab'
 import { AccountTab } from './AccountTab'
-import { TradeDeskTab } from './TradeDeskTab'
+import { TradeDeskTab, CrossSellRule } from './TradeDeskTab'
 
 // NEXT_PUBLIC_ required — this is a client component. The value is the admin's
 // email address used to bypass per-supplier auth. Low risk (email ≠ secret),
@@ -139,6 +139,7 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
 
   const [enquiries, setEnquiries]       = useState<RfqEnquiry[]>([])
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([])
+  const [crossSellRules, setCrossSellRules] = useState<CrossSellRule[]>([])
 
   useEffect(() => {
     setOrigin(window.location.origin)
@@ -187,6 +188,7 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
     if (s.first_login && !adminUser) setShowFirstLogin(true)
     loadEnquiries(s)
     loadManufacturers()
+    loadCrossSellRules()
     setLoading(false)
   }
 
@@ -207,6 +209,16 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
       .select('id, name, slug, description, logo_url, website_url, systems ( id, name, product_code, category, subcategory, sort_order, description, dimensions, website_url )')
       .order('name')
     if (data) setManufacturers(data as unknown as Manufacturer[])
+  }
+
+  async function loadCrossSellRules() {
+    // Table only exists once 20260723_cross_sell_and_channel.sql has been run
+    // — `data` stays null and the Trade Desk cross-sell strip simply renders
+    // nothing until then.
+    const { data } = await supabase
+      .from('category_cross_sell_rules')
+      .select('from_category, to_category')
+    if (data) setCrossSellRules(data as CrossSellRule[])
   }
 
   // ── Loading / error states ────────────────────────────────────────────────────
@@ -334,6 +346,7 @@ export default function SupplierPortalPage({ params }: { params: Promise<{ slug:
             accessToken={accessToken}
             slug={slug}
             origin={origin}
+            crossSellRules={crossSellRules}
           />
         )}
         {activeTab === 'enquiries' && (
